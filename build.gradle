@@ -12,4 +12,5 @@ repositories {
 dependencies {
   compile localGroovy()
   compile gradleApi()
+  compile "org.eclipse.xtext:org.eclipse.xtext.builder.standalone:2.5.3"
 }
