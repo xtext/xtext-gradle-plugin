@@ -10,6 +10,9 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
+import org.gradle.plugins.ide.eclipse.EclipsePlugin;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.xtext.gradle.tasks.XtextEclipseSettings;
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
@@ -24,9 +27,17 @@ class XtextPlugin implements Plugin<Project> {
 
 	def void apply(Project project) {
 		project.plugins.apply(BasePlugin)
+		project.plugins.apply(EclipsePlugin)
+		
 		def XtextExtension xtext = project.extensions.create("xtext", XtextExtension, project, fileResolver);
+		
 		def Configuration xtextTooling = project.configurations.create("xtextTooling")
 		def Configuration xtextDependencies = project.configurations.create("xtext")
+		
+		XtextEclipseSettings settingsTask = project.tasks.create("xtextEclipseSettings", XtextEclipseSettings)
+		settingsTask.configure(xtext)
+		project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME].dependsOn(settingsTask)
+		
 		project.afterEvaluate{
 			project.dependencies.add("xtextTooling", "org.eclipse.xtext:org.eclipse.xtext:${xtext.version}")
 			project.dependencies.add("xtextTooling", "org.xtext:xtext-gradle-lib:0.0.1")
@@ -48,8 +59,7 @@ class XtextPlugin implements Plugin<Project> {
 			generatorTask.classpath = xtextDependencies
 
 			project.tasks[BasePlugin.ASSEMBLE_TASK_NAME].dependsOn(generatorTask)
+			
 		}
-		
-		//TODO task for writing eclipse preferences
 	}
 }

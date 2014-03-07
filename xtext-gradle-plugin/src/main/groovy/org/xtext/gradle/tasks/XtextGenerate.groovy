@@ -32,6 +32,7 @@ class XtextGenerate extends DefaultTask {
 			"java",
 			"-cp",
 			getXtextClasspath().asPath,
+			"-Dfile.encoding=${xtext.getEncoding()}",// workaround for wrong encoding provider in StandaloneBuilder
 			"org.xtext.builder.standalone.Main",
 			"-encoding",
 			xtext.getEncoding(),
