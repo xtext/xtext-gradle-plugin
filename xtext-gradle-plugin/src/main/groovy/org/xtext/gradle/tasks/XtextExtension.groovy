@@ -52,7 +52,7 @@ class Language {
 	}
 
 	def OutputConfiguration getOutput() {
-		outputs.maybeCreate("DEFAULT_CONFIGURATION")
+		outputs.maybeCreate("DEFAULT_OUTPUT")
 	}
 
 	def output(Closure closure) {
