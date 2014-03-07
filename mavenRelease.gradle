@@ -32,8 +32,6 @@ uploadArchives {
             }
  
             pom.project {
-               name 'Xtext Gradle Plugin'
-               description 'A Gradle plugin for using Xtext languages'
                packaging 'jar'
                url 'https://github.com/oehme/xtext-gradle-plugin'
  

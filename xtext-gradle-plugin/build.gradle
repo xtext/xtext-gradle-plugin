@@ -2,3 +2,8 @@ dependencies {
   compile localGroovy()
   compile gradleApi()
 }
+
+uploadArchives.repositories.mavenDeployer.pom.project {
+  name 'Xtext Gradle Plugin'
+  description 'A plugin for invoking Xtext base Code generators'
+}
