@@ -41,6 +41,7 @@ class XtextPlugin implements Plugin<Project> {
 					xtext.sources.srcDirs(sourceDirs.toArray())
 				}
 				xtextDependencies.extendsFrom(project.configurations[JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME])
+				project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME].dependsOn(generatorTask)
 			}
 			generatorTask.configure(xtext)
 			generatorTask.xtextClasspath = xtextTooling
@@ -48,5 +49,7 @@ class XtextPlugin implements Plugin<Project> {
 
 			project.tasks[BasePlugin.ASSEMBLE_TASK_NAME].dependsOn(generatorTask)
 		}
+		
+		//TODO task for writing eclipse preferences
 	}
 }
