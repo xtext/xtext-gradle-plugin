@@ -1,0 +1,4 @@
+dependencies {
+  compile localGroovy()
+  compile "org.eclipse.xtext:org.eclipse.xtext.builder.standalone:2.5.3"
+}

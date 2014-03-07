@@ -1,0 +1,1 @@
+include 'xtext-gradle-lib', 'xtext-gradle-plugin'

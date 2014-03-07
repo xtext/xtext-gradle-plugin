@@ -1,16 +1,12 @@
-apply plugin: 'groovy'
-apply plugin: 'eclipse'
-apply from: 'mavenRelease.gradle'
+subprojects {
+  apply plugin: 'groovy'
+  apply plugin: 'eclipse'
+  apply from: '../mavenRelease.gradle'
+  
+  group = "org.xtext"
+  version = "0.0.1"
 
-group = "org.xtext"
-version = "0.0.1"
-
-repositories {
-  mavenCentral()
-}
-
-dependencies {
-  compile localGroovy()
-  compile gradleApi()
-  compile "org.eclipse.xtext:org.eclipse.xtext.builder.standalone:2.5.3"
+  repositories {
+    mavenCentral()
+  }
 }
