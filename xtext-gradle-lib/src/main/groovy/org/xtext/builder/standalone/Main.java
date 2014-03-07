@@ -11,6 +11,7 @@ import org.eclipse.xtext.builder.standalone.LanguageAccess;
 import org.eclipse.xtext.builder.standalone.LanguageAccessFactory;
 import org.eclipse.xtext.builder.standalone.StandaloneBuilder;
 import org.eclipse.xtext.builder.standalone.StandaloneBuilderModule;
+import org.eclipse.xtext.parser.IEncodingProvider;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -48,12 +49,22 @@ public class Main {
 		}
 		Map<String, LanguageAccess> languages = new LanguageAccessFactory().createLanguageAccess(
 				languageParser.getLanguages(), Main.class.getClassLoader(), workingDirectory);
+		fixEncoding(languages, builder);
 		builder.setLanguages(languages);
 		builder.setSourceDirs(sourcePath);
 
 		boolean success = builder.launch();
 		if (!success) {
 			throw new IllegalStateException("Xtext failed");
+		}
+	}
+
+	private static void fixEncoding(Map<String, LanguageAccess> languages, StandaloneBuilder builder) {
+		for (LanguageAccess language : languages.values()) {
+			IEncodingProvider encodingProvider = language.getEncodingProvider();
+			if (encodingProvider instanceof IEncodingProvider.Runtime) {
+				((IEncodingProvider.Runtime) encodingProvider).setDefaultEncoding(builder.getEncoding());
+			}
 		}
 	}
 }
