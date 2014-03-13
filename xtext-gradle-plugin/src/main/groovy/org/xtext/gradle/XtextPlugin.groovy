@@ -40,6 +40,10 @@ class XtextPlugin implements Plugin<Project> {
 		settingsTask.configure(xtext)
 		project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME].dependsOn(settingsTask)
 		
+		def EclipseModel eclipse = project.extensions.getByType(EclipseModel)
+		eclipse.getProject().buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
+		eclipse.getProject().natures("org.eclipse.xtext.ui.shared.xtextNature")
+		
 		project.afterEvaluate{
 			project.dependencies.add("xtextTooling", "org.eclipse.xtext:org.eclipse.xtext:${xtext.version}")
 			project.dependencies.add("xtextTooling", "org.xtext:xtext-gradle-lib:0.0.2")
