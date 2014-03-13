@@ -46,7 +46,7 @@ class XtextPlugin implements Plugin<Project> {
 		
 		project.afterEvaluate{
 			project.dependencies.add("xtextTooling", "org.eclipse.xtext:org.eclipse.xtext:${xtext.version}")
-			project.dependencies.add("xtextTooling", "org.xtext:xtext-gradle-lib:0.0.2")
+			project.dependencies.add("xtextTooling", "org.xtext:xtext-gradle-lib:0.0.3")
 
 			def XtextGenerate generatorTask = project.tasks.create("xtextGenerate", XtextGenerate)
 			def JavaPluginConvention java = project.convention.findPlugin(JavaPluginConvention)
