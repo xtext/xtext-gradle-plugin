@@ -12,6 +12,8 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.xtext.gradle.tasks.Language
+import org.xtext.gradle.tasks.OutputConfiguration;
 import org.xtext.gradle.tasks.XtextEclipseSettings;
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
@@ -52,6 +54,14 @@ class XtextPlugin implements Plugin<Project> {
 					xtext.sources.srcDirs(sourceDirs.toArray())
 				}
 				xtextDependencies.extendsFrom(project.configurations[JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME])
+				xtext.languages.each { Language language ->
+					language.outputs.each { OutputConfiguration output ->
+						if (output.javaSourceSet != null) {
+							project.dependencies.add("compile", "org.eclipse.xtext:org.eclipse.xtext.xbase.lib:${xtext.version}")
+							output.javaSourceSet.getJava().srcDir(output.dir)
+						}
+					}
+				}
 				project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME].dependsOn(generatorTask)
 			}
 			generatorTask.configure(xtext)

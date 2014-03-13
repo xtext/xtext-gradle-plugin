@@ -63,8 +63,13 @@ class Language {
 class OutputConfiguration {
 	String name
 	def dir
+	SourceSet javaSourceSet
 
 	OutputConfiguration(String name) {
 		this.name = name
+	}
+	
+	def producesJavaFor(SourceSet javaSourceSet) {
+		setJavaSourceSet(javaSourceSet)
 	}
 }
