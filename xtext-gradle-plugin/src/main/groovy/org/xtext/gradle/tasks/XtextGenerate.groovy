@@ -5,8 +5,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class XtextGenerate extends DefaultTask {
+
+	private static Logger LOG = LoggerFactory.getLogger(XtextGenerate.class)
 
 	private XtextExtension xtext
 
@@ -28,10 +32,20 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate() {
+
 		def command = [
 			"java",
 			"-cp",
 			getXtextClasspath().asPath,
+		]
+
+		xtext.languages.each {Language language ->
+			for (property in language.properties) {
+				command += [ "-D${property.key}=${property.value}" ]
+			}
+		}
+
+		command += [
 			"org.xtext.builder.standalone.Main",
 			"-encoding",
 			xtext.getEncoding(),
@@ -41,7 +55,6 @@ class XtextGenerate extends DefaultTask {
 			getClasspath().asPath,
 			"-tempdir",
 			new File(project.buildDir, "xtext-temp").absolutePath
-			
 		]
 
 		xtext.languages.each {Language language ->
@@ -59,6 +72,8 @@ class XtextGenerate extends DefaultTask {
 		command += [
 			* xtext.sources.srcDirs*.absolutePath
 		]
+
+		LOG.debug(String.format("starting xtext generate with command line '%s'", command.join(" ")))
 
 		def pb = new ProcessBuilder(command as String[])
 		pb.redirectErrorStream(true)

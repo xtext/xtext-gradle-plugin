@@ -38,6 +38,7 @@ class Language {
 	String setup
 	boolean consumesJava
 	NamedDomainObjectContainer<OutputConfiguration> outputs
+	Map<String, String> properties
 
 	private Project project
 
@@ -45,6 +46,10 @@ class Language {
 		this.name = name
 		this.project = project
 		outputs = project.container(OutputConfiguration)
+	}
+
+	def properties(Map<String, String> properties) {
+		this.properties = properties
 	}
 
 	def outputs(Closure closure) {
