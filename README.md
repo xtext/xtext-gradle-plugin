@@ -70,6 +70,14 @@ xtext {
         DEFAULT_OUTPUT.dir = 'build/heroes'
         SIDEKICKS.dir = 'build/sidekicks'
       }
+      /*
+       * all properties are passed to the java process launched by the 
+       * xtext plugin via '-DpropertyA=valueB' so they can be accessed within
+       * your language with 'System.getProperty("propertyA")'
+       */
+      properties = [
+          propertyA: "valueB",
+      ]
     }
     
     villains {
