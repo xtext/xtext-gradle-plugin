@@ -26,6 +26,10 @@ class XtextPlugin implements Plugin<Project> {
 	XtextPlugin(FileResolver fileResolver) {
 		this.fileResolver = fileResolver
 	}
+  
+  private String getPluginVersion() {
+    this.class.package.implementationVersion
+  }
 
 	def void apply(Project project) {
 		project.plugins.apply(BasePlugin)
@@ -45,8 +49,11 @@ class XtextPlugin implements Plugin<Project> {
 		eclipse.getProject().natures("org.eclipse.xtext.ui.shared.xtextNature")
 		
 		project.afterEvaluate{
-			project.dependencies.add("xtextTooling", "org.eclipse.xtext:org.eclipse.xtext:${xtext.version}")
-			project.dependencies.add("xtextTooling", "org.xtext:xtext-gradle-lib:0.0.3")
+			project.dependencies.add("xtextTooling", "org.eclipse.xtext:org.eclipse.xtext.builder.standalone:${xtext.version}") {
+      	force = true
+        exclude group:'asm'
+      }
+			project.dependencies.add("xtextTooling", "org.xtext:xtext-gradle-lib:${pluginVersion}")
 
 			def XtextGenerate generatorTask = project.tasks.create("xtextGenerate", XtextGenerate)
 			def JavaPluginConvention java = project.convention.findPlugin(JavaPluginConvention)

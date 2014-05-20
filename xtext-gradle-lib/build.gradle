@@ -1,6 +1,8 @@
 dependencies {
   compile localGroovy()
-  compile "org.eclipse.xtext:org.eclipse.xtext.builder.standalone:2.5.3"
+  compile ("org.eclipse.xtext:org.eclipse.xtext.builder.standalone:[2.5.4,)") {
+    exclude group:'asm', module:'asm'
+  }
 }
 
 uploadArchives.repositories.mavenDeployer.pom.project {
