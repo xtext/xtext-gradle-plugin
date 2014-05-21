@@ -27,6 +27,8 @@ buildscript {
     classpath 'org.xtext:xtext-gradle-plugin:0.0.3'
   }
 }
+
+apply plugin:'xtext'
 ```
 
 Add your languages to the xtextTooling configuration
