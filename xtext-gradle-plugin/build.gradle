@@ -1,6 +1,6 @@
 dependencies {
-  compile localGroovy()
   compile gradleApi()
+	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
 }
 
 jar {
@@ -13,3 +13,5 @@ uploadArchives.repositories.mavenDeployer.pom.project {
   name 'Xtext Gradle Plugin'
   description 'A plugin for invoking Xtext base Code generators'
 }
+
+project.test.dependsOn project(":xtext-gradle-lib").install

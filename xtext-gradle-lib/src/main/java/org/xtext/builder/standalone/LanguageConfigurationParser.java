@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.xtext.builder.standalone.ILanguageConfiguration;
 import org.eclipse.xtext.generator.OutputConfiguration;
 
@@ -61,8 +59,6 @@ public class LanguageConfigurationParser {
 		private boolean javaSupport = false;
 		private Map<String, OutputConfiguration> outputs = Maps.newHashMap();
 
-		@Override
-		@NonNull
 		public String getSetup() {
 			return setup;
 		}
@@ -75,13 +71,10 @@ public class LanguageConfigurationParser {
 			return outputs;
 		}
 
-		@Override
-		@Nullable
 		public Set<OutputConfiguration> getOutputConfigurations() {
 			return ImmutableSet.copyOf(outputs.values());
 		}
 
-		@Override
 		public boolean isJavaSupport() {
 			return javaSupport;
 		}
