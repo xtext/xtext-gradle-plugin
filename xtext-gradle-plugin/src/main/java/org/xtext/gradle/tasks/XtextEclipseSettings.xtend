@@ -15,6 +15,7 @@ class XtextEclipseSettings extends DefaultTask {
 	def writeSettings() {
 		xtext.languages.forEach [ Language language |
 			val prefs = new XtextEclipsePreferences(project, language.name)
+			prefs.load
 			prefs.putBoolean("is_project_specific", true)
 			language.outputs.forEach [ output |
 				prefs.put(output.getKey("directory"), project.file(output.dir).absolutePath)

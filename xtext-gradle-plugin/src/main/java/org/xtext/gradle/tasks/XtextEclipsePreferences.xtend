@@ -23,5 +23,9 @@ class XtextEclipsePreferences extends EclipsePreferences {
 	override public save() throws BackingStoreException {
 		super.save
 	}
+	
+	override public load() throws BackingStoreException {
+		super.load
+	}
 
 }
