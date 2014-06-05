@@ -24,7 +24,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath 'org.xtext:xtext-gradle-plugin:0.0.3'
+    classpath 'org.xtext:xtext-gradle-plugin:0.0.5'
   }
 }
 
@@ -52,7 +52,7 @@ Configure your languages
 
 ```groovy
 xtext {
-  version = '2.5.3' // the current default, can be omitted
+  version = '2.6.0' // the current default, can be omitted
   encoding = 'UTF-8' //the default, can be omitted
   
   /* Java sourceDirs are added automatically,
