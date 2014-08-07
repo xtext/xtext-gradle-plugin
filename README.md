@@ -70,7 +70,11 @@ xtext {
       consumesJava = true
       outputs {
         DEFAULT_OUTPUT.dir = 'build/heroes'
-        SIDEKICKS.dir = 'build/sidekicks'
+        SIDEKICKS {
+          dir = 'build/sidekicks'
+          //automatically adds the above folder as a Java source folder for the main sourceSet
+          producesJavaFor sourceSets.main
+        }
       }
     }
     
