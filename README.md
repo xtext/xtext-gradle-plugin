@@ -16,20 +16,7 @@ Features
 Usage
 -----
 
-Add the plugin to your build classpath
-
-```groovy
-buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath 'org.xtext:xtext-gradle-plugin:0.0.5'
-  }
-}
-
-apply plugin:'xtext'
-```
+Get the latest version of the plugin from the [Gradle Plugin Portal](http://plugins.gradle.org/plugin/org.xtext.xtext)
 
 Add your languages to the xtextTooling configuration
 
@@ -52,7 +39,7 @@ Configure your languages
 
 ```groovy
 xtext {
-  version = '2.6.0' // the current default, can be omitted
+  version = '2.7.2' // the current default, can be omitted
   encoding = 'UTF-8' //the default, can be omitted
   
   /* Java sourceDirs are added automatically,
