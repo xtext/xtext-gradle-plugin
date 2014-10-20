@@ -1,3 +1,5 @@
+description 'A plugin for invoking Xtext base Code generators'
+
 dependencies {
   compile gradleApi()
 	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
@@ -8,10 +10,3 @@ jar {
     attributes("Implementation-Version": version)
   }
 }
-
-uploadArchives.repositories.mavenDeployer.pom.project {
-  name 'Xtext Gradle Plugin'
-  description 'A plugin for invoking Xtext base Code generators'
-}
-
-project.test.dependsOn project(":xtext-gradle-lib").install

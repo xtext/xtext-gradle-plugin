@@ -1,7 +1,7 @@
 package org.xtext.gradle.tasks;
 
-import de.oehme.xtend.contrib.Property
 import groovy.lang.Closure
+import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
@@ -11,11 +11,10 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 
 class XtextExtension {
-	@Property String version = "2.6.0"
-	@Property String encoding = "UTF-8"
-	@Property SourceDirectorySet sources
-	@Property boolean fork
-	@Property NamedDomainObjectContainer<Language> languages;
+	@Accessors String version = "2.7.2"
+	@Accessors String encoding = "UTF-8"
+	@Accessors SourceDirectorySet sources
+	@Accessors NamedDomainObjectContainer<Language> languages;
 
 	private Project project
 
@@ -35,10 +34,10 @@ class XtextExtension {
 }
 
 class Language {
-	@Property String name;
-	@Property String setup
-	@Property boolean consumesJava
-	@Property NamedDomainObjectContainer<OutputConfiguration> outputs
+	@Accessors String name;
+	@Accessors String setup
+	@Accessors boolean consumesJava
+	@Accessors NamedDomainObjectContainer<OutputConfiguration> outputs
 
 	private Project project
 
@@ -62,9 +61,9 @@ class Language {
 }
 
 class OutputConfiguration {
-	@Property String name
-	@Property Object dir
-	@Property SourceSet javaSourceSet
+	@Accessors String name
+	@Accessors Object dir
+	@Accessors SourceSet javaSourceSet
 
 	new(String name) {
 		this.name = name

@@ -20,7 +20,7 @@ import com.google.inject.Injector;
 
 public class Main {
 
-	public static void main(String[] args) throws Exception {
+	public static boolean generate(String[] args) throws Exception {
 		Injector injector = Guice.createInjector(new StandaloneBuilderModule());
 		StandaloneBuilder builder = injector.getInstance(StandaloneBuilder.class);
 		builder.setClassPathEntries(new ArrayList<String>());
@@ -53,10 +53,7 @@ public class Main {
 		builder.setLanguages(languages);
 		builder.setSourceDirs(sourcePath);
 
-		boolean success = builder.launch();
-		if (!success) {
-			throw new IllegalStateException("Xtext failed");
-		}
+		return builder.launch();
 	}
 
 	private static void fixEncoding(Map<String, LanguageAccess> languages, StandaloneBuilder builder) {

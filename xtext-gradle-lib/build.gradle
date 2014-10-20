@@ -1,11 +1,7 @@
+description 'A small wrapper for Xtext to make it easier to use from Gradle'
+
 dependencies {
   compile ("org.eclipse.xtext:org.eclipse.xtext.builder.standalone:[2.5.4,)") {
     exclude group:'asm', module:'asm'
   }
 }
-
-uploadArchives.repositories.mavenDeployer.pom.project {
-  name 'Xtext Gradle Lib'
-  description 'A small wrapper for Xtext to make it easier to use from Gradle'
-}
-

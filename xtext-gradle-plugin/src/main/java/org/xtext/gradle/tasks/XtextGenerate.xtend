@@ -1,24 +1,23 @@
 package org.xtext.gradle.tasks;
 
-import de.oehme.xtend.contrib.Property
 import java.io.File
 import java.net.URLClassLoader
-import java.util.ArrayList
+import java.util.List
+import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
-
-import static extension org.xtext.gradle.GradleExtensions.*
+import org.gradle.internal.classloader.FilteringClassLoader
 
 class XtextGenerate extends DefaultTask {
 
 	private XtextExtension xtext
 
-	@Property @InputFiles FileCollection xtextClasspath
+	@Accessors @InputFiles FileCollection xtextClasspath
 
-	@Property @InputFiles FileCollection classpath
+	@Accessors @InputFiles FileCollection classpath
 
 	def configure(XtextExtension xtext) {
 		this.xtext = xtext
@@ -56,36 +55,49 @@ class XtextGenerate extends DefaultTask {
 			]
 		]
 		args += xtext.sources.srcDirs.map[absolutePath]
-		if (xtext.fork) {
-			generateForked(args)
-		} else {
-			generateNonForked(args)
-		}
+		generate(args)
 	}
 
-	def generateNonForked(ArrayList<String> arguments) {
+	def generate(List<String> arguments) {
 		System.setProperty("org.eclipse.emf.common.util.ReferenceClearingQueue", "false")
 		val contextClassLoader = Thread.currentThread.contextClassLoader
-		val classLoader = new URLClassLoader(getXtextClasspath.map[absoluteFile.toURI.toURL],
-			ClassLoader.systemClassLoader.parent)
+		val classLoader = getCompilerClassLoader(getXtextClasspath)
 		try {
 			Thread.currentThread.contextClassLoader = classLoader
 			val main = classLoader.loadClass("org.xtext.builder.standalone.Main")
-			val mainMethod = main.getMethod("main",typeof(String[]))
-			mainMethod.invoke(null, #[arguments as String[]])
+			val method = main.getMethod("generate", typeof(String[]))
+			val success = method.invoke(null, #[arguments as String[]]) as Boolean
+			if (!success) {
+				throw new GradleException('''Xtext generation failed''');
+			}
 		} finally {
 			Thread.currentThread.contextClassLoader = contextClassLoader
 		}
 	}
 
-	def generateForked(ArrayList<String> args) {
-		val result = project.javaexec [
-			main = "org.xtext.builder.standalone.Main"
-			it.classpath = getXtextClasspath
-			setArgs(args)
-		]
-		if (result.exitValue != 0) {
-			throw new GradleException("Xtext failed");
+	static val currentCompilerClassLoader = new ThreadLocal<URLClassLoader>() {
+		override protected initialValue() {
+			null
 		}
+	}
+
+	private def getCompilerClassLoader(FileCollection classpath) {
+		val classPathWithoutLog4j = classpath.filter[!name.contains("log4j")]
+		val urls = classPathWithoutLog4j.map[absoluteFile.toURI.toURL].toList
+		val currentClassLoader = currentCompilerClassLoader.get
+		if (currentClassLoader !== null && currentClassLoader.URLs.toList == urls) {
+			return currentClassLoader
+		} else {
+			val newClassLoader = new URLClassLoader(urls, loggingBridgeClassLoader)
+			currentCompilerClassLoader.set(newClassLoader)
+			return newClassLoader
+		}
+	}
+
+	private def loggingBridgeClassLoader() {
+		new FilteringClassLoader(XtextGenerate.classLoader) => [
+			allowPackage("org.slf4j")
+			allowPackage("org.apache.log4j")
+		]
 	}
 }
