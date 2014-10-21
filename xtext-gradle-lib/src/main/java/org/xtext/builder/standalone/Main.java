@@ -1,6 +1,7 @@
 package org.xtext.builder.standalone;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -52,7 +53,10 @@ public class Main {
 		fixEncoding(languages, builder);
 		builder.setLanguages(languages);
 		builder.setSourceDirs(sourcePath);
-
+		try {
+			Method javaSourceDirsSetter = StandaloneBuilder.class.getMethod("setJavaSourceDirs", Iterable.class);
+			javaSourceDirsSetter.invoke(builder, sourcePath);
+		} catch (Exception ignored) {}
 		return builder.launch();
 	}
 

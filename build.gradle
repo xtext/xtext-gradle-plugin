@@ -16,7 +16,7 @@ subprojects {
 	apply plugin: 'de.oehme.sobula.bintray-release'
 
 	group = "org.xtext"
-  version = "0.1.0"
+  version = "0.1.1"
 	
 	repositories {
     jcenter()
