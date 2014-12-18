@@ -1,7 +1,6 @@
 description 'A plugin for invoking Xtext base Code generators'
 
 dependencies {
-  compile gradleApi()
 	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
 }
 

@@ -1,22 +1,21 @@
 buildscript {
 	repositories {
 		jcenter()
-		maven { url 'http://dl.bintray.com/oehme/maven/' }
 	}
 	dependencies {
-		classpath 'org.xtend:xtend-gradle-plugin:0.3.1'
-		classpath 'de.oehme.sobula:sobula:0.0.+'
+		classpath 'org.xtend:xtend-gradle-plugin:0.3.5'
+		classpath 'com.github.oehme.sobula:sobula:0.4.1'
 	}
 }
 
 subprojects {
 	apply plugin: 'java'
 	apply plugin: 'eclipse'
-	apply plugin: 'de.oehme.sobula.maven-release'
-	apply plugin: 'de.oehme.sobula.bintray-release'
+	apply plugin: 'com.github.oehme.sobula.bintray-release'
+	apply plugin: 'com.github.oehme.sobula.stefan'
 
 	group = "org.xtext"
-  version = "0.1.1"
+	bintray.pkg.name = "$project.group:$project.name"
 	
 	repositories {
     jcenter()
@@ -26,10 +25,11 @@ subprojects {
 }
 
 configure(subprojects.findAll{p-> p.name.contains('plugin')}){
+	apply plugin: 'com.github.oehme.sobula.plugin-release'
+	apply plugin: 'java-gradle-plugin'
 	apply plugin: 'org.xtend.xtend'
 	
 	dependencies {
-    compile localGroovy()
-    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.7.2'
+    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.7.3'
   }
 }

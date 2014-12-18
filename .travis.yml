@@ -1,0 +1,6 @@
+language: java
+sudo: false
+cache:
+  directories:
+  - $HOME/.gradle
+script: ./gradlew check && ./.travis/releaseOnTag.sh
