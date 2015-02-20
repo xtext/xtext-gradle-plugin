@@ -1,7 +1,7 @@
 xtext-gradle-plugin
 ===================
 
-[![Build Status](https://travis-ci.org/xtext/xtext-gradle-plugin.svg?branch=master)](https://travis-ci.org/oehme/xtext-gradle-plugin)
+[![Build Status](https://travis-ci.org/xtext/xtext-gradle-plugin.svg?branch=master)](https://travis-ci.org/xtext/xtext-gradle-plugin)
 
 A plugin for using Xtext languages from a Gradle build
 
