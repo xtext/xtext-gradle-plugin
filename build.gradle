@@ -17,6 +17,18 @@ subprojects {
 	group = "org.xtext"
 	bintray.pkg.name = "$project.group:$project.name"
 	
+	contacts {
+		"xtext@itemis.com" {
+			moniker "The Xtext team"
+			roles "owner"
+			github "xtext"
+		}
+	}
+
+	//TODO create bintray and central users
+	bintray.user = "oehme"
+	bintray.pkg.version.mavenCentralSync.user = "oehme"
+	
 	repositories {
     jcenter()
   }
