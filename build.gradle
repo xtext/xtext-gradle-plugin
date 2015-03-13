@@ -14,7 +14,6 @@ buildscript {
  */
 configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   apply plugin: 'org.xtend.xtend'
-  apply plugin: 'com.github.oehme.sobula.plugin-release'
   apply plugin: 'java-gradle-plugin'
   
   dependencies {
@@ -30,7 +29,7 @@ subprojects {
 }
 
 allprojects {
-  apply plugin: 'com.github.oehme.sobula.bintray-release'
+  apply plugin: 'com.github.oehme.sobula.plugin-release'
   
   group = "org.xtext"
   bintray.pkg.name = "$rootProject.group:$rootProject.name"
