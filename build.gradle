@@ -1,47 +1,54 @@
 buildscript {
-	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'org.xtend:xtend-gradle-plugin:0.4.3'
-		classpath 'com.github.oehme.sobula:sobula:0.4.1'
-	}
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'org.xtend:xtend-gradle-plugin:0.4.5'
+    classpath 'com.github.oehme.sobula:sobula:0.4.2'
+  }
+}
+
+/*
+ * TODO this weird order is a workaround for a bug in the nebula publishing plugin
+ * If they don't fix it soon, sobula should be rewritten to work without it.
+ */
+configure(subprojects.findAll{p-> p.name.contains('plugin')}){
+  apply plugin: 'org.xtend.xtend'
+  apply plugin: 'com.github.oehme.sobula.plugin-release'
+  apply plugin: 'java-gradle-plugin'
+  
+  dependencies {
+    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.0'
+  }
 }
 
 subprojects {
-	apply plugin: 'java'
-	apply plugin: 'eclipse'
-	apply plugin: 'com.github.oehme.sobula.bintray-release'
-	apply plugin: 'com.github.oehme.sobula.stefan'
+  apply plugin: 'eclipse'
+  apply plugin: 'java'
+  
+  sourceCompatibility = 1.6
+}
 
-	group = "org.xtext"
-	bintray.pkg.name = "$project.group:$project.name"
-	
-	contacts {
-		"xtext@itemis.com" {
-			moniker "The Xtext team"
-			roles "owner"
-			github "xtext"
-		}
-	}
+allprojects {
+  apply plugin: 'com.github.oehme.sobula.bintray-release'
+  
+  group = "org.xtext"
+  bintray.pkg.name = "$rootProject.group:$rootProject.name"
+  
+  contacts {
+    "xtext@itemis.com" {
+      moniker "The Xtext team"
+      roles "owner"
+      github "xtext"
+    }
+  }
 
-	//TODO create bintray and central users
-	bintray.user = "oehme"
-	bintray.pkg.version.mavenCentralSync.user = "oehme"
-	
-	repositories {
+  //TODO create bintray and central users
+  bintray.user = "oehme"
+  bintray.pkg.version.mavenCentralSync.user = "oehme"
+  repositories {
     jcenter()
   }
-  
-	sourceCompatibility = 1.5
 }
 
-configure(subprojects.findAll{p-> p.name.contains('plugin')}){
-	apply plugin: 'com.github.oehme.sobula.plugin-release'
-	apply plugin: 'java-gradle-plugin'
-	apply plugin: 'org.xtend.xtend'
-	
-	dependencies {
-    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.7.3'
-  }
-}
+bintray.publications = [] // don't publish a POM for the root project

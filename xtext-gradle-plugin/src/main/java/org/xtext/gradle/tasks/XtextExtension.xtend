@@ -11,7 +11,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 
 class XtextExtension {
-	@Accessors String version = "2.7.2"
+	@Accessors String version = "2.8.0"
 	@Accessors String encoding = "UTF-8"
 	@Accessors SourceDirectorySet sources
 	@Accessors NamedDomainObjectContainer<Language> languages;

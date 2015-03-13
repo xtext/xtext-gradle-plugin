@@ -39,7 +39,7 @@ Configure your languages
 
 ```groovy
 xtext {
-  version = '2.7.2' // the current default, can be omitted
+  version = '2.8.0' // the current default, can be omitted
   encoding = 'UTF-8' //the default, can be omitted
   
   /* Java sourceDirs are added automatically,

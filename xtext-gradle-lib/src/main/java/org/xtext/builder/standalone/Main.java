@@ -1,7 +1,6 @@
 package org.xtext.builder.standalone;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -12,7 +11,6 @@ import org.eclipse.xtext.builder.standalone.LanguageAccess;
 import org.eclipse.xtext.builder.standalone.LanguageAccessFactory;
 import org.eclipse.xtext.builder.standalone.StandaloneBuilder;
 import org.eclipse.xtext.builder.standalone.StandaloneBuilderModule;
-import org.eclipse.xtext.parser.IEncodingProvider;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -28,7 +26,6 @@ public class Main {
 		builder.setEncoding("UTF-8");
 
 		List<String> sourcePath = Lists.newArrayList();
-		File workingDirectory = new File("");
 		LanguageConfigurationParser languageParser = new LanguageConfigurationParser();
 
 		Iterator<String> arguments = Arrays.asList(args).iterator();
@@ -41,7 +38,7 @@ public class Main {
 			} else if ("-encoding".equals(argument.trim())) {
 				builder.setEncoding(arguments.next().trim());
 			} else if ("-cwd".equals(argument.trim())) {
-				workingDirectory = new File(arguments.next().trim());
+				builder.setBaseDir(arguments.next().trim());
 			} else if (argument.trim().startsWith("-L")) {
 				languageParser.addArgument(argument);
 			} else {
@@ -49,23 +46,10 @@ public class Main {
 			}
 		}
 		Map<String, LanguageAccess> languages = new LanguageAccessFactory().createLanguageAccess(
-				languageParser.getLanguages(), Main.class.getClassLoader(), workingDirectory);
-		fixEncoding(languages, builder);
+				languageParser.getLanguages(), Main.class.getClassLoader());
 		builder.setLanguages(languages);
 		builder.setSourceDirs(sourcePath);
-		try {
-			Method javaSourceDirsSetter = StandaloneBuilder.class.getMethod("setJavaSourceDirs", Iterable.class);
-			javaSourceDirsSetter.invoke(builder, sourcePath);
-		} catch (Exception ignored) {}
+		builder.setJavaSourceDirs(sourcePath);
 		return builder.launch();
-	}
-
-	private static void fixEncoding(Map<String, LanguageAccess> languages, StandaloneBuilder builder) {
-		for (LanguageAccess language : languages.values()) {
-			IEncodingProvider encodingProvider = language.getEncodingProvider();
-			if (encodingProvider instanceof IEncodingProvider.Runtime) {
-				((IEncodingProvider.Runtime) encodingProvider).setDefaultEncoding(builder.getEncoding());
-			}
-		}
 	}
 }
