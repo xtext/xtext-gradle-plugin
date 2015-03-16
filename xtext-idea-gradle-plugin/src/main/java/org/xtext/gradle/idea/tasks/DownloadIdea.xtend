@@ -1,5 +1,6 @@
 package org.xtext.gradle.idea.tasks
 
+import com.google.common.base.Splitter
 import java.io.File
 import java.net.URL
 import java.nio.file.Files
@@ -10,39 +11,38 @@ import org.apache.http.util.EntityUtils
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
-import org.gradle.api.file.FileCopyDetails
-import com.google.common.base.Splitter
 
 @Accessors
 class DownloadIdea extends DefaultTask {
 	static val os = OperatingSystem.current
 
-	Object ideaHome
+	@OutputDirectory File ideaHome
 	@Input String ideaVersion
 
 	new() {
-		onlyIf[(ideaHomeDir.list?.toList ?: #[]).size < 3]
+		onlyIf[(ideaHome.list ?: newArrayOfSize(0)).length< 3]
 	}
 
 	@TaskAction
 	def download() {
 		val buildInfo = queryBuildInfo
-		val archiveFile = new File(ideaHomeDir, buildInfo.archiveName)
+		val archiveFile = new File(ideaHome, buildInfo.archiveName)
 		if (!archiveFile.exists) {
 			Files.copy(new URL(buildInfo.archiveUrl).openStream, archiveFile.toPath)
 		}
-		val sourceArchiveFile = new File(ideaHomeDir, buildInfo.sourceArchiveName)
+		val sourceArchiveFile = new File(ideaHome, buildInfo.sourceArchiveName)
 		if (!sourceArchiveFile.exists) {
 			Files.copy(new URL(buildInfo.sourceArchiveUrl).openStream, sourceArchiveFile.toPath)
 		}
 		project.copy [
-			into(ideaHomeDir)
+			into(ideaHome)
 			if (os.isLinux) {
 				from(project.tarTree(archiveFile))
 				eachFile[cutDirs(1)]
@@ -53,11 +53,6 @@ class DownloadIdea extends DefaultTask {
 				}
 			}
 		]
-	}
-
-	@OutputDirectory
-	def getIdeaHomeDir() {
-		project.file(ideaHome)
 	}
 
 	def queryBuildInfo() {

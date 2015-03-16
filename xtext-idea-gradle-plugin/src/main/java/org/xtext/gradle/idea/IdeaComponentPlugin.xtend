@@ -4,20 +4,20 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.eclipse.model.Library
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.xtext.gradle.idea.tasks.DownloadIdea
-
-import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
-import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.xtext.gradle.idea.tasks.IdeaExtension
 
 class IdeaComponentPlugin implements Plugin<Project> {
 
 	override apply(Project project) {
 		project.plugins.<IdeaDevelopmentPlugin>apply(IdeaDevelopmentPlugin)
 		project.plugins.<JavaPlugin>apply(JavaPlugin)
+		val idea = project.extensions.getByType(IdeaExtension)
 		
 		val compile = project.configurations.getAt("compile")
 		compile.exclude(#{"module" -> "guava"})
@@ -27,10 +27,8 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		
 		project.afterEvaluate [
 			val downloadTask = project.tasks.getByName("downloadIdea") as DownloadIdea
-			val ideaHomeDir = downloadTask.ideaHomeDir
 
-			val ideaLibs = project.fileTree(ideaHomeDir + "/lib").builtBy(downloadTask).include("*.jar")
-			project.dependencies.add(ideaProvided.name, ideaLibs)
+			project.dependencies.add(ideaProvided.name, idea.ideaLibs)
 			project.convention.getPlugin(JavaPluginConvention).sourceSets.forEach [
 				compileClasspath = compileClasspath.plus(ideaProvided)
 			]
@@ -39,11 +37,12 @@ class IdeaComponentPlugin implements Plugin<Project> {
 				project.tasks.getByName("eclipseClasspath").dependsOn(downloadTask)
 				project.extensions.getByType(EclipseModel).classpath => [
 					plusConfigurations.add(ideaProvided)
-					
+
 					val fileReferenceFactory = new FileReferenceFactory
+					val ideaLibs = idea.ideaLibs
+					val sourceZip = idea.sourcesZip
 					file.whenMerged.add [ Classpath it |
-						val sourceZip = ideaHomeDir / "sources.zip"
-						entries.filter(Library).filter[library.file.parentFile == ideaHomeDir / 'lib'].forEach [
+						entries.filter(Library).filter[ideaLibs.contains(library.file)].forEach [
 							sourcePath = fileReferenceFactory.fromFile(sourceZip)
 						]
 					]

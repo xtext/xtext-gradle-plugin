@@ -3,7 +3,6 @@ package org.xtext.gradle.idea
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.xtext.gradle.idea.tasks.AssembleSandbox
-import org.xtext.gradle.idea.tasks.DownloadIdea
 import org.xtext.gradle.idea.tasks.IdeaExtension
 import org.xtext.gradle.idea.tasks.IdeaRepository
 import org.xtext.gradle.idea.tasks.IdeaZip
@@ -25,10 +24,8 @@ class IdeaRepositoryPlugin implements Plugin<Project> {
 			]
 		]
 		val runIdea = project.tasks.create("runIdea", RunIdea)
-		val downloadTask = project.tasks.getAt("downloadIdea") as DownloadIdea
 		project.afterEvaluate [
-			val ideaLibs = project.fileTree(downloadTask.ideaHomeDir + "/lib")
-			ideaLibs.builtBy(downloadTask).include("*.jar")
+			val ideaLibs = idea.ideaLibs
 			subprojects.map[tasks.withType(AssembleSandbox)].flatten.forEach[runIdea.dependsOn(it)]
 			runIdea.sandboxDir = project.file(idea.sandboxDir)
 			runIdea.ideaHome = project.file(idea.ideaHome)

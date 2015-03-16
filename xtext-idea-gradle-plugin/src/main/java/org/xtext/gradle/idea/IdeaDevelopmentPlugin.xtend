@@ -10,12 +10,13 @@ import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
 class IdeaDevelopmentPlugin implements Plugin<Project> {
 
 	override apply(Project project) {
-		val idea = project.extensions.create("ideaDevelopment", IdeaExtension) => [
+		val idea = project.extensions.create("ideaDevelopment", IdeaExtension, project) => [
 			ideaHome = project.rootDir / "ideaHome"
 			ideaVersion = "140.2683.2"
 			sandboxDir = project.rootProject.buildDir / "ideaSandbox"
 		]
 		val downloadTask = project.tasks.create("downloadIdea", DownloadIdea)
+		idea.downloadTask = downloadTask
 		project.afterEvaluate [
 			downloadTask.ideaHome = idea.ideaHome
 			downloadTask.ideaVersion = idea.ideaVersion
