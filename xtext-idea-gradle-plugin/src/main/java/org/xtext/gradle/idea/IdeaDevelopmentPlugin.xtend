@@ -13,7 +13,6 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 		val idea = project.extensions.create("ideaDevelopment", IdeaExtension, project) => [
 			ideaHome = project.rootDir / "ideaHome"
 			ideaVersion = "140.2683.2"
-			sandboxDir = project.rootProject.buildDir / "ideaSandbox"
 		]
 		val downloadTask = project.tasks.create("downloadIdea", DownloadIdea)
 		idea.downloadTask = downloadTask

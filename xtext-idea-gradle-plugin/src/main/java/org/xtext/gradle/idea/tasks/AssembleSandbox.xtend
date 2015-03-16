@@ -6,13 +6,17 @@ import org.gradle.api.tasks.Sync
 
 @Accessors
 class AssembleSandbox extends Sync implements IdeaPluginSpec {
+	CopySpec plugin
 	CopySpec classes
 	CopySpec libraries
 	CopySpec metaInf
+	
 
 	new() {
-		classes = rootSpec.addChild.into("classes")
-		libraries = rootSpec.addChild.into("lib")
-		metaInf = rootSpec.addChild.into("META-INF")
+		val plugin = rootSpec.addChild
+		this.plugin = plugin
+		classes = plugin.addChild.into("classes")
+		libraries = plugin.addChild.into("lib")
+		metaInf = plugin.addChild.into("META-INF")
 	}
 }

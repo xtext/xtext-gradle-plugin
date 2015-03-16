@@ -1,15 +1,14 @@
 package org.xtext.gradle.idea
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginConvention
 import org.xtext.gradle.idea.tasks.AssembleSandbox
 import org.xtext.gradle.idea.tasks.IdeaExtension
-import org.xtext.gradle.idea.tasks.IdeaZip
-
-import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
-import org.gradle.api.Action
 import org.xtext.gradle.idea.tasks.IdeaPluginSpec
+import org.xtext.gradle.idea.tasks.IdeaZip
+import org.xtext.gradle.idea.tasks.RunIdea
 
 class IdeaPluginPlugin implements Plugin<Project> {
 	override apply(Project project) {
@@ -30,7 +29,16 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		val assembleSandboxTask = project.tasks.create("assembleSandbox", AssembleSandbox, archiveConfig)
 
 		project.afterEvaluate [
-			assembleSandboxTask.destinationDir = project.file(idea.sandboxDir) / project.name
+			assembleSandboxTask.destinationDir = idea.sandboxDir
+			assembleSandboxTask.plugin.into(project.name)
+		]
+		
+		val runIdea = project.tasks.create("runIdea", RunIdea)
+		runIdea.dependsOn(assembleSandboxTask)
+		project.afterEvaluate [
+			runIdea.sandboxDir = idea.sandboxDir
+			runIdea.ideaHome = idea.ideaHome
+			runIdea.classpath = idea.ideaRunClasspath
 		]
 	}
 }
