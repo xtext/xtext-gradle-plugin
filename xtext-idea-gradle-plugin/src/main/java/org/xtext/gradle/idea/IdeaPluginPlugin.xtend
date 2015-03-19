@@ -20,7 +20,9 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		
 		val Action<? super IdeaPluginSpec> archiveConfig = [
 			classes.from(mainSourceSet.output)
-			libraries.from(runtimeDependencies.minus(providedDependencies))
+			libraries.from(runtimeDependencies.filter[candidate|
+				!providedDependencies.exists[candidate.name == name]
+			])
 			metaInf.from("META-INF")
 		]
 
@@ -32,6 +34,7 @@ class IdeaPluginPlugin implements Plugin<Project> {
 			assembleSandboxTask.destinationDir = idea.sandboxDir
 			assembleSandboxTask.plugin.into(project.name)
 			assembleSandboxTask.from(idea.downloadPlugins.destinationDir)
+			assembleSandboxTask.exclude("*.zip")
 		]
 		
 		val runIdea = project.tasks.create("runIdea", RunIdea)
