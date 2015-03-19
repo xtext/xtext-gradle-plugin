@@ -25,8 +25,6 @@ class IdeaExtension {
 	}
 	
 	def FileCollection getIdeaLibs() {
-		val coreLibs = 	project.fileTree(project.file(ideaHome) + "/lib")
-			.builtBy(downloadIdea).include("*.jar") as FileCollection
 		val unpackedDependencies = pluginDependencies.map[project.file(downloadPlugins.destinationDir) / id]
 		val dependencyClasses = unpackedDependencies
 			.map[project.files(it / "classes").builtBy(downloadPlugins)]
@@ -34,12 +32,17 @@ class IdeaExtension {
 		val dependencyLibs = unpackedDependencies
 			.map[project.fileTree(it / "lib").builtBy(downloadPlugins)]
 			.reduce[FileCollection a, FileCollection b| a.plus(b)]
-		#[coreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
+		#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
+	}
+	
+	def FileCollection getIdeaCoreLibs() {
+		project.fileTree(project.file(ideaHome) + "/lib")
+			.builtBy(downloadIdea).include("*.jar") as FileCollection
 	}
 	
 	def FileCollection getIdeaRunClasspath() {
 		val tools = project.files('''«System.getenv("JAVA_HOME")»/lib/tools.jar''')
-		ideaLibs.plus(tools)
+		ideaCoreLibs.plus(tools)
 	}
 	
 	def File getIdeaHome() {
