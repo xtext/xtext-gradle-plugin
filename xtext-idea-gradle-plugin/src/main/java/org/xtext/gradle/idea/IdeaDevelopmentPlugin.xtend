@@ -6,6 +6,7 @@ import org.xtext.gradle.idea.tasks.DownloadIdea
 import org.xtext.gradle.idea.tasks.IdeaExtension
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import org.xtext.gradle.idea.tasks.DownloadPlugins
 
 class IdeaDevelopmentPlugin implements Plugin<Project> {
 
@@ -14,11 +15,19 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 			ideaHome = project.rootDir / "ideaHome"
 			ideaVersion = "140.2683.2"
 		]
-		val downloadTask = project.tasks.create("downloadIdea", DownloadIdea)
-		idea.downloadTask = downloadTask
+		val downloadIdea = project.tasks.create("downloadIdea", DownloadIdea)
+		idea.downloadIdea= downloadIdea
 		project.afterEvaluate [
-			downloadTask.ideaHome = idea.ideaHome
-			downloadTask.ideaVersion = idea.ideaVersion
+			downloadIdea.ideaHome = idea.ideaHome
+			downloadIdea.ideaVersion = idea.ideaVersion
+		]
+		
+		val downloadPlugins = project.tasks.create("downloadPlugins", DownloadPlugins)
+		idea.downloadPlugins = downloadPlugins
+		project.afterEvaluate[
+			downloadPlugins.destinationDir = project.buildDir / "pluginDependencies"
+			downloadPlugins.pluginRepositories = idea.pluginRepositories
+			downloadPlugins.pluginDependencies = idea.pluginDependencies
 		]
 	}
 }

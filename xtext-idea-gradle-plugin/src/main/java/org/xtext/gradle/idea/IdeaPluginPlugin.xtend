@@ -31,6 +31,7 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		project.afterEvaluate [
 			assembleSandboxTask.destinationDir = idea.sandboxDir
 			assembleSandboxTask.plugin.into(project.name)
+			assembleSandboxTask.from(idea.downloadPlugins.destinationDir)
 		]
 		
 		val runIdea = project.tasks.create("runIdea", RunIdea)

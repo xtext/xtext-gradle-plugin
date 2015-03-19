@@ -20,6 +20,7 @@ class IdeaRepository extends Sync {
 		super.copy()
 		val pluginDescriptor = new File(destinationDir, "updatePlugins.xml")
 		Files.write('''
+			<?xml version="1.0" encoding="UTF-8"?>
 			<plugins>
 				«FOR it : files»
 					<plugin
