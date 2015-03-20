@@ -4,7 +4,7 @@ buildscript {
   }
   dependencies {
     classpath 'org.xtend:xtend-gradle-plugin:0.4.5'
-    classpath 'com.github.oehme.sobula:sobula:0.4.2'
+    classpath 'com.github.oehme.sobula:sobula:0.5.0'
   }
 }
 
