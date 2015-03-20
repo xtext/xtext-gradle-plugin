@@ -9,11 +9,11 @@ import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
 import org.xtext.gradle.idea.tasks.DownloadPlugins
 
 class IdeaDevelopmentPlugin implements Plugin<Project> {
+	public static val IDEA_DEVELOPMENT_EXTENSION_NAME = "ideaDevelopment"
 
 	override apply(Project project) {
-		val idea = project.extensions.create("ideaDevelopment", IdeaExtension, project) => [
+		val idea = project.extensions.create(IDEA_DEVELOPMENT_EXTENSION_NAME, IdeaExtension, project) => [
 			ideaHome = project.rootDir / "ideaHome"
-			ideaVersion = "140.2683.2"
 		]
 		val downloadIdea = project.tasks.create("downloadIdea", DownloadIdea)
 		idea.downloadIdea= downloadIdea

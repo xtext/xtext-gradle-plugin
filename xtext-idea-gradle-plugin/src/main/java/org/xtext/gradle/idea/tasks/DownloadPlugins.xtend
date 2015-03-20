@@ -40,7 +40,6 @@ class DownloadPlugins extends DefaultTask {
 	@TaskAction
 	def download() {
 		val urlsByPluginId = collectUrlsByPluginId
-		println(urlsByPluginId)
 		externalPluginDependencies.forEach [
 			download(id, urlsByPluginId.get(id))
 		]

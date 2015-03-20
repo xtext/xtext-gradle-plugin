@@ -3,20 +3,20 @@ package org.xtext.gradle.idea
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.xtext.gradle.idea.tasks.IdeaRepository
-import org.xtext.gradle.idea.tasks.IdeaZip
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
 
 class IdeaRepositoryPlugin implements Plugin<Project> {
+	public static val IDEA_REPOSITORY_TASK_NAME = "ideaRepository"
 
 	override apply(Project project) {
 		project.plugins.<IdeaDevelopmentPlugin>apply(IdeaDevelopmentPlugin)
-		val repositoryTask = project.tasks.create("ideaRepository", IdeaRepository) [
+		val repositoryTask = project.tasks.create(IDEA_REPOSITORY_TASK_NAME, IdeaRepository) [
 			into(project.buildDir / 'ideaRepository')
 		]
-		project.allprojects [
-			tasks.withType(IdeaZip) [ zip |
-				repositoryTask.from(zip)
+		project.allprojects [ p |
+			p.plugins.withType(IdeaPluginPlugin) [
+				repositoryTask.from(p.tasks.findByName(IdeaPluginPlugin.IDEA_ZIP_TASK_NAME))
 			]
 		]
 	}
