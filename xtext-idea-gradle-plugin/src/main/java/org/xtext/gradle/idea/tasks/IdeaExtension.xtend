@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 
 @Accessors
 class IdeaExtension {
@@ -25,14 +26,35 @@ class IdeaExtension {
 	}
 	
 	def FileCollection getIdeaLibs() {
-		val unpackedDependencies = pluginDependencies.map[project.file(downloadPlugins.destinationDir) / id]
-		val dependencyClasses = unpackedDependencies
-			.map[project.files(it / "classes").builtBy(downloadPlugins)]
-			.reduce[FileCollection a, FileCollection b| a.plus(b)]
-		val dependencyLibs = unpackedDependencies
-			.map[project.fileTree(it / "lib").builtBy(downloadPlugins)]
-			.reduce[FileCollection a, FileCollection b| a.plus(b)]
-		#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
+		new LazilyInitializedFileCollection {
+			
+			override createDelegate() {
+				val unpackedDependencies = unpackedDependencies.entrySet
+				val dependencyClasses = unpackedDependencies
+					.map[project.files(value / "classes")]
+					.reduce[FileCollection a, FileCollection b| a.plus(b)]
+				val dependencyLibs = unpackedDependencies
+					.map[project.fileTree(value / "lib")]
+					.reduce[FileCollection a, FileCollection b| a.plus(b)]
+				#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
+			}
+			
+			override getBuildDependencies() {
+				[unpackedDependencies.keySet]
+			}
+			
+			def unpackedDependencies() {
+				newHashMap(pluginDependencies.map[
+					val projectDependency = project.rootProject.findProject(id)
+					if (projectDependency == null) {
+						downloadPlugins -> downloadPlugins.destinationDir / id
+					} else {
+						val assembleSandbox = projectDependency.tasks.getAt("assembleSandbox") as AssembleSandbox
+						assembleSandbox -> assembleSandbox.destinationDir / id
+					}
+				])
+			}
+		}		
 	}
 	
 	def FileCollection getIdeaCoreLibs() {

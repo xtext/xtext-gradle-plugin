@@ -5,11 +5,8 @@ import groovy.util.slurpersupport.Node
 import java.io.File
 import java.net.URL
 import java.nio.file.Files
-import java.util.Set
-import java.util.concurrent.Callable
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
@@ -25,16 +22,8 @@ class DownloadPlugins extends DefaultTask {
 		outputs.upToDateWhen [
 			val existingDirs = destinationDir.list?.toList ?: #[]
 			!project.gradle.startParameter.refreshDependencies 
-				&& pluginDependencies.forall[existingDirs.contains(id)]
+				&& externalPluginDependencies.forall[existingDirs.contains(id)]
 		]
-		dependsOn(new Callable<Set<Task>>() {
-			override call() throws Exception {
-				pluginDependencies.map[project.rootProject.findProject(id)]
-					.filterNull
-					.map[tasks.getByName("assembleSandbox")]
-					.toSet
-			}
-		})
 	}
 
 	@TaskAction
@@ -43,14 +32,6 @@ class DownloadPlugins extends DefaultTask {
 		externalPluginDependencies.forEach [
 			download(id, urlsByPluginId.get(id))
 		]
-		pluginDependencies.map[project.rootProject.findProject(id)]
-			.filterNull
-			.forEach[projectDependency|
-				project.copy [
-					from(projectDependency.tasks.getByName("assembleSandbox"))
-					into(destinationDir)
-				]
-			]
 	}
 	
 	def externalPluginDependencies() {

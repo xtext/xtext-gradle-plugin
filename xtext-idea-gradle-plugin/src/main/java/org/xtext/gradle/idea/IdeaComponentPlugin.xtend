@@ -53,6 +53,10 @@ class IdeaComponentPlugin implements Plugin<Project> {
 			assembleSandboxTask.destinationDir = idea.sandboxDir
 			assembleSandboxTask.plugin.into(project.name)
 			assembleSandboxTask.from(idea.downloadPlugins.destinationDir)
+			val projectDependencies = idea.pluginDependencies
+				.map[project.rootProject.findProject(id)].filterNull
+				.map[(tasks.getAt(ASSEMBLE_SANDBOX_TASK_NAME) as AssembleSandbox).destinationDir]
+			assembleSandboxTask.from(projectDependencies)
 			assembleSandboxTask.exclude("*.zip")
 		]
 
