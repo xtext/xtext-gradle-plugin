@@ -33,7 +33,7 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		project.dependencies.add(ideaProvided.name, idea.ideaLibs)
 		java.sourceSets.all [
 			compileClasspath = compileClasspath.plus(ideaProvided)
-			runtimeClasspath = runtimeClasspath.plus(ideaProvided)
+			runtimeClasspath = runtimeClasspath.plus(ideaProvided).plus(idea.toolsJar)
 		]
 
 		val assembleSandboxTask = project.tasks.create(ASSEMBLE_SANDBOX_TASK_NAME, AssembleSandbox)

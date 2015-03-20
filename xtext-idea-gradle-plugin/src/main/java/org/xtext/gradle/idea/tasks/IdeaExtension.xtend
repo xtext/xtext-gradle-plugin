@@ -5,9 +5,9 @@ import java.io.File
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 
 @Accessors
 class IdeaExtension {
@@ -63,8 +63,11 @@ class IdeaExtension {
 	}
 	
 	def FileCollection getIdeaRunClasspath() {
-		val tools = project.files('''«System.getProperty("java.home")»/../lib/tools.jar''')
-		ideaCoreLibs.plus(tools)
+		ideaCoreLibs.plus(toolsJar)
+	}
+	
+	def toolsJar() {
+		project.files('''«System.getProperty("java.home")»/../lib/tools.jar''')
 	}
 	
 	def File getIdeaHome() {
