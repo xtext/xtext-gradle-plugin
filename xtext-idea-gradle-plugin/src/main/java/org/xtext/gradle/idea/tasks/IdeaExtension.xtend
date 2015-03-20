@@ -63,7 +63,7 @@ class IdeaExtension {
 	}
 	
 	def FileCollection getIdeaRunClasspath() {
-		val tools = project.files('''«System.getenv("JAVA_HOME")»/lib/tools.jar''')
+		val tools = project.files('''«System.getProperty("java.home")»/../lib/tools.jar''')
 		ideaCoreLibs.plus(tools)
 	}
 	
