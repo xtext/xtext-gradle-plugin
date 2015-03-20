@@ -40,7 +40,7 @@ class IdeaExtension {
 			}
 			
 			override getBuildDependencies() {
-				[unpackedDependencies.keySet]
+				[(unpackedDependencies.keySet + #{downloadIdea}).toSet]
 			}
 			
 			def unpackedDependencies() {
