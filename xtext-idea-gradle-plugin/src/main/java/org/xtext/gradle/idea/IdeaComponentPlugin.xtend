@@ -30,11 +30,9 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		compile.exclude(#{"module" -> "log4j"})
 
 		val ideaProvided = project.configurations.create(IDEA_PROVIDED_CONFIGURATION_NAME)
+		project.dependencies.add(ideaProvided.name, idea.ideaLibs)
 		java.sourceSets.all [
 			compileClasspath = compileClasspath.plus(ideaProvided)
-		]
-		project.afterEvaluate [
-			project.dependencies.add(ideaProvided.name, idea.ideaLibs)
 		]
 
 		val mainSourceSet = java.sourceSets.getByName("main")
