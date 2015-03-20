@@ -2,11 +2,13 @@ package org.xtext.gradle.idea.tasks
 
 import com.google.common.base.Splitter
 import java.io.File
+import java.net.ProxySelector
 import java.net.URL
 import java.nio.file.Files
 import java.util.regex.Pattern
 import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner
 import org.apache.http.util.EntityUtils
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
@@ -83,7 +85,8 @@ class DownloadIdea extends DefaultTask {
 	}
 
 	def httpGet(String url, (String)=>String responseHandler) {
-		val client = new DefaultHttpClient()
+		val routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault);
+		val client = HttpClients.custom.setRoutePlanner(routePlanner).build
 		val request = new HttpGet(url)
 		val result = try {
 			val response = EntityUtils.toString(client.execute(request).entity)
