@@ -33,19 +33,10 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		project.dependencies.add(ideaProvided.name, idea.ideaLibs)
 		java.sourceSets.all [
 			compileClasspath = compileClasspath.plus(ideaProvided)
+			runtimeClasspath = runtimeClasspath.plus(ideaProvided)
 		]
 
-		val mainSourceSet = java.sourceSets.getByName("main")
-		val providedDependencies = project.configurations.getAt(IdeaComponentPlugin.IDEA_PROVIDED_CONFIGURATION_NAME)
-		val runtimeDependencies = project.configurations.getAt(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
-
-		val assembleSandboxTask = project.tasks.create(ASSEMBLE_SANDBOX_TASK_NAME, AssembleSandbox) [
-			classes.from(mainSourceSet.output)
-			libraries.from(runtimeDependencies.filter [ candidate |
-				!providedDependencies.exists[candidate.name == name]
-			])
-			metaInf.from("META-INF")
-		]
+		val assembleSandboxTask = project.tasks.create(ASSEMBLE_SANDBOX_TASK_NAME, AssembleSandbox)
 
 		project.afterEvaluate [
 			assembleSandboxTask.destinationDir = idea.sandboxDir
@@ -67,12 +58,9 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		]
 
 		project.tasks.withType(Test).all [
-			jvmArgs(
-				'''-Didea.home.path=«idea.ideaHome»''',
-				'''-Didea.config.path=«idea.ideaHome»/test''',
-				'''-Didea.system.path=«idea.ideaHome»/test-system''',
-				'''-Didea.plugins.path=«idea.sandboxDir»'''
-			)
+			dependsOn(assembleSandboxTask)
+			systemProperty("idea.home.path", idea.ideaHome)
+			systemProperty("idea.plugins.path", idea.sandboxDir)
 		]
 
 		project.plugins.withType(EclipsePlugin) [
