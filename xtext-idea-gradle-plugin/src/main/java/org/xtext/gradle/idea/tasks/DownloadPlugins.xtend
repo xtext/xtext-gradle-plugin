@@ -35,9 +35,7 @@ class DownloadPlugins extends DefaultTask {
 	}
 	
 	def externalPluginDependencies() {
-		pluginDependencies.filter[
-			project.rootProject.findProject(id) == null
-		]
+		pluginDependencies.externalDependencies
 	}
 
 	def download(String pluginId, String downloadUrl) {

@@ -29,7 +29,7 @@ class IdeaExtension {
 		new LazilyInitializedFileCollection {
 			
 			override createDelegate() {
-				val unpackedDependencies = unpackedDependencies.entrySet
+				val unpackedDependencies = unpackedDependencies
 				val dependencyClasses = unpackedDependencies
 					.map[project.files(value / "classes")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
@@ -40,19 +40,19 @@ class IdeaExtension {
 			}
 			
 			override getBuildDependencies() {
-				[(unpackedDependencies.keySet + #{downloadIdea}).toSet]
+				[(unpackedDependencies.map[key] + #{downloadIdea}).toSet]
 			}
 			
 			def unpackedDependencies() {
-				newHashMap(pluginDependencies.map[
-					val projectDependency = project.rootProject.findProject(id)
-					if (projectDependency == null) {
-						downloadPlugins -> downloadPlugins.destinationDir / id
-					} else {
-						val assembleSandbox = projectDependency.tasks.getAt("assembleSandbox") as AssembleSandbox
-						assembleSandbox -> assembleSandbox.destinationDir / id
-					}
-				])
+				pluginDependencies.externalDependencies.map[
+					downloadPlugins -> downloadPlugins.destinationDir / id
+				]
+				+
+				pluginDependencies.projectDependencies.map [
+					val projectDependency = project.project(it)
+					val assembleSandbox = projectDependency.tasks.getAt("assembleSandbox") as AssembleSandbox
+					assembleSandbox -> assembleSandbox.destinationDir / projectDependency.name
+				]
 			}
 		}		
 	}
@@ -103,14 +103,15 @@ class IdeaPluginRepositories implements Iterable<IdeaPluginRepository> {
 	}
 }
 
-class IdeaPluginDependencies implements Iterable<IdeaPluginDependency> {
+class IdeaPluginDependencies {
 	
-	val dependencies = <IdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
-	var IdeaPluginDependency last
+	@Accessors(PUBLIC_GETTER) val externalDependencies = <ExternalIdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
+	@Accessors(PUBLIC_GETTER) val projectDependencies = <String>newHashSet
+	var ExternalIdeaPluginDependency last
 	
 	def void id(String id) {
-		last = new IdeaPluginDependency(id)
-		dependencies += last
+		last = new ExternalIdeaPluginDependency(id)
+		externalDependencies += last
 	}
 	
 	def version(String version) {
@@ -118,8 +119,8 @@ class IdeaPluginDependencies implements Iterable<IdeaPluginDependency> {
 		this
 	}
 	
-	override iterator() {
-		dependencies.iterator
+	def project(String path) {
+		projectDependencies += path
 	}
 }
 
@@ -129,7 +130,7 @@ class IdeaPluginRepository {
 }
 
 @Accessors
-class IdeaPluginDependency {
+class ExternalIdeaPluginDependency {
 	val String id
 	String version
 }
