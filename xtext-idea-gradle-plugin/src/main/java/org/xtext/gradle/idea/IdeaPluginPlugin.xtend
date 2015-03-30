@@ -6,6 +6,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Zip
 import org.xtext.gradle.idea.tasks.AssembleSandbox
+import org.gradle.api.plugins.BasePlugin
 
 class IdeaPluginPlugin implements Plugin<Project> {
 	public static val IDEA_ZIP_TASK_NAME = "ideaZip"
@@ -26,8 +27,11 @@ class IdeaPluginPlugin implements Plugin<Project> {
 			metaInf.from("META-INF")
 		]
 
-		project.tasks.create(IDEA_ZIP_TASK_NAME, Zip) [
+		val ideaZip = project.tasks.create(IDEA_ZIP_TASK_NAME, Zip) [
+			description = "Creates an installable archive of this plugin"
+			group = BasePlugin.BUILD_GROUP
 			with(assembleSandbox.plugin)
 		]
+		project.tasks.getAt(BasePlugin.ASSEMBLE_TASK_NAME).dependsOn(ideaZip)
 	}
 }

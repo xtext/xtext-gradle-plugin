@@ -13,11 +13,25 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.xtext.gradle.idea.tasks.AssembleSandbox
 import org.xtext.gradle.idea.tasks.IdeaExtension
 import org.xtext.gradle.idea.tasks.RunIdea
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.GradleException
+import org.gradle.api.execution.TaskExecutionGraphListener
 
 class IdeaComponentPlugin implements Plugin<Project> {
 	public static val IDEA_PROVIDED_CONFIGURATION_NAME = "ideaProvided"
 	public static val ASSEMBLE_SANDBOX_TASK_NAME = "assembleSandbox"
 	public static val RUN_IDEA_TASK_NAME = "runIdea"
+	static val TaskExecutionGraphListener runIdeaValidator = [graph| 
+		val runTasks = graph.allTasks.filter[name == RUN_IDEA_TASK_NAME]
+		if (runTasks.size > 1) {
+			throw new GradleException('''
+				There are multiple «RUN_IDEA_TASK_NAME» tasks in the task graph.
+				When calling runIdea on an aggregate project, make sure you fully qualify the task name,
+				e.g. ':myProject:runIdea'
+			'''
+			)
+		}
+	]
 
 	override apply(Project project) {
 		project.plugins.<IdeaDevelopmentPlugin>apply(IdeaDevelopmentPlugin)
@@ -36,7 +50,10 @@ class IdeaComponentPlugin implements Plugin<Project> {
 			runtimeClasspath = runtimeClasspath.plus(ideaProvided).plus(idea.toolsJar)
 		]
 
-		val assembleSandboxTask = project.tasks.create(ASSEMBLE_SANDBOX_TASK_NAME, AssembleSandbox)
+		val assembleSandboxTask = project.tasks.create(ASSEMBLE_SANDBOX_TASK_NAME, AssembleSandbox) => [
+			description = "Creates a folder containing the plugins to run Idea with"
+			group = BasePlugin.BUILD_GROUP
+		]
 
 		project.afterEvaluate [
 			assembleSandboxTask.destinationDir = idea.sandboxDir
@@ -49,13 +66,18 @@ class IdeaComponentPlugin implements Plugin<Project> {
 			assembleSandboxTask.exclude("*.zip")
 		]
 
-		val runIdea = project.tasks.create(RUN_IDEA_TASK_NAME, RunIdea)
-		runIdea.dependsOn(assembleSandboxTask)
+		val runIdea = project.tasks.create(RUN_IDEA_TASK_NAME, RunIdea) => [
+			dependsOn(assembleSandboxTask)
+			description = "Runs Intellij IDEA with this project and its dependencies installed"
+			group = IdeaDevelopmentPlugin.IDEA_TASK_GROUP
+		]
 		project.afterEvaluate [
 			runIdea.sandboxDir = idea.sandboxDir
 			runIdea.ideaHome = idea.ideaHome
 			runIdea.classpath = idea.ideaRunClasspath
 		]
+		
+		project.gradle.taskGraph.addTaskExecutionGraphListener(runIdeaValidator)
 
 		project.tasks.withType(Test).all [
 			dependsOn(assembleSandboxTask)
