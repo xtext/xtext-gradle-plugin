@@ -44,7 +44,6 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		compile.exclude(#{"module" -> "log4j"})
 
 		val ideaProvided = project.configurations.create(IDEA_PROVIDED_CONFIGURATION_NAME)
-		project.dependencies.add(ideaProvided.name, idea.ideaLibs)
 		java.sourceSets.all [
 			compileClasspath = compileClasspath.plus(ideaProvided)
 			runtimeClasspath = runtimeClasspath.plus(ideaProvided).plus(idea.toolsJar)
@@ -56,6 +55,9 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		]
 
 		project.afterEvaluate [
+			idea.ideaLibs.forEach[
+				project.dependencies.add(ideaProvided.name, it)
+			]
 			assembleSandboxTask.destinationDir = idea.sandboxDir
 			assembleSandboxTask.plugin.into(project.name)
 			assembleSandboxTask.from(idea.downloadPlugins.destinationDir)

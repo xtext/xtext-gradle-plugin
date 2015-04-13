@@ -2,6 +2,7 @@ package org.xtext.gradle.idea.tasks
 
 import groovy.lang.Closure
 import java.io.File
+import java.util.List
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -25,36 +26,34 @@ class IdeaExtension {
 		pluginDependencies = new IdeaPluginDependencies
 	}
 	
-	def FileCollection getIdeaLibs() {
+	def List<Object> getIdeaLibs() {
+		val result = <Object>newArrayList
+		result += pluginDependencies.projectDependencies.map [
+			project.project(it)
+		]
+		result.add(externalLibs)
+		result
+	}
+	
+	def FileCollection getExternalLibs() {
 		new LazilyInitializedFileCollection {
-			
 			override createDelegate() {
-				val unpackedDependencies = unpackedDependencies
+				val unpackedDependencies = pluginDependencies.externalDependencies.map[
+					downloadPlugins.destinationDir / id
+				]
 				val dependencyClasses = unpackedDependencies
-					.map[project.files(value / "classes")]
+					.map[project.files(it / "classes")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
 				val dependencyLibs = unpackedDependencies
-					.map[project.fileTree(value / "lib")]
+					.map[project.fileTree(it / "lib")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
 				#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
 			}
 			
 			override getBuildDependencies() {
-				[(unpackedDependencies.map[key] + #{downloadIdea}).toSet]
+				[#{downloadIdea, downloadPlugins}]
 			}
-			
-			def unpackedDependencies() {
-				pluginDependencies.externalDependencies.map[
-					downloadPlugins -> downloadPlugins.destinationDir / id
-				]
-				+
-				pluginDependencies.projectDependencies.map [
-					val projectDependency = project.project(it)
-					val assembleSandbox = projectDependency.tasks.getAt("assembleSandbox") as AssembleSandbox
-					assembleSandbox -> assembleSandbox.destinationDir / projectDependency.name
-				]
-			}
-		}		
+		}
 	}
 	
 	def FileCollection getIdeaCoreLibs() {
