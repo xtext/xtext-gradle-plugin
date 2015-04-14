@@ -11,6 +11,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import java.nio.file.StandardCopyOption
 
 @Accessors
 class DownloadPlugins extends DefaultTask {
@@ -40,7 +41,7 @@ class DownloadPlugins extends DefaultTask {
 
 	def download(String pluginId, String downloadUrl) {
 		val targetFile = destinationDir / '''«pluginId».zip'''
-		Files.copy(new URL(downloadUrl).openStream, targetFile.toPath)
+		Files.copy(new URL(downloadUrl).openStream, targetFile.toPath, StandardCopyOption.REPLACE_EXISTING)
 		project.copy [
 			from(project.zipTree(targetFile))
 			into(destinationDir)
