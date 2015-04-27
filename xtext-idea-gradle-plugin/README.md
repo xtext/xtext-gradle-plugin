@@ -75,7 +75,7 @@ ideaDevelopment {
 Apply the `org.xtext.idea-aggregator` plugin to the parent project. This adds an aggregated runIdea task that starts IntelliJ with all your plugins installed.
 
 ###I want to publish an IntelliJ Enterprise Repository
-Apply the `org.xtext.idea-repository` plugin. This will collect all `ideaZip`s from this project and all subprojects and create an [updatePlugins.xml](http://blog.jetbrains.com/idea/2008/03/enterprise-plugin-repository/) descriptor.
+Apply the `org.xtext.idea-repository` plugin. This adds the `ideaRepository` task. It collects all `ideaZip`s from this project and all subprojects and creates an [updatePlugins.xml](http://blog.jetbrains.com/idea/2008/03/enterprise-plugin-repository/) descriptor.
 Be sure to supply a root URL for the repository
 
 ```gradle
