@@ -101,5 +101,8 @@ class IdeaComponentPlugin implements Plugin<Project> {
 				]
 			]
 		]
+		project.plugins.withType(IdeaAggregatorPlugin) [
+			throw new GradleException("Do not apply idea-component and idea-aggregator to the same project")
+		]
 	}
 }

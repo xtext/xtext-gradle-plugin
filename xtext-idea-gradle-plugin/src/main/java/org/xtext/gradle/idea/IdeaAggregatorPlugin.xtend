@@ -6,15 +6,15 @@ import org.gradle.api.tasks.Sync
 import org.xtext.gradle.idea.tasks.IdeaExtension
 import org.xtext.gradle.idea.tasks.RunIdea
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.GradleException
 
 class IdeaAggregatorPlugin implements Plugin<Project> {
-	public static val AGGREGATE_SANDBOX_TASK_NAME = "aggregateSandbox"
 
 	override apply(Project project) {
 		project.plugins.<IdeaDevelopmentPlugin>apply(IdeaDevelopmentPlugin)
 		val idea = project.extensions.getByType(IdeaExtension)
 
-		val aggregateSandbox = project.tasks.create(AGGREGATE_SANDBOX_TASK_NAME, Sync) => [
+		val aggregateSandbox = project.tasks.create(IdeaComponentPlugin.ASSEMBLE_SANDBOX_TASK_NAME, Sync) => [
 			description = "Creates a folder containing the plugins to run Idea with"
 			group = BasePlugin.BUILD_GROUP
 		]
@@ -33,6 +33,9 @@ class IdeaAggregatorPlugin implements Plugin<Project> {
 			runIdea.sandboxDir = idea.sandboxDir
 			runIdea.ideaHome = idea.ideaHome
 			runIdea.classpath = idea.ideaRunClasspath
+		]
+		project.plugins.withType(IdeaComponentPlugin) [
+			throw new GradleException("Do not apply idea-component and idea-aggregator to the same project")
 		]
 	}
 }
