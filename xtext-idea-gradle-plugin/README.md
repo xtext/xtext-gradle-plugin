@@ -18,7 +18,7 @@ The following build script contains the basic configuration you will need to get
 
 ```gradle
 plugins {
-	id 'org.xtext.idea-plugin' version '0.3.10'
+	id 'org.xtext.idea-plugin' version '0.3.11'
 	id 'eclipse'
 }
 
