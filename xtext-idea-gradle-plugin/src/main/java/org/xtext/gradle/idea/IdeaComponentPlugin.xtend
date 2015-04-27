@@ -88,7 +88,8 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		]
 
 		project.plugins.withType(EclipsePlugin) [
-			project.tasks.getByName(EclipsePlugin.ECLIPSE_CP_TASK_NAME).dependsOn(idea.downloadIdea)
+			val eclipseClasspath = project.tasks.getByName(EclipsePlugin.ECLIPSE_CP_TASK_NAME)
+			eclipseClasspath.dependsOn(idea.downloadIdea, idea.downloadPlugins)
 			project.extensions.getByType(EclipseModel).classpath => [
 				plusConfigurations.add(ideaProvided)
 
