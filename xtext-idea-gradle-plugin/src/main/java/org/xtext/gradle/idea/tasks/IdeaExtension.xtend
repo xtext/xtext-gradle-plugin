@@ -29,7 +29,7 @@ class IdeaExtension {
 	def List<Object> getIdeaLibs() {
 		val result = <Object>newArrayList
 		result += pluginDependencies.projectDependencies.map [
-			project.project(it)
+			project.project(id)
 		]
 		result.add(externalLibs)
 		result
@@ -112,17 +112,20 @@ class IdeaPluginRepositories implements Iterable<IdeaPluginRepository> {
 
 class IdeaPluginDependencies {
 	
-	@Accessors(PUBLIC_GETTER) val externalDependencies = <ExternalIdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
-	@Accessors(PUBLIC_GETTER) val projectDependencies = <String>newHashSet
+	val dependencies = <IdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
 	
-	def ExternalIdeaPluginDependency id(String id) {
-		val dependency = new ExternalIdeaPluginDependency(id)
-		externalDependencies += dependency
+	def IdeaPluginDependency id(String id) {
+		val dependency = new IdeaPluginDependency(id)
+		dependencies += dependency
 		dependency
 	}
 	
-	def project(String path) {
-		projectDependencies += path
+	def getExternalDependencies() {
+		dependencies.filter[version != null]
+	}
+	
+	def getProjectDependencies() {
+		dependencies.filter[version == null]
 	}
 }
 
@@ -132,7 +135,7 @@ class IdeaPluginRepository {
 }
 
 @Accessors
-class ExternalIdeaPluginDependency {
+class IdeaPluginDependency {
 	val String id
 	String version
 	

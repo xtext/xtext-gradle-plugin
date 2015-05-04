@@ -6,6 +6,7 @@ import java.io.File
 import java.net.URL
 import java.nio.file.Files
 import org.eclipse.xtend.lib.annotations.Accessors
+import org.eclipse.xtend.lib.annotations.Data
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -32,7 +33,8 @@ class DownloadIdeaPlugins extends DefaultTask {
 	def download() {
 		val urlsByPluginId = collectUrlsByPluginId
 		externalPluginDependencies.forEach [
-			download(id, version, urlsByPluginId.get(id))
+			val plugin = new PluginRequest(id, version)
+			download(plugin, urlsByPluginId.get(plugin))
 		]
 	}
 
@@ -40,12 +42,12 @@ class DownloadIdeaPlugins extends DefaultTask {
 		pluginDependencies.externalDependencies
 	}
 
-	def download(String id, String version, String downloadUrl) {
+	def download(PluginRequest plugin, String downloadUrl) {
 		usingTmpDir[ tmp |
-			val targetFile = tmp / '''«id».zip'''
+			val targetFile = tmp / '''«plugin.id».zip'''
 			Files.copy(new URL(downloadUrl).openStream, targetFile.toPath)
 			project.copy [
-				into(destinationDir / id / version)
+				into(destinationDir / plugin.id / plugin.version)
 				from(project.zipTree(targetFile))
 				eachFile[cutDirs(1)]
 				includeEmptyDirs = false
@@ -57,8 +59,14 @@ class DownloadIdeaPlugins extends DefaultTask {
 		newHashMap(pluginRepositories.map [
 			val result = new XmlSlurper().parse(url)
 			result.childNodes.toIterable.filter(Node).map [
-				attributes.get("id") as String -> attributes.get("url") as String
+				new PluginRequest(attributes.get("id") as String, attributes.get("version") as String) -> attributes.get("url") as String
 			]
 		].flatten)
+	}
+	
+	@Data
+	private static class PluginRequest {
+		String id
+		String version
 	}
 }

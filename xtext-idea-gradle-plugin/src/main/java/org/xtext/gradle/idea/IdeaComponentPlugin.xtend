@@ -64,7 +64,7 @@ class IdeaComponentPlugin implements Plugin<Project> {
 				assembleSandboxTask.rootSpec.addChild.into(id).from(idea.pluginsCache / id / version)
 			]
 			val upstreamSandBoxTasks = idea.pluginDependencies.projectDependencies
-				.map[project.project(it)]
+				.map[project.project(id)]
 				.map[(tasks.getAt(ASSEMBLE_SANDBOX_TASK_NAME) as AssembleSandbox)]
 			assembleSandboxTask.from(upstreamSandBoxTasks)
 			assembleSandboxTask.exclude("*.zip")
