@@ -16,7 +16,7 @@ import org.xtext.gradle.idea.tasks.RunIdea
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.GradleException
 import org.gradle.api.execution.TaskExecutionGraphListener
-
+import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
 class IdeaComponentPlugin implements Plugin<Project> {
 	public static val IDEA_PROVIDED_CONFIGURATION_NAME = "ideaProvided"
 	public static val ASSEMBLE_SANDBOX_TASK_NAME = "assembleSandbox"
@@ -60,7 +60,9 @@ class IdeaComponentPlugin implements Plugin<Project> {
 			]
 			assembleSandboxTask.destinationDir = idea.sandboxDir
 			assembleSandboxTask.plugin.into(project.name)
-			assembleSandboxTask.from(idea.downloadPlugins.destinationDir)
+			idea.pluginDependencies.externalDependencies.forEach [
+				assembleSandboxTask.rootSpec.addChild.into(id).from(idea.pluginsCache / id / version)
+			]
 			val upstreamSandBoxTasks = idea.pluginDependencies.projectDependencies
 				.map[project.project(it)]
 				.map[(tasks.getAt(ASSEMBLE_SANDBOX_TASK_NAME) as AssembleSandbox)]

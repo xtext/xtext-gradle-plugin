@@ -18,7 +18,7 @@ class IdeaExtension {
 	Object ideaHome
 	String ideaVersion
 	DownloadIdea downloadIdea
-	DownloadPlugins downloadPlugins
+	DownloadIdeaPlugins downloadPlugins
 	
 	new (Project project) {
 		this.project = project
@@ -39,7 +39,7 @@ class IdeaExtension {
 		new LazilyInitializedFileCollection {
 			override createDelegate() {
 				val unpackedDependencies = pluginDependencies.externalDependencies.map[
-					downloadPlugins.destinationDir / id
+					pluginsCache / id / version
 				]
 				val dependencyClasses = unpackedDependencies
 					.map[project.files(it / "classes")]
@@ -57,7 +57,7 @@ class IdeaExtension {
 	}
 	
 	def FileCollection getIdeaCoreLibs() {
-		project.fileTree(project.file(ideaHome) + "/lib")
+		project.fileTree(getIdeaHome + "/lib")
 			.builtBy(downloadIdea).include("*.jar") as FileCollection
 	}
 	
@@ -70,11 +70,19 @@ class IdeaExtension {
 	}
 	
 	def File getIdeaHome() {
-		project.file(ideaHome)
+		if (ideaHome == null) {
+			project.gradle.gradleUserHomeDir / "ideaSDK" / ideaVersion
+		} else {
+			project.file(ideaHome) 
+		}
+	}
+	
+	def File getPluginsCache() {
+		project.gradle.gradleUserHomeDir / "ideaPluginDependencies"
 	}
 	
 	def File getSourcesZip() {
-		project.file(ideaHome) / 'sources.zip'
+		getIdeaHome / 'sources.zip'
 	}
 	
 	def File getSandboxDir() {
@@ -106,16 +114,11 @@ class IdeaPluginDependencies {
 	
 	@Accessors(PUBLIC_GETTER) val externalDependencies = <ExternalIdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
 	@Accessors(PUBLIC_GETTER) val projectDependencies = <String>newHashSet
-	var ExternalIdeaPluginDependency last
 	
-	def void id(String id) {
-		last = new ExternalIdeaPluginDependency(id)
-		externalDependencies += last
-	}
-	
-	def version(String version) {
-		last.version = version
-		this
+	def ExternalIdeaPluginDependency id(String id) {
+		val dependency = new ExternalIdeaPluginDependency(id)
+		externalDependencies += dependency
+		dependency
 	}
 	
 	def project(String path) {
@@ -132,4 +135,8 @@ class IdeaPluginRepository {
 class ExternalIdeaPluginDependency {
 	val String id
 	String version
+	
+	def version(String version) {
+		this.version = version
+	}
 }

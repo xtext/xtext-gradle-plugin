@@ -1,6 +1,5 @@
 package org.xtext.gradle.idea.tasks
 
-import com.google.common.base.Splitter
 import java.io.File
 import java.net.ProxySelector
 import java.net.URL
@@ -13,48 +12,48 @@ import org.apache.http.util.EntityUtils
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import org.gradle.api.tasks.Optional
 
 @Accessors
 class DownloadIdea extends DefaultTask {
 	static val os = OperatingSystem.current
 
 	@OutputDirectory File ideaHome
-	@Input String ideaVersion
+	@Input @Optional String ideaVersion
 
 	new() {
-		onlyIf[(ideaHome.list ?: newArrayOfSize(0)).length< 3]
+		onlyIf[ideaVersion != null && !ideaHome.exists]
 	}
 
 	@TaskAction
 	def download() {
 		val buildInfo = queryBuildInfo
-		val archiveFile = new File(ideaHome, buildInfo.archiveName)
-		if (!archiveFile.exists) {
+		usingTmpDir[ tmp |
+			val archiveFile = new File(tmp, buildInfo.archiveName)
 			Files.copy(new URL(buildInfo.archiveUrl).openStream, archiveFile.toPath)
-		}
-		val sourceArchiveFile = new File(ideaHome, buildInfo.sourceArchiveName)
-		if (!sourceArchiveFile.exists) {
-			Files.copy(new URL(buildInfo.sourceArchiveUrl).openStream, sourceArchiveFile.toPath)
-		}
-		project.copy [
-			into(ideaHome)
-			if (os.isLinux) {
-				from(project.tarTree(archiveFile))
-				eachFile[cutDirs(1)]
-			} else {
-				from(project.zipTree(archiveFile))
-				if (os.isMacOsX) {
-					eachFile[cutDirs(2)]
+			project.copy [
+				into(ideaHome)
+				if (os.isLinux) {
+					from(project.tarTree(archiveFile))
+					eachFile[cutDirs(1)]
+				} else {
+					from(project.zipTree(archiveFile))
+					if (os.isMacOsX) {
+						eachFile[cutDirs(2)]
+					}
 				}
-			}
+				includeEmptyDirs = false
+			]
+
 		]
+		val sourceArchiveFile = new File(ideaHome, buildInfo.sourceArchiveName)
+		Files.copy(new URL(buildInfo.sourceArchiveUrl).openStream, sourceArchiveFile.toPath)
 	}
 
 	def queryBuildInfo() {
@@ -106,11 +105,6 @@ class DownloadIdea extends DefaultTask {
 			"tar.gz"
 		}
 	}
-
-	def cutDirs(FileCopyDetails file, int levels) {
-		val segments = Splitter.on('/').omitEmptyStrings.split(file.path)
-		file.path = segments.drop(levels).join('/')
-	}
 }
 
 @Data class IdeaBuildInfo {
@@ -124,7 +118,7 @@ class DownloadIdea extends DefaultTask {
 	def String getArchiveUrl() {
 		'''«contentBaseUrl»/«archiveName»'''
 	}
-	
+
 	def String getSourceArchiveName() {
 		"sources.zip"
 	}
