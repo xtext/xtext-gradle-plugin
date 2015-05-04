@@ -120,6 +120,10 @@ class IdeaPluginDependencies {
 		dependency
 	}
 	
+	def project(String id) {
+		id(id)
+	}
+	
 	def getExternalDependencies() {
 		dependencies.filter[version != null]
 	}
