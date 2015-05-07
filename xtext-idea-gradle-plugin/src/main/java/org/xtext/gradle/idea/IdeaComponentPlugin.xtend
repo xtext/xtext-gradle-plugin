@@ -42,6 +42,7 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		val compile = project.configurations.getAt(JavaPlugin.COMPILE_CONFIGURATION_NAME)
 		compile.exclude(#{"module" -> "guava"})
 		compile.exclude(#{"module" -> "log4j"})
+		compile.exclude(#{"group" -> "org.ow2.asm"})
 
 		val ideaProvided = project.configurations.create(IDEA_PROVIDED_CONFIGURATION_NAME)
 		java.sourceSets.all [
@@ -79,15 +80,14 @@ class IdeaComponentPlugin implements Plugin<Project> {
 			runIdea.sandboxDir = idea.sandboxDir
 			runIdea.ideaHome = idea.ideaHome
 			runIdea.classpath = idea.ideaRunClasspath
+			project.tasks.withType(Test).all [
+				dependsOn(assembleSandboxTask)
+				systemProperty("idea.home.path", idea.ideaHome)
+				systemProperty("idea.plugins.path", idea.sandboxDir)
+			]
 		]
 		
 		project.gradle.taskGraph.addTaskExecutionGraphListener(runIdeaValidator)
-
-		project.tasks.withType(Test).all [
-			dependsOn(assembleSandboxTask)
-			systemProperty("idea.home.path", idea.ideaHome)
-			systemProperty("idea.plugins.path", idea.sandboxDir)
-		]
 
 		project.plugins.withType(EclipsePlugin) [
 			val eclipseClasspath = project.tasks.getByName(EclipsePlugin.ECLIPSE_CP_TASK_NAME)
@@ -96,10 +96,9 @@ class IdeaComponentPlugin implements Plugin<Project> {
 				plusConfigurations.add(ideaProvided)
 
 				val fileReferenceFactory = new FileReferenceFactory
-				val sourceZip = idea.sourcesZip
 				file.whenMerged.add [ Classpath it |
 					entries.filter(Library).filter[idea.ideaCoreLibs.contains(library.file)].forEach [
-						sourcePath = fileReferenceFactory.fromFile(sourceZip)
+						sourcePath = fileReferenceFactory.fromFile(idea.sourcesZip)
 					]
 				]
 			]
