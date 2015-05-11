@@ -16,7 +16,7 @@ class XtextEclipseSettings extends DefaultTask {
 	@TaskAction
 	def writeSettings() {
 		xtext.languages.forEach [ Language language |
-			val prefs = new XtextEclipsePreferences(project, language.name)
+			val prefs = new XtextEclipsePreferences(project, language.qualifiedName)
 			prefs.load
 			prefs.putBoolean("is_project_specific", true)
 			language.outputs.forEach [ output |

@@ -58,6 +58,10 @@ class Language {
 	def output(Closure<?> closure) {
 		ConfigureUtil.configure(closure, output)
 	}
+	
+	def getQualifiedName() {
+		setup.replace("StandaloneSetup", "")
+	}
 }
 
 class OutputConfiguration {
