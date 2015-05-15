@@ -18,7 +18,7 @@ The following build script contains the basic configuration you will need to get
 
 ```gradle
 plugins {
-	id 'org.xtext.idea-plugin' version '0.3.11'
+	id 'org.xtext.idea-plugin' version '0.3.16'
 	id 'eclipse'
 }
 
@@ -34,13 +34,13 @@ dependencies {
 
 ideaDevelopment {
 	//pick an IDEA build from https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt410
-	ideaVersion = '141.178.9'
+	ideaVersion = '141.814.3'
 	pluginRepositories {
 		//Xtext IDEA plugin nightly builds
 		url 'https://hudson.eclipse.org/xtext/job/xtext-intellij/lastSuccessfulBuild/artifact/git-repo/intellij/build/ideaRepository/updatePlugins.xml'
 	}
 	pluginDependencies {
-		id 'org.eclipse.xtext.idea'
+		id 'org.eclipse.xtext.idea' version '2.9.0-SNAPSHOT'
 	}
 }
 ```
@@ -81,9 +81,3 @@ Be sure to supply a root URL for the repository
 ```gradle
 ideaRepository.rootUrl = '<the URL to which you will upload the ideaRepository folder>'
 ```
-
-Limitations
------------
-
-- the plugin does not yet detect an update to the 'ideaVersion' property. You'll have to clear out the ideaHome folder yourself to force a re-download.
-- plugin dependencies are currently unversioned
