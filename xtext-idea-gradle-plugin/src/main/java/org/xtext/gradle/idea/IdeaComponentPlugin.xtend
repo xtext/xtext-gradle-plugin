@@ -43,6 +43,7 @@ class IdeaComponentPlugin implements Plugin<Project> {
 		compile.exclude(#{"module" -> "guava"})
 		compile.exclude(#{"module" -> "log4j"})
 		compile.exclude(#{"group" -> "org.ow2.asm"})
+		compile.exclude(#{"group" -> "asm"})
 
 		val ideaProvided = project.configurations.create(IDEA_PROVIDED_CONFIGURATION_NAME)
 		java.sourceSets.all [
