@@ -1,7 +1,7 @@
 description 'A small wrapper for Xtext to make it easier to use from Gradle'
 
 dependencies {
-  compile ("org.eclipse.xtext:org.eclipse.xtext.builder.standalone:[2.8.0,)") {
+  compile ("org.eclipse.xtext:org.eclipse.xtext.builder.standalone:2.9.0-SNAPSHOT") {
     exclude group:'asm', module:'asm'
   }
 }

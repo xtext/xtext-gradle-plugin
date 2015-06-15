@@ -2,6 +2,9 @@ description 'A plugin for invoking Xtext base Code generators'
 
 dependencies {
 	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
+	compile ("org.eclipse.xtext:org.eclipse.xtext.builder.standalone:2.9.0-SNAPSHOT") {
+		exclude group:'asm', module:'asm'
+	}
 }
 
 jar {

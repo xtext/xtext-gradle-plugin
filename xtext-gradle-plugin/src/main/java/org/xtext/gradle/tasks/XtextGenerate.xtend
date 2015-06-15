@@ -1,61 +1,92 @@
 package org.xtext.gradle.tasks;
 
-import java.io.File
+import com.google.inject.Guice
 import java.net.URLClassLoader
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Accessors
+import org.eclipse.xtext.ISetup
+import org.eclipse.xtext.builder.standalone.LanguageAccess
+import org.eclipse.xtext.builder.standalone.StandaloneBuilderModule
+import org.eclipse.xtext.builder.standalone.incremental.BuildRequest
+import org.eclipse.xtext.builder.standalone.incremental.IncrementalBuilder
+import org.eclipse.xtext.builder.standalone.incremental.IndexState
+import org.eclipse.xtext.resource.IResourceServiceProvider
+import org.eclipse.xtext.resource.XtextResourceSet
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.internal.classloader.FilteringClassLoader
 
+import static extension org.eclipse.xtext.builder.standalone.incremental.FilesAndURIs.*
+
 class XtextGenerate extends DefaultTask {
+	
+	static IndexState previousIndexState = new IndexState
 
 	private XtextExtension xtext
 
 	@Accessors @InputFiles FileCollection xtextClasspath
 
 	@Accessors @InputFiles FileCollection classpath
+	
+	@InputFiles
+	def getInputFiles() {
+		val fileExtensions = xtext.languages.map[fileExtension].toSet
+		xtext.sources.filter[fileExtensions.contains(asURI.fileExtension)]
+	}
+	
+	@OutputDirectories
+	def getOutputDirectories() {
+		xtext.languages.map[outputs.map[project.file(dir)]].flatten
+	}
 
 	def configure(XtextExtension xtext) {
 		this.xtext = xtext
-		xtext.languages.forEach [ Language lang |
-			lang.outputs.forEach [ OutputConfiguration output |
-				outputs.dir(output.dir)
-			]
-		]
-		inputs.source(xtext.sources)
 	}
 
 	@TaskAction
-	def generate() {
-		val args = newArrayList(
-			"-encoding",
-			xtext.getEncoding(),
-			"-cwd",
-			project.getProjectDir().absolutePath,
-			"-classpath",
-			getClasspath().asPath,
-			"-tempdir",
-			new File(project.buildDir, "xtext-temp").absolutePath
-		)
-
-		xtext.languages.forEach [ Language language |
-			args += #[
-				'''-L«language.name».setup=«language.setup»''',
-				'''-L«language.name».javaSupport=«language.consumesJava»'''
-			]
-			language.outputs.forEach [ OutputConfiguration output |
-				args += #[
-					'''-L«language.name».«output.name».dir=«output.dir»''',
-					'''-L«language.name».«output.name».createDir=true'''
-				]
-			]
+	def generate(IncrementalTaskInputs inputs) {
+		val languageClassLoader = new URLClassLoader(xtextClasspath.map[toURL], class.classLoader)
+		val removedFiles = newArrayList
+		val outOfDateFiles = newArrayList
+		if (inputs.incremental) {
+			inputs.outOfDate[outOfDateFiles += file]
+			inputs.removed[removedFiles += file]
+		} else {
+			outOfDateFiles += inputFiles
+		}
+		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {
+			return
+		}
+		
+		val buildRequest = new BuildRequest => [
+			baseDir = project.projectDir.asURI
+			classPath = classpath.map[asURI].toList
+			resourceSet = new XtextResourceSet
+			previousState = previousIndexState
+			sourceRoots = xtext.sources.srcDirs.map[asURI].toList
+			deletedFiles = removedFiles.map[asURI].toList
+			dirtyFiles = outOfDateFiles.map[asURI].toList
 		]
-		args += xtext.sources.srcDirs.map[absolutePath]
-		generate(args)
+		val languagesByExtension = newHashMap(xtext.languages.map[language|
+			val standaloneSetup = languageClassLoader.loadClass(language.setup).newInstance as ISetup
+			val injector = standaloneSetup.createInjectorAndDoEMFRegistration
+			val serviceProvider = injector.getInstance(IResourceServiceProvider)
+			val outputConfigurations = language.outputs.map[output|
+				new org.eclipse.xtext.generator.OutputConfiguration(output.name) => [
+					outputDirectory = project.relativePath(output.dir)
+				]
+			].toSet
+			language.fileExtension -> new LanguageAccess(outputConfigurations, serviceProvider, language.consumesJava)
+		])
+		val injector = Guice.createInjector(new StandaloneBuilderModule)
+		val builder = injector.getInstance(IncrementalBuilder)
+		val result = builder.build(buildRequest, languagesByExtension)
+		previousIndexState = result.indexState
 	}
 
 	def generate(List<String> arguments) {

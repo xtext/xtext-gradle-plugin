@@ -15,7 +15,7 @@ buildscript {
 configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   apply plugin: 'org.xtend.xtend'
   apply plugin: 'java-gradle-plugin'
-  
+
   dependencies {
     compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.0'
   }
@@ -24,16 +24,16 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
 subprojects {
   apply plugin: 'eclipse'
   apply plugin: 'java'
-  
+
   sourceCompatibility = 1.6
 }
 
 allprojects {
   apply plugin: 'com.github.oehme.sobula.plugin-release'
-  
+
   group = "org.xtext"
   bintray.pkg.name = "$rootProject.group:$rootProject.name"
-  
+
   contacts {
     "xtext@itemis.com" {
       moniker "The Xtext team"
@@ -47,6 +47,7 @@ allprojects {
   bintray.pkg.version.mavenCentralSync.user = "oehme"
   repositories {
     jcenter()
+    mavenLocal()
   }
 }
 

@@ -34,7 +34,8 @@ class XtextExtension {
 }
 
 class Language {
-	@Accessors String name;
+	@Accessors String name
+	@Accessors String fileExtension
 	@Accessors String setup
 	@Accessors boolean consumesJava
 	@Accessors NamedDomainObjectContainer<OutputConfiguration> outputs
