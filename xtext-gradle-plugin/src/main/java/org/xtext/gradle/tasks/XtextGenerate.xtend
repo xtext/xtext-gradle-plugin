@@ -26,6 +26,7 @@ import static extension org.eclipse.xtext.builder.standalone.incremental.FilesAn
 class XtextGenerate extends DefaultTask {
 	
 	static IndexState previousIndexState = new IndexState
+	static ClassLoader loader
 
 	private XtextExtension xtext
 
@@ -50,7 +51,7 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
-		val languageClassLoader = new URLClassLoader(xtextClasspath.map[toURL], class.classLoader)
+		loader = loader ?: new URLClassLoader(xtextClasspath.map[toURL], class.classLoader)
 		val removedFiles = newArrayList
 		val outOfDateFiles = newArrayList
 		if (inputs.incremental) {
@@ -62,7 +63,6 @@ class XtextGenerate extends DefaultTask {
 		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {
 			return
 		}
-		
 		val buildRequest = new BuildRequest => [
 			baseDir = project.projectDir.asURI
 			classPath = classpath.map[asURI].toList
@@ -73,7 +73,7 @@ class XtextGenerate extends DefaultTask {
 			dirtyFiles = outOfDateFiles.map[asURI].toList
 		]
 		val languagesByExtension = newHashMap(xtext.languages.map[language|
-			val standaloneSetup = languageClassLoader.loadClass(language.setup).newInstance as ISetup
+			val standaloneSetup = loader.loadClass(language.setup).newInstance as ISetup
 			val injector = standaloneSetup.createInjectorAndDoEMFRegistration
 			val serviceProvider = injector.getInstance(IResourceServiceProvider)
 			val outputConfigurations = language.outputs.map[output|
