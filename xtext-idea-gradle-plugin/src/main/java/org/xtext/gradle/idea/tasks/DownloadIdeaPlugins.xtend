@@ -46,8 +46,10 @@ class DownloadIdeaPlugins extends DefaultTask {
 		usingTmpDir[ tmp |
 			val targetFile = tmp / '''«plugin.id».zip'''
 			Files.copy(new URL(downloadUrl).openStream, targetFile.toPath)
+			val pluginFolder = destinationDir / plugin.id / plugin.version
+			project.delete(pluginFolder)
 			project.copy [
-				into(destinationDir / plugin.id / plugin.version)
+				into(pluginFolder)
 				from(project.zipTree(targetFile))
 				eachFile[cutDirs(1)]
 				includeEmptyDirs = false
