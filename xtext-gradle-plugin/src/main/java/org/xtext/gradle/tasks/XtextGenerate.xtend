@@ -5,11 +5,11 @@ import java.net.URLClassLoader
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtext.ISetup
-import org.eclipse.xtext.builder.standalone.LanguageAccess
 import org.eclipse.xtext.builder.standalone.StandaloneBuilderModule
 import org.eclipse.xtext.builder.standalone.incremental.BuildRequest
 import org.eclipse.xtext.builder.standalone.incremental.IncrementalBuilder
 import org.eclipse.xtext.builder.standalone.incremental.IndexState
+import org.eclipse.xtext.generator.OutputConfigurationAdapter
 import org.eclipse.xtext.resource.IResourceServiceProvider
 import org.eclipse.xtext.resource.XtextResourceSet
 import org.gradle.api.DefaultTask
@@ -22,6 +22,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.internal.classloader.FilteringClassLoader
 
 import static extension org.eclipse.xtext.builder.standalone.incremental.FilesAndURIs.*
+import org.eclipse.xtext.workspace.WorkspaceConfigAdapter
 
 class XtextGenerate extends DefaultTask {
 	
@@ -66,26 +67,32 @@ class XtextGenerate extends DefaultTask {
 		val buildRequest = new BuildRequest => [
 			baseDir = project.projectDir.asURI
 			classPath = classpath.map[asURI].toList
-			resourceSet = new XtextResourceSet
+			resourceSet = new XtextResourceSet => [
+				eAdapters += new OutputConfigurationAdapter(
+					xtext.languages.toMap[name].mapValues[
+						outputs.map[output|
+							new org.eclipse.xtext.generator.OutputConfiguration(output.name) => [
+								outputDirectory = project.relativePath(output.dir)
+							]
+						].toSet
+					]
+				)
+				eAdapters += new WorkspaceConfigAdapter(
+					new GradleWorkspaceConfig(project)
+				)
+				classpathURIContext = new URLClassLoader(classpath.map[toURL])
+			]
 			previousState = previousIndexState
-			sourceRoots = xtext.sources.srcDirs.map[asURI].toList
 			deletedFiles = removedFiles.map[asURI].toList
 			dirtyFiles = outOfDateFiles.map[asURI].toList
 		]
-		val languagesByExtension = newHashMap(xtext.languages.map[language|
-			val standaloneSetup = loader.loadClass(language.setup).newInstance as ISetup
-			val injector = standaloneSetup.createInjectorAndDoEMFRegistration
-			val serviceProvider = injector.getInstance(IResourceServiceProvider)
-			val outputConfigurations = language.outputs.map[output|
-				new org.eclipse.xtext.generator.OutputConfiguration(output.name) => [
-					outputDirectory = project.relativePath(output.dir)
-				]
-			].toSet
-			language.fileExtension -> new LanguageAccess(outputConfigurations, serviceProvider, language.consumesJava)
-		])
+		xtext.languages.forEach[
+			val standaloneSetup = loader.loadClass(setup).newInstance as ISetup
+			standaloneSetup.createInjectorAndDoEMFRegistration
+		]
 		val injector = Guice.createInjector(new StandaloneBuilderModule)
 		val builder = injector.getInstance(IncrementalBuilder)
-		val result = builder.build(buildRequest, languagesByExtension)
+		val result = builder.build(buildRequest, IResourceServiceProvider.Registry.INSTANCE)
 		previousIndexState = result.indexState
 	}
 
