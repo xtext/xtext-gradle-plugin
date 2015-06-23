@@ -32,7 +32,8 @@ import static extension org.eclipse.xtext.builder.standalone.incremental.FilesAn
 class XtextGenerate extends DefaultTask {
 	
 	static IndexState previousIndexState = new IndexState
-	static ClassLoader loader
+	static val incrementalbuilder = Guice.createInjector(new StandaloneBuilderModule).getInstance(IncrementalBuilder)
+	static URLClassLoader languageClassLoader
 
 	private XtextExtension xtext
 
@@ -57,7 +58,6 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
-		loader = loader ?: new URLClassLoader(xtextClasspath.map[toURL], class.classLoader)
 		val removedFiles = newArrayList
 		val outOfDateFiles = newArrayList
 		if (inputs.incremental) {
@@ -113,15 +113,16 @@ class XtextGenerate extends DefaultTask {
 			dirtyFiles = outOfDateFiles.map[asURI].toList
 			afterValidate = validator
 		]
-		xtext.languages.forEach[
-			val standaloneSetup = loader.loadClass(setup).newInstance as ISetup
-			val injector = standaloneSetup.createInjectorAndDoEMFRegistration
-			//FIXME we want to get rid of all stateful singletons
-			injector.getInstance(IEncodingProvider.Runtime).defaultEncoding = Charsets.UTF_8.name
-		]
-		val injector = Guice.createInjector(new StandaloneBuilderModule)
-		val builder = injector.getInstance(IncrementalBuilder)
-		val result = builder.build(buildRequest, IResourceServiceProvider.Registry.INSTANCE)
+		if (languageClassLoader == null|| languageClassLoader.URLs.toList != xtextClasspath.map[toURL].toList) {
+			languageClassLoader = new URLClassLoader(xtextClasspath.map[toURL], class.classLoader)
+			xtext.languages.forEach[
+				val standaloneSetup = languageClassLoader.loadClass(setup).newInstance as ISetup
+				val injector = standaloneSetup.createInjectorAndDoEMFRegistration
+				//FIXME we want to get rid of all stateful singletons
+				injector.getInstance(IEncodingProvider.Runtime).defaultEncoding = Charsets.UTF_8.name
+			]
+		}
+		val result = incrementalbuilder.build(buildRequest, IResourceServiceProvider.Registry.INSTANCE)
 		if (!validator.errorFree) {
 			throw new GradleException("Xtext validation failed, see build log for details.")
 		}
