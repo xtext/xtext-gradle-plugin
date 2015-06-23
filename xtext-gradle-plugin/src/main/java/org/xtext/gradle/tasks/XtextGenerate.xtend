@@ -1,17 +1,22 @@
 package org.xtext.gradle.tasks;
 
+import com.google.common.base.Charsets
 import com.google.inject.Guice
 import java.net.URLClassLoader
-import java.util.List
+import org.eclipse.emf.common.util.URI
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtext.ISetup
 import org.eclipse.xtext.builder.standalone.StandaloneBuilderModule
 import org.eclipse.xtext.builder.standalone.incremental.BuildRequest
+import org.eclipse.xtext.builder.standalone.incremental.BuildRequest.IPostValidationCallback
 import org.eclipse.xtext.builder.standalone.incremental.IncrementalBuilder
 import org.eclipse.xtext.builder.standalone.incremental.IndexState
 import org.eclipse.xtext.generator.OutputConfigurationAdapter
+import org.eclipse.xtext.parser.IEncodingProvider
 import org.eclipse.xtext.resource.IResourceServiceProvider
 import org.eclipse.xtext.resource.XtextResourceSet
+import org.eclipse.xtext.validation.Issue
+import org.eclipse.xtext.workspace.WorkspaceConfigAdapter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
@@ -19,10 +24,10 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import org.gradle.internal.classloader.FilteringClassLoader
+
+import static org.xtext.gradle.tasks.XtextGenerate.*
 
 import static extension org.eclipse.xtext.builder.standalone.incremental.FilesAndURIs.*
-import org.eclipse.xtext.workspace.WorkspaceConfigAdapter
 
 class XtextGenerate extends DefaultTask {
 	
@@ -64,6 +69,27 @@ class XtextGenerate extends DefaultTask {
 		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {
 			return
 		}
+		val validator = new IPostValidationCallback() {
+			var errorFree = true
+			
+			override afterValidate(URI validated, Iterable<Issue> issues) {
+				for (issue : issues) {
+					switch (issue.severity) {
+						case ERROR: {
+							logger.error(issue.toString)
+							errorFree = false
+						}
+						case WARNING:
+							logger.warn(issue.toString)
+						case INFO:
+							logger.info(issue.toString)
+						case IGNORE:
+							logger.debug(issue.toString)
+					}
+				}
+				return errorFree
+			}
+		}
 		val buildRequest = new BuildRequest => [
 			baseDir = project.projectDir.asURI
 			classPath = classpath.map[asURI].toList
@@ -85,57 +111,20 @@ class XtextGenerate extends DefaultTask {
 			previousState = previousIndexState
 			deletedFiles = removedFiles.map[asURI].toList
 			dirtyFiles = outOfDateFiles.map[asURI].toList
+			afterValidate = validator
 		]
 		xtext.languages.forEach[
 			val standaloneSetup = loader.loadClass(setup).newInstance as ISetup
-			standaloneSetup.createInjectorAndDoEMFRegistration
+			val injector = standaloneSetup.createInjectorAndDoEMFRegistration
+			//FIXME we want to get rid of all stateful singletons
+			injector.getInstance(IEncodingProvider.Runtime).defaultEncoding = Charsets.UTF_8.name
 		]
 		val injector = Guice.createInjector(new StandaloneBuilderModule)
 		val builder = injector.getInstance(IncrementalBuilder)
 		val result = builder.build(buildRequest, IResourceServiceProvider.Registry.INSTANCE)
+		if (!validator.errorFree) {
+			throw new GradleException("Xtext validation failed, see build log for details.")
+		}
 		previousIndexState = result.indexState
-	}
-
-	def generate(List<String> arguments) {
-		System.setProperty("org.eclipse.emf.common.util.ReferenceClearingQueue", "false")
-		val contextClassLoader = Thread.currentThread.contextClassLoader
-		val classLoader = getCompilerClassLoader(getXtextClasspath)
-		try {
-			Thread.currentThread.contextClassLoader = classLoader
-			val main = classLoader.loadClass("org.xtext.builder.standalone.Main")
-			val method = main.getMethod("generate", typeof(String[]))
-			val success = method.invoke(null, #[arguments as String[]]) as Boolean
-			if (!success) {
-				throw new GradleException('''Xtext generation failed''');
-			}
-		} finally {
-			Thread.currentThread.contextClassLoader = contextClassLoader
-		}
-	}
-
-	static val currentCompilerClassLoader = new ThreadLocal<URLClassLoader>() {
-		override protected initialValue() {
-			null
-		}
-	}
-
-	private def getCompilerClassLoader(FileCollection classpath) {
-		val classPathWithoutLog4j = classpath.filter[!name.contains("log4j")]
-		val urls = classPathWithoutLog4j.map[absoluteFile.toURI.toURL].toList
-		val currentClassLoader = currentCompilerClassLoader.get
-		if (currentClassLoader !== null && currentClassLoader.URLs.toList == urls) {
-			return currentClassLoader
-		} else {
-			val newClassLoader = new URLClassLoader(urls, loggingBridgeClassLoader)
-			currentCompilerClassLoader.set(newClassLoader)
-			return newClassLoader
-		}
-	}
-
-	private def loggingBridgeClassLoader() {
-		new FilteringClassLoader(XtextGenerate.classLoader) => [
-			allowPackage("org.slf4j")
-			allowPackage("org.apache.log4j")
-		]
 	}
 }
