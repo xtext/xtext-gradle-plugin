@@ -41,7 +41,12 @@ class GradleProjectConfig implements IProjectConfig {
 	}
 
 	override getPath() {
-		URI.createFileURI(project.projectDir.absolutePath)
+		val path = URI.createFileURI(project.projectDir.absolutePath)
+		if (path.hasTrailingPathSeparator)
+			path
+		else
+			path.appendSegment("")
+
 	}
 
 	override findSourceFolderContaining(URI member) {
@@ -50,8 +55,13 @@ class GradleProjectConfig implements IProjectConfig {
 
 	override getSourceFolders() {
 		val sourceDirs = project.extensions.getByType(XtextExtension).sources.srcDirs
-		sourceDirs.map [
-			new GradleSourceFolder(project.relativePath(it), URI.createFileURI(absolutePath))
+		sourceDirs.map [sourceDir|
+			val path = URI.createFileURI(sourceDir.absolutePath)
+			val adjustedPath = if (path.hasTrailingPathSeparator)
+				path
+			else
+				path.appendSegment("")
+			new GradleSourceFolder(project.relativePath(sourceDir), adjustedPath)
 		].toSet
 	}
 

@@ -61,6 +61,7 @@ class XtextPlugin implements Plugin<Project> {
 			]
 			val java = project.convention.findPlugin(JavaPluginConvention)
 			if (java != null) {
+				generatorTask.useJava = true
 				java.sourceSets.forEach [ sourceSet |
 					val sourceDirs = sourceSet.java.srcDirs
 					val xtextOutputDirs = xtext.languages.map[outputs.map[project.file(dir)]].flatten
