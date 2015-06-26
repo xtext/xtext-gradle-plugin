@@ -1,13 +1,8 @@
 description 'A plugin for invoking Xtext base Code generators'
 
 dependencies {
-	compile ("org.eclipse.xtext:org.eclipse.xtext.builder.standalone:2.9.0-SNAPSHOT") {
-		exclude group:'asm', module:'asm'
-	}
-	compile ("org.eclipse.xtext:org.eclipse.xtext.java:2.9.0-SNAPSHOT") {
-		exclude group:'asm', module:'asm'
-	}
 	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
+	compile project(':xtext-gradle-protocol')
 }
 
 jar {

@@ -80,7 +80,7 @@ class XtextPlugin implements Plugin<Project> {
 				]
 				project.tasks.getAt(JavaPlugin.COMPILE_JAVA_TASK_NAME).dependsOn(generatorTask)
 			}
-			generatorTask.configure(xtext)
+			generatorTask.xtext = xtext
 			generatorTask.xtextClasspath = xtextTooling
 			generatorTask.classpath = xtextDependencies
 			project.tasks.getAt(BasePlugin.ASSEMBLE_TASK_NAME).dependsOn(generatorTask)
