@@ -18,7 +18,7 @@ public class GradleBuildRequest {
 	private Project project;  
 	private Collection<File> dirtyFiles = Lists.newArrayList();
 	private Collection<File> deletedFiles = Lists.newArrayList();
-	private ClassLoader classPath;
+	private Collection<File> classPath;
 	private Collection<File> sourceFolders = Lists.newArrayList();
 	private Map<String, Set<GradleOutputConfig>> outputConfigsPerLanguage = Maps.newHashMap();
 	
@@ -30,12 +30,11 @@ public class GradleBuildRequest {
 		this.project = project;
 	}
 	
-	//TODO maybe pass URLs instead?
-	public ClassLoader getClassPath() {
+	public Collection<File> getClassPath() {
 		return classPath;
 	}
 	
-	public void setClassPath(ClassLoader classPath) {
+	public void setClassPath(Collection<File> classPath) {
 		this.classPath = classPath;
 	}
 

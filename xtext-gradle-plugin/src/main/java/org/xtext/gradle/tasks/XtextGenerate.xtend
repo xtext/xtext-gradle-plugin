@@ -1,6 +1,7 @@
 package org.xtext.gradle.tasks;
 
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 import java.util.Collection
 import java.util.Set
@@ -66,7 +67,7 @@ class XtextGenerate extends DefaultTask {
 			project = this.project
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
-			classPath = jvmTypeClassLoader
+			classPath = classpath.files
 			sourceFolders = xtext.sources.srcDirs
 			outputConfigsPerLanguage = xtext.languages.toMap[qualifiedName].mapValues[
 				outputs.map[output|
@@ -77,10 +78,17 @@ class XtextGenerate extends DefaultTask {
 				].toSet
 			]
 		]
-		builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request)
+		try {
+			builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request)
+		} catch (InvocationTargetException e) {
+			throw e.cause
+		}
 	}
 	
 	private def initializeBuilder() {
+		if (builder != null) {
+			(builder.class.classLoader as URLClassLoader).close
+		}
 		val builderClass = builderClassLoader.loadClass("org.xtext.builder.standalone.XtextGradleBuilder")
 		val builderConstructor = builderClass.getConstructor(Set, String)
 		builder = builderConstructor.newInstance(languageSetups, xtext.encoding)
@@ -127,9 +135,5 @@ class XtextGenerate extends DefaultTask {
 	private def getBuilderClassLoader() {
 		//TODO parent filtering, we don't want asm etc.
 		new URLClassLoader(xtextClasspath.map[toURL], class.classLoader)
-	}
-	
-	private def getJvmTypeClassLoader() {
-		new URLClassLoader(classpath.map[toURL], ClassLoader.systemClassLoader)
 	}
 }

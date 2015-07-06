@@ -22,11 +22,13 @@ import org.eclipse.xtext.generator.OutputConfigurationAdapter;
 import org.eclipse.xtext.parser.IEncodingProvider;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.resource.IResourceServiceProvider;
+import org.eclipse.xtext.resource.IResourceServiceProvider.Registry;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.resource.impl.ChunkedResourceDescriptions;
 import org.eclipse.xtext.resource.impl.ProjectDescription;
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsData;
 import org.eclipse.xtext.workspace.WorkspaceConfigAdapter;
+import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.xtext.gradle.protocol.GradleBuildRequest;
@@ -107,7 +109,7 @@ public class XtextGradleBuilder {
 			outputConfigurationsPerLanguage.put(gradleOutputConfigs.getKey(), outputConfigs);
 		}
 		resourceSet.eAdapters().add(new OutputConfigurationAdapter(outputConfigurationsPerLanguage));
-		resourceSet.setClasspathURIContext(gradleRequest.getClassPath());
+		resourceSet.setClasspathURIContext(new FileClassLoader(gradleRequest.getClassPath(), ClassLoader.getSystemClassLoader()));
 		ProjectDescription projectDescription = new ProjectDescription();
 		projectDescription.setName(containerHandle);
 		//TODO dependencies
@@ -120,7 +122,13 @@ public class XtextGradleBuilder {
 		GradleValidatonCallback validator = new GradleValidatonCallback(project.getLogger());
 		request.setAfterValidate(validator);
 		
-		Result result = incrementalbuilder.build(request, IResourceServiceProvider.Registry.INSTANCE);
+		final Registry registry = IResourceServiceProvider.Registry.INSTANCE;
+		Result result = incrementalbuilder.build(request, new Function1<URI, IResourceServiceProvider>() {
+			@Override
+			public IResourceServiceProvider apply(URI uri) {
+				return registry.getResourceServiceProvider(uri);
+			}
+		});
 		IndexState resultingIndex = result.getIndexState();
 		if (!validator.isErrorFree()) {
 			throw new GradleException("Xtext validation failed, see build log for details.");
