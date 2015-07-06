@@ -57,7 +57,6 @@ Apart from the usual Java build tasks, you also get
 - `runIdea`
 	- starts IntelliJ IDEA with your plugin installed.
 	- if you pass the `--debug-jvm` option, the VM will start in debug mode
-	- if you pass the `--debug-builder` option, IDEA's external builder process will be run in debug mode
 	- see [JavaExec](http://gradle.org/docs/current/dsl/org.gradle.api.tasks.JavaExec.html) for more options
 
 Advanced use cases
