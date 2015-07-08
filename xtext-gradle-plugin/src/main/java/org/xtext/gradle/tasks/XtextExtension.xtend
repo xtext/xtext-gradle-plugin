@@ -51,7 +51,7 @@ class XtextExtension {
 @Accessors
 class Language implements Named {
 	@Input val String name
-	@Input String fileExtension
+	String fileExtension
 	@Input String setup
 	@Input Map<String, String> preferences = newHashMap
 	@Nested val NamedDomainObjectContainer<Outlet> outlets
@@ -67,6 +67,11 @@ class Language implements Named {
 	@Input
 	def getQualifiedName() {
 		qualifiedName ?: setup.replace("StandaloneSetup", "")
+	}
+	
+	@Input
+	def getFileExtension() {
+		fileExtension ?: name
 	}
 
 	def preferences(Map<String, String> preferences) {
