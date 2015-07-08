@@ -1,93 +1,38 @@
 package org.xtext.gradle.tasks.internal
 
-import groovy.lang.Closure
-import org.eclipse.xtend.lib.annotations.Accessors
+import java.util.Map
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
-import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer
-import org.gradle.internal.reflect.Instantiator
-import org.xtext.gradle.tasks.LanguageSourceSetOutputs
-import org.xtext.gradle.tasks.SourceInstaller
+import org.xtext.gradle.tasks.Outlet
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
-import org.xtext.gradle.tasks.LanguageSourceSetOutput
-
-class DefaultXtextSourceSetOutputs extends AbstractNamedDomainObjectContainer<LanguageSourceSetOutputs> implements XtextSourceSetOutputs {
-	Project project
-
-	new(Project project, Instantiator instantiator) {
-		super(LanguageSourceSetOutputs, instantiator)
-		this.project = project
-	}
-	
-	override getDirs() {
-		project.files(map[dirs])
-	}
-	
-	override protected doCreate(String name) {
-		new DefaultLanguageSourceSetOutputs(project,instantiator, name)
-	}
-	
-	//TODO Xtend bug - these overrides are not necessary
-	override <S extends LanguageSourceSetOutputs> withType(Class<S> arg0) {
-		super.withType(arg0)
-	}
-	
-	override <S extends LanguageSourceSetOutputs> withType(Class<S> arg0, Action<? super S> arg1) {
-		super.withType(arg0, arg1)
-	}
-	
-	override <S extends LanguageSourceSetOutputs> withType(Class<S> arg0, Closure arg1) {
-		super.withType(arg0, arg1)
-	}
-}
-
-class DefaultLanguageSourceSetOutputs extends AbstractNamedDomainObjectContainer<LanguageSourceSetOutput> implements LanguageSourceSetOutputs {
-	Project project
-	@Accessors val String name
-	
-	new(Project project, Instantiator instantiator, String name) {
-		super(LanguageSourceSetOutput, instantiator)
-		this.project = project
-		this.name = name
-	}
-	
-	override getDirs() {
-		project.files(map[dir])
-	}
-	
-	override protected doCreate(String name) {
-		new DefaultLanguageSourceSetOutput(project, name)
-	}
-	
-	//TODO Xtend bug - these overrides are not necessary
-	override <S extends LanguageSourceSetOutput> withType(Class<S> arg0) {
-		super.withType(arg0)
-	}
-	
-	override <S extends LanguageSourceSetOutput> withType(Class<S> arg0, Action<? super S> arg1) {
-		super.withType(arg0, arg1)
-	}
-	
-	override <S extends LanguageSourceSetOutput> withType(Class<S> arg0, Closure arg1) {
-		super.withType(arg0, arg1)
-	}
-}
+import groovy.lang.MissingPropertyException
 
 @FinalFieldsConstructor
-class DefaultLanguageSourceSetOutput implements LanguageSourceSetOutput {
+class DefaultXtextSourceSetOutputs implements XtextSourceSetOutputs {
 	val Project project
-	@Accessors val String name
-	Object dir
-	@Accessors boolean hideSyntheticVariables
-	@Accessors boolean producesJava
-	@Accessors SourceInstaller sourceInstaller
-	
-	override getDir() {
-		project.file(dir)
+	val Map<Outlet, Object> dirs = newHashMap
+	val Map<String, Outlet> outletsByPropertyName = newHashMap
+
+	override getDirs() {
+		project.files(dirs.values)
+	}
+
+	override getDir(Outlet outlet) {
+		project.file(dirs.get(outlet))
+	}
+
+	override dir(Outlet outlet, Object path) {
+		dirs.put(outlet, path)
 	}
 	
-	override setDir(Object dir) {
-		this.dir = dir
+	def registerOutletPropertyName(String name, Outlet outlet) {
+		outletsByPropertyName.put(name, outlet)
+	}
+	
+	def dir(String propertyName, Object value) {
+		val outlet = outletsByPropertyName.get(propertyName)
+		if (outlet == null)
+			throw new MissingPropertyException('''Unknown output directory '«propertyName»''')
+		dirs.put(outlet, value)
 	}
 }

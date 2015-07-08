@@ -14,6 +14,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.xtext.gradle.protocol.GradleBuildRequest
@@ -37,7 +38,7 @@ class XtextGenerate extends DefaultTask {
 	
 	@Accessors @Input String encoding = "UTF-8"
 	
-	@InputFiles
+	@InputFiles @SkipWhenEmpty
 	def getInputFiles() {
 		val fileExtensions = getFileExtensions
 		sources.filter[fileExtensions.contains(name.split("\\.").last)]
@@ -78,16 +79,14 @@ class XtextGenerate extends DefaultTask {
 			deletedFiles = removedFiles
 			classPath = classpath?.files ?: emptyList
 			sourceFolders = sources.srcDirs
-			outputConfigsPerLanguage = languages
-				.filter[sourceSetOutputs.findByName(name) != null]
-				.toMap[qualifiedName].mapValues[
-					sourceSetOutputs.findByName(name).map[output|
-						new GradleOutputConfig => [
-							outletName = output.name
-							target = output.dir
-						]
-					].toSet
-				]
+			outputConfigsPerLanguage = languages.toMap[qualifiedName].mapValues[
+				outlets.map[outlet|
+					new GradleOutputConfig => [
+						outletName = outlet.name
+						target = sourceSetOutputs.getDir(outlet)
+					]
+				].toSet
+			]
 		]
 		try {
 			builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request)

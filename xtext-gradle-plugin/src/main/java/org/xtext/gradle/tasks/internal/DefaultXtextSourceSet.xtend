@@ -8,22 +8,19 @@ import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.tasks.XtextSourceSet
-import org.xtext.gradle.tasks.XtextSourceSetOutputs
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext
-import org.gradle.api.internal.file.collections.DirectoryFileTree
 
-@Accessors
 class DefaultXtextSourceSet implements XtextSourceSet {
-	val String name
+	@Accessors val String name
+	@Accessors val DefaultXtextSourceSetOutputs output
 	@Delegate val SourceDirectorySet sources
-	val XtextSourceSetOutputs output
 
-	new(String name, Project project, FileResolver fileResolver, Instantiator instantiator) {
+	new(String name, Project project, FileResolver fileResolver) {
 		this.name = name
-		output = new DefaultXtextSourceSetOutputs(project, instantiator)
+		output = new DefaultXtextSourceSetOutputs(project)
 		sources = new DefaultSourceDirectorySet(name + " Xtext sources", fileResolver) {
 			override getSrcDirTrees() {
 				val outputDirs = ImmutableSet.copyOf(output.dirs)
@@ -37,6 +34,10 @@ class DefaultXtextSourceSet implements XtextSourceSet {
 			}
 		}
 	}
+	
+	def propertyMissing(String name, Object value) {
+		output.dir(name, value)
+	}
 
 	override output(Closure<?> configureAction) {
 		ConfigureUtil.configure(configureAction, output)
@@ -49,5 +50,4 @@ class DefaultXtextSourceSet implements XtextSourceSet {
 			"generate" + name.toFirstUpper + "Xtext"
 		}
 	}
-
 }

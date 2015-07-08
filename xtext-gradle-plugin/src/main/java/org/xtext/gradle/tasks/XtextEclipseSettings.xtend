@@ -18,14 +18,15 @@ class XtextEclipseSettings extends DefaultTask {
 			val prefs = new XtextEclipsePreferences(project, language.qualifiedName)
 			prefs.load
 			prefs.putBoolean("is_project_specific", true)
-			sourceSetOutputs.getByName(language.name).forEach [ output |
-				prefs.put(output.getKey("directory"), output.dir.projectRelativePath)
+			language.outlets.forEach[outlet|
+				prefs.put(outlet.getKey("directory"), sourceSetOutputs.getDir(outlet).projectRelativePath)
+				
 			]
 			prefs.save
 		]
 	}
 
-	def String getKey(LanguageSourceSetOutput output, String preferenceName) '''outlet.«output.name».«preferenceName»'''
+	def String getKey(Outlet output, String preferenceName) '''outlet.«output.name».«preferenceName»'''
 	
 	private def projectRelativePath(File file) {
 		project.projectDir.toURI.relativize(file.toURI).path.trimTrailingSeparator
