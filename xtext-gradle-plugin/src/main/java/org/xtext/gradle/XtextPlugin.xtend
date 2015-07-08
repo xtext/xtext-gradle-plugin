@@ -1,28 +1,29 @@
 package org.xtext.gradle;
 
 import javax.inject.Inject
+import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
-import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
 import static extension org.xtext.gradle.GradleExtensions.*
+import org.gradle.internal.reflect.Instantiator
 
 class XtextPlugin implements Plugin<Project> {
 
-	FileResolver fileResolver
+	val FileResolver fileResolver
+	val Instantiator instantiator
 
-	@Inject
-	new(FileResolver fileResolver) {
-		this.fileResolver = fileResolver
-	}
+	@Inject @FinalFieldsConstructor
+	new() {}
 
 	private def String getPluginVersion() {
 		this.class.package.implementationVersion
@@ -32,20 +33,46 @@ class XtextPlugin implements Plugin<Project> {
 		project.plugins.<BasePlugin>apply(BasePlugin)
 		project.plugins.<EclipsePlugin>apply(EclipsePlugin)
 
-		val xtext = project.extensions.create("xtext", XtextExtension, project, fileResolver);
-
+		val xtext = project.extensions.create("xtext", XtextExtension, project, fileResolver, instantiator);
 		val xtextTooling = project.configurations.create("xtextTooling")
-		val xtextDependencies = project.configurations.create("xtext")
 
-		val settingsTask = project.tasks.create("xtextEclipseSettings", XtextEclipseSettings)
-		settingsTask.configure(xtext)
-		project.tasks.getAt(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(settingsTask)
+//		val settingsTask = project.tasks.create("xtextEclipseSettings", XtextEclipseSettings)
+//		settingsTask.languages = xtext.languages
+//		settingsTask.sourceSetOutputs = xtext.sourceSets.head.output
+//		project.tasks.getAt(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(settingsTask)
 
 		val eclipse = project.extensions.getByType(EclipseModel)
 		eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
 		eclipse.project.natures("org.eclipse.xtext.ui.shared.xtextNature")
-
-		val generatorTask = project.tasks.create("xtextGenerate", XtextGenerate)
+		
+		xtext.sourceSets.all[sourceSet|
+			project.tasks.create(sourceSet.generatorTaskName, XtextGenerate) => [
+				sources = sourceSet
+				sourceSetOutputs = sourceSet.output
+				languages = xtext.languages
+				xtextClasspath = xtextTooling
+			]
+		]
+		
+		project.plugins.withType(JavaPlugin) [
+			val java = project.convention.findPlugin(JavaPluginConvention)
+			xtext.parseJava = true
+			java.sourceSets.all [ javaSourceSet |
+				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile
+				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [
+					val generatorTask = project.tasks.getByName(generatorTaskName) as XtextGenerate
+					source(javaSourceSet.java)
+					project.afterEvaluate[p|
+						output.flatten.filter[producesJava].forEach[
+							javaSourceSet.java.srcDir(dir)
+							javaCompile.dependsOn(generatorTask)
+						]
+						generatorTask.classpath = javaSourceSet.compileClasspath
+						generatorTask.bootClasspath = javaCompile.options.bootClasspath
+					]
+				]
+			]
+		]
 
 		project.afterEvaluate [
 			project.dependencies => [
@@ -59,31 +86,6 @@ class XtextPlugin implements Plugin<Project> {
 				add("xtextTooling", '''org.xtext:xtext-gradle-lib:«pluginVersion»''')
 				add("xtextTooling", 'com.google.inject:guice:4.0-beta4')
 			]
-			val java = project.convention.findPlugin(JavaPluginConvention)
-			if (java != null) {
-				generatorTask.useJava = true
-				java.sourceSets.forEach [ sourceSet |
-					val sourceDirs = sourceSet.java.srcDirs
-					val xtextOutputDirs = xtext.languages.map[outputs.map[project.file(dir)]].flatten
-					sourceDirs.removeAll(xtextOutputDirs)
-					xtext.sources.srcDirs(sourceDirs.toArray)
-				]
-				xtextDependencies.extendsFrom(project.configurations.getAt(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME))
-				xtext.languages.forEach [ language |
-					language.outputs.forEach [ output |
-						if (output.javaSourceSet !== null) {
-							project.dependencies.add("compile",
-								'''org.eclipse.xtext:org.eclipse.xtext.xbase.lib:«xtext.version»''')
-							output.javaSourceSet.java.srcDir(output.dir)
-						}
-					]
-				]
-				project.tasks.getAt(JavaPlugin.COMPILE_JAVA_TASK_NAME).dependsOn(generatorTask)
-			}
-			generatorTask.xtext = xtext
-			generatorTask.xtextClasspath = xtextTooling
-			generatorTask.classpath = xtextDependencies
-			project.tasks.getAt(BasePlugin.ASSEMBLE_TASK_NAME).dependsOn(generatorTask)
 		]
 	}
 }

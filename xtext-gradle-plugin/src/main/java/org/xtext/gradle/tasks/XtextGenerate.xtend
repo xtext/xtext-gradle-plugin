@@ -8,8 +8,11 @@ import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
@@ -20,23 +23,29 @@ class XtextGenerate extends DefaultTask {
 	
 	static Object builder
 
-	@Accessors XtextExtension xtext
+	@Accessors SourceDirectorySet sources
+	
+	@Accessors XtextSourceSetOutputs sourceSetOutputs
+	
+	@Accessors @Nested Set<Language> languages
 
 	@Accessors @InputFiles FileCollection xtextClasspath
 
-	@Accessors @InputFiles FileCollection classpath
+	@Accessors @InputFiles @Optional FileCollection classpath
 	
-	@Accessors @Input boolean useJava = false
+	@Accessors @Input @Optional String bootClasspath
+	
+	@Accessors @Input String encoding = "UTF-8"
 	
 	@InputFiles
 	def getInputFiles() {
 		val fileExtensions = getFileExtensions
-		xtext.sources.filter[fileExtensions.contains(name.split("\\.").last)]
+		sources.filter[fileExtensions.contains(name.split("\\.").last)]
 	}
 	
 	@OutputDirectories
 	def getOutputDirectories() {
-		xtext.languages.map[outputs.map[project.file(dir)]].flatten
+		sourceSetOutputs.dirs
 	}
 
 	@TaskAction
@@ -67,16 +76,18 @@ class XtextGenerate extends DefaultTask {
 			project = this.project
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
-			classPath = classpath.files
-			sourceFolders = xtext.sources.srcDirs
-			outputConfigsPerLanguage = xtext.languages.toMap[qualifiedName].mapValues[
-				outputs.map[output|
-					new GradleOutputConfig => [
-						outletName = output.name
-						target = project.file(output.dir)
-					]
-				].toSet
-			]
+			classPath = classpath?.files ?: emptyList
+			sourceFolders = sources.srcDirs
+			outputConfigsPerLanguage = languages
+				.filter[sourceSetOutputs.findByName(name) != null]
+				.toMap[qualifiedName].mapValues[
+					sourceSetOutputs.findByName(name).map[output|
+						new GradleOutputConfig => [
+							outletName = output.name
+							target = output.dir
+						]
+					].toSet
+				]
 		]
 		try {
 			builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request)
@@ -91,7 +102,7 @@ class XtextGenerate extends DefaultTask {
 		}
 		val builderClass = builderClassLoader.loadClass("org.xtext.builder.standalone.XtextGradleBuilder")
 		val builderConstructor = builderClass.getConstructor(Set, String)
-		builder = builderConstructor.newInstance(languageSetups, xtext.encoding)
+		builder = builderConstructor.newInstance(languageSetups, encoding)
 	}
 	
 	private def isBuilderUpToDate() {
@@ -108,28 +119,18 @@ class XtextGenerate extends DefaultTask {
 			return false
 		}
 		val builderEncoding = builder.class.getMethod("getEncoding").invoke(builder)
-		if (builderEncoding != xtext.encoding) {
+		if (builderEncoding != encoding) {
 			return false
 		}
 		return true
 	}
 	
 	private def getLanguageSetups() {
-		val setups = newHashSet
-		setups += xtext.languages.map[setup]
-		if (useJava) {
-			setups += "org.eclipse.xtext.java.JavaSourceLanguageSetup"
-		}
-		setups
+		languages.map[setup].toSet
 	}
 	
 	private def getFileExtensions() {
-		val fileExtensions = newHashSet
-		fileExtensions += xtext.languages.map[fileExtension]
-		if (useJava) {
-			fileExtensions += 'java'
-		}
-		fileExtensions
+		languages.map[fileExtension].toSet
 	}
 	
 	private def getBuilderClassLoader() {

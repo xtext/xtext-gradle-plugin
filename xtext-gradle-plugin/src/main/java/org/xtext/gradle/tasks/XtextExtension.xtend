@@ -1,80 +1,69 @@
 package org.xtext.gradle.tasks;
 
-import groovy.lang.Closure
+import java.util.Map
 import org.eclipse.xtend.lib.annotations.Accessors
+import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.SourceSet
-import org.gradle.util.ConfigureUtil
+import org.gradle.api.tasks.Input
+import org.xtext.gradle.tasks.internal.DefaultXtextSourceSet
+import org.gradle.internal.reflect.Instantiator
 
 class XtextExtension {
-	@Accessors String version = "2.8.0"
-	@Accessors String encoding = "UTF-8"
-	@Accessors SourceDirectorySet sources
-	@Accessors NamedDomainObjectContainer<Language> languages;
+	@Accessors String version = "2.9.0"
+	@Accessors val NamedDomainObjectContainer<XtextSourceSet> sourceSets
+	@Accessors val NamedDomainObjectContainer<Language> languages;
 
 	private Project project
 
-	new(Project project, FileResolver fileResolver) {
+	new(Project project, FileResolver fileResolver, Instantiator instantiator) {
 		this.project = project
-		languages = project.container(Language)[name|new Language(project, name)]
-		sources = new DefaultSourceDirectorySet("xtext", fileResolver)
+		languages = project.container(Language)[name|new Language(name)]
+		sourceSets = project.container(XtextSourceSet)[name|new DefaultXtextSourceSet(name, project, fileResolver, instantiator)]
 	}
 
-	def languages(Closure<?> closure) {
-		languages.configure(closure)
+	def languages(Action<? super NamedDomainObjectContainer<Language>> configureAction) {
+		configureAction.execute(languages)
 	}
 
-	def sources(Closure<?> closure) {
-		ConfigureUtil.configure(closure, sources)
+
+	def sourceSets(Action<? super NamedDomainObjectContainer<XtextSourceSet>> configureAction) {
+		configureAction.execute(sourceSets)
+	}
+
+	def setParseJava(boolean parseJava) {
+		if (parseJava) {
+			languages.maybeCreate("java") => [
+				fileExtension = "java"
+				setup = "org.eclipse.xtext.java.JavaSourceLanguageSetup"
+				qualifiedName = "org.eclipse.xtext.java.Java"
+			]
+		} else {
+			languages.remove(languages.findByName("java"))
+		}
 	}
 }
 
+@FinalFieldsConstructor
 class Language {
-	@Accessors String name
-	@Accessors String fileExtension
-	@Accessors String setup
-	@Accessors boolean consumesJava
-	@Accessors NamedDomainObjectContainer<OutputConfiguration> outputs
+	@Input @Accessors val String name
+	@Input @Accessors String fileExtension
+	@Input @Accessors String setup
+	@Input @Accessors Map<String, String> preferences = newHashMap
+	String qualifiedName
 
-	private Project project
-
-	new(Project project, String name) {
-		this.name = name
-		this.project = project
-		outputs = project.container(OutputConfiguration)
+	@Input
+	def getQualifiedName() {
+		qualifiedName ?: setup.replace("StandaloneSetup", "")
 	}
 
-	def outputs(Closure<?> closure) {
-		outputs.configure(closure)
-	}
-
-	def OutputConfiguration getOutput() {
-		outputs.maybeCreate("DEFAULT_OUTPUT")
-	}
-
-	def output(Closure<?> closure) {
-		ConfigureUtil.configure(closure, output)
+	def setQualifiedName(String qualifiedName) {
+		this.qualifiedName = qualifiedName
 	}
 	
-	def getQualifiedName() {
-		setup.replace("StandaloneSetup", "")
-	}
-}
-
-class OutputConfiguration {
-	@Accessors String name
-	@Accessors Object dir
-	@Accessors SourceSet javaSourceSet
-
-	new(String name) {
-		this.name = name
-	}
-
-	def producesJavaFor(SourceSet javaSourceSet) {
-		setJavaSourceSet(javaSourceSet)
+	def preferences(Map<String, String> preferences) {
+		this.preferences.putAll(preferences)
 	}
 }
