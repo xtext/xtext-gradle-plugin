@@ -101,7 +101,11 @@ class XtextGenerate extends DefaultTask {
 		}
 		val builderClass = builderClassLoader.loadClass("org.xtext.builder.standalone.XtextGradleBuilder")
 		val builderConstructor = builderClass.getConstructor(Set, String)
-		builder = builderConstructor.newInstance(languageSetups, encoding)
+		try {
+			builder = builderConstructor.newInstance(languageSetups, encoding)
+		} catch (InvocationTargetException e) {
+			throw e.cause
+		}
 	}
 	
 	private def isBuilderUpToDate() {
