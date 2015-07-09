@@ -12,7 +12,7 @@ import org.gradle.api.tasks.Nested
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceSet
 import org.gradle.util.ConfigureUtil
 import groovy.lang.Closure
-
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 
 class XtextExtension {
 	@Accessors String version = "2.9.0"
@@ -56,6 +56,8 @@ class Language implements Named {
 	@Input String setup
 	@Input Map<String, String> preferences = newHashMap
 	@Nested val NamedDomainObjectContainer<Outlet> outlets
+	@Input boolean hideSyntheticVariables = true
+	@Input SourceInstaller sourceInstaller = SourceInstaller.SMAP
 	
 	@Accessors(NONE) val Project project
 
@@ -99,13 +101,5 @@ class Outlet implements Named {
 	val Language language
 	
 	@Input val String name
-	@Input boolean hideSyntheticVariables = true
 	@Input boolean producesJava = false
-	@Input SourceInstaller sourceInstaller = SourceInstaller.SMAP
-}
-
-enum SourceInstaller {
-	PRIMARY,
-	SMAP,
-	NONE
 }

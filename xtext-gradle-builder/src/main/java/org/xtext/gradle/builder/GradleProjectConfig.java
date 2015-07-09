@@ -24,12 +24,12 @@ public class GradleProjectConfig implements IProjectConfig {
 	
 	@Override
 	public String getName() {
-		return request.getProject().getName();
+		return request.getProjectName();
 	}
 	
 	@Override
 	public URI getPath() {
-		return UriUtil.createFolderURI(request.getProject().getProjectDir());
+		return UriUtil.createFolderURI(request.getProjectDir());
 	}
 	
 	@Override

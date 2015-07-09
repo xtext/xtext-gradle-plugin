@@ -26,6 +26,11 @@ subprojects {
   apply plugin: 'java'
 
   sourceCompatibility = 1.6
+
+  dependencies {
+    compile gradleApi()
+    compile 'com.google.guava:guava:18.0'
+  }
 }
 
 allprojects {

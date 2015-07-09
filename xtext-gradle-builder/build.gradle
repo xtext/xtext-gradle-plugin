@@ -7,6 +7,5 @@ dependencies {
 	compile ("org.eclipse.xtext:org.eclipse.xtext.java:2.9.0-SNAPSHOT") {
 		exclude group:'asm', module:'asm'
 	}
-	compile gradleApi()
 	compile project(':xtext-gradle-protocol')
 }

@@ -114,16 +114,19 @@ class XtextPlugin implements Plugin<Project> {
 					xtextSourceSet.source(javaSourceSet.java)
 					xtextSourceSet.source(javaSourceSet.resources)
 					project.afterEvaluate [ p |
-						xtext.languages.all [ lang |
-							lang.outlets.all [ outlet |
-								if (outlet.producesJava) {
-									javaSourceSet.java.srcDir(xtextSourceSet.output.getDir(outlet))
-									javaCompile.dependsOn(generatorTask)
-								}
-							]
+						val javaOutlets = xtext.languages.map[outlets].flatten.filter[producesJava]
+						javaOutlets.forEach[
+							javaSourceSet.java.srcDir(xtextSourceSet.output.getDir(it))
 						]
+						if (!javaOutlets.isEmpty) {
+							javaCompile.dependsOn(generatorTask)
+							javaCompile.doLast[
+								generatorTask.installDebugInfo
+							]
+						}
 						generatorTask.classpath = generatorTask.classpath ?: javaSourceSet.compileClasspath
 						generatorTask.bootClasspath = generatorTask.bootClasspath ?: javaCompile.options.bootClasspath
+						generatorTask.classesDir = generatorTask.classesDir ?: javaSourceSet.output.classesDir
 					]
 				]
 			]

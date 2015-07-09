@@ -19,6 +19,8 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleOutputConfig
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig
 
 class XtextGenerate extends DefaultTask {
 	
@@ -35,6 +37,8 @@ class XtextGenerate extends DefaultTask {
 	@Accessors @Input @Optional String bootClasspath
 
 	@Accessors @Input String encoding = "UTF-8"
+	
+	@Accessors @Input @Optional File classesDir
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
 	
@@ -68,7 +72,9 @@ class XtextGenerate extends DefaultTask {
 	
 	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
 		val request = new GradleBuildRequest => [
-			project = this.project
+			projectName = project.name
+			projectDir = project.projectDir
+			containerHandle = project.path + ":" + sources.name
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
 			classPath = classpath?.files ?: emptyList
@@ -81,9 +87,31 @@ class XtextGenerate extends DefaultTask {
 					]
 				].toSet
 			]
+			it.logger = logger
 		]
 		try {
 			builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request)
+		} catch (InvocationTargetException e) {
+			throw e.cause
+		}
+	}
+	
+	def installDebugInfo() {
+		if (!builderUpToDate) {
+			initializeBuilder
+		}
+		val request = new GradleInstallDebugInfoRequest => [
+			containerHandle = project.path + ":" + sources.name
+			it.classesDir = classesDir
+			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
+				new GradleSourceInstallerConfig() => [
+					sourceInstaller = lang.sourceInstaller
+					hideSyntheticVariables = lang.hideSyntheticVariables
+				]
+			]
+		]
+		try {
+			builder.class.getMethod("installDebugInfo", GradleInstallDebugInfoRequest).invoke(builder, request)
 		} catch (InvocationTargetException e) {
 			throw e.cause
 		}

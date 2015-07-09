@@ -30,8 +30,11 @@ import org.eclipse.xtext.resource.impl.ResourceDescriptionsData;
 import org.eclipse.xtext.workspace.WorkspaceConfigAdapter;
 import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
+import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstaller;
+import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig;
 import org.xtext.gradle.protocol.GradleBuildRequest;
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest;
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig;
 import org.xtext.gradle.protocol.GradleOutputConfig;
 
 import com.google.common.collect.Maps;
@@ -43,6 +46,7 @@ public class XtextGradleBuilder {
 	private final ConcurrentMap<String, Source2GeneratedMapping> generatedMappings = new ConcurrentHashMap<String, Source2GeneratedMapping>();
 	private final Injector sharedInjector = Guice.createInjector();
 	private final IncrementalBuilder incrementalbuilder = sharedInjector.getInstance(IncrementalBuilder.class);
+	private final DebugInfoInstaller debugInfoInstaller = sharedInjector.getInstance(DebugInfoInstaller.class);
 	private Set<String> languageSetups;
 	private String encoding;
 	
@@ -66,11 +70,9 @@ public class XtextGradleBuilder {
 	}
 
 	public void build(GradleBuildRequest gradleRequest) {
-		Project project = gradleRequest.getProject();
-		
 		BuildRequest request = new BuildRequest();
 		
-		request.setBaseDir(createFolderURI(project.getProjectDir()));
+		request.setBaseDir(createFolderURI(gradleRequest.getProjectDir()));
 		
 		for (File dirtyFile : gradleRequest.getDirtyFiles()) {
 			request.getDirtyFiles().add(URI.createFileURI(dirtyFile.getAbsolutePath()));
@@ -79,7 +81,7 @@ public class XtextGradleBuilder {
 			request.getDeletedFiles().add(URI.createFileURI(deletedFile.getAbsolutePath()));
 		}
 		
-		String containerHandle = project.getPath();
+		String containerHandle = gradleRequest.getContainerHandle();
 		ResourceDescriptionsData indexChunk = index.getContainer(containerHandle);
 		if (indexChunk == null) {
 			indexChunk = new ResourceDescriptionsData(Collections.<IResourceDescription>emptyList());
@@ -118,7 +120,7 @@ public class XtextGradleBuilder {
 		
 		request.setResourceSet(resourceSet);
 		
-		GradleValidatonCallback validator = new GradleValidatonCallback(project.getLogger());
+		GradleValidatonCallback validator = new GradleValidatonCallback(gradleRequest.getLogger());
 		request.setAfterValidate(validator);
 		
 		final Registry registry = IResourceServiceProvider.Registry.INSTANCE;
@@ -134,5 +136,30 @@ public class XtextGradleBuilder {
 		}
 		index.setContainer(containerHandle, resultingIndex.getResourceDescriptions());
 		generatedMappings.put(containerHandle, resultingIndex.getFileMappings());
+	}
+	
+	public void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
+		InstallDebugInfoRequest request = new InstallDebugInfoRequest();
+		request.setClassesDir(gradleRequest.getClassesDir());
+		request.setOutputDir(gradleRequest.getClassesDir());
+		for (Entry<String, GradleSourceInstallerConfig> entry : gradleRequest.getSourceInstallerByFileExtension().entrySet()) {
+			SourceInstallerConfig sourceInstallerConfig = new SourceInstallerConfig();
+			sourceInstallerConfig.setSourceInstaller(SourceInstaller.valueOf(entry.getValue().getSourceInstaller().name()));
+			sourceInstallerConfig.setHideSyntheticVariables(entry.getValue().isHideSyntheticVariables());
+			request.getSourceInstallerByFileExtension().put(entry.getKey(), sourceInstallerConfig);
+		}
+		Source2GeneratedMapping mappings = generatedMappings.get(gradleRequest.getContainerHandle());
+		for (URI uri : mappings.getAllGenerated()) {
+			if (uri.fileExtension().equals("java")) {
+				request.getGeneratedJavaFiles().add(new File(uri.toFileString()));
+			}
+		}
+		
+		XtextResourceSet resourceSet = sharedInjector.getInstance(XtextResourceSet.class);
+		resourceSet.setClasspathURIContext(ClassLoader.getSystemClassLoader());
+		new ChunkedResourceDescriptions(Collections.<String, ResourceDescriptionsData>emptyMap(), resourceSet);
+		request.setResourceSet(resourceSet);
+		
+		debugInfoInstaller.installDebugInfo(request);
 	}
 }

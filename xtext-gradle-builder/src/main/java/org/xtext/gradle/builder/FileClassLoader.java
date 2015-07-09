@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
+//TODO move to Xtext
 /**
  * In contrast to {@link URLClassLoader}, this classloader does not use any
  * static caches for jars. Thus, the jar files can be deleted after this

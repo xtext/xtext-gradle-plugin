@@ -1,5 +1,1 @@
 description 'The protocol used to communicate between the Xtext plugin and the actual builder'
-
-dependencies {
-	compile gradleApi()
-}
