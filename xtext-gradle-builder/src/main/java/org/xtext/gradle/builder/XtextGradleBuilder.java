@@ -1,4 +1,4 @@
-package org.xtext.builder.standalone;
+package org.xtext.gradle.builder;
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI;
 
@@ -64,7 +64,6 @@ public class XtextGradleBuilder {
 	public String getEncoding() {
 		return encoding;
 	}
-	
 
 	public void build(GradleBuildRequest gradleRequest) {
 		Project project = gradleRequest.getProject();

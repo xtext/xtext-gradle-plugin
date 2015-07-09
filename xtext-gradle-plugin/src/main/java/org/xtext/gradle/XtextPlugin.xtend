@@ -87,7 +87,7 @@ class XtextPlugin implements Plugin<Project> {
 						exclude(#{'group' -> 'asm'})
 					]
 				)
-				add("xtextTooling", '''org.xtext:xtext-gradle-lib:«pluginVersion»''')
+				add("xtextTooling", '''org.xtext:xtext-gradle-builder:«pluginVersion»''')
 				add("xtextTooling", 'com.google.inject:guice:4.0')
 			]
 		]

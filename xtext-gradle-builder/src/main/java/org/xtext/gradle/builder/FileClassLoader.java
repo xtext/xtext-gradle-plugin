@@ -1,4 +1,4 @@
-package org.xtext.builder.standalone;
+package org.xtext.gradle.builder;
 
 import java.io.File;
 import java.io.IOException;

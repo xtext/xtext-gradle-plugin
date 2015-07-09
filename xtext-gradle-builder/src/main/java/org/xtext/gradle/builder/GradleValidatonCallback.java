@@ -1,4 +1,4 @@
-package org.xtext.builder.standalone;
+package org.xtext.gradle.builder;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.xtext.build.BuildRequest.IPostValidationCallback;

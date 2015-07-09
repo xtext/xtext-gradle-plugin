@@ -93,7 +93,7 @@ class XtextGenerate extends DefaultTask {
 		if (builder != null) {
 			(builder.class.classLoader as URLClassLoader).close
 		}
-		val builderClass = builderClassLoader.loadClass("org.xtext.builder.standalone.XtextGradleBuilder")
+		val builderClass = builderClassLoader.loadClass("org.xtext.gradle.builder.XtextGradleBuilder")
 		val builderConstructor = builderClass.getConstructor(Set, String)
 		try {
 			builder = builderConstructor.newInstance(languageSetups, encoding)
