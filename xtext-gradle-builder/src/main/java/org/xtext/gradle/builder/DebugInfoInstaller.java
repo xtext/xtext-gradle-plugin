@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
@@ -46,21 +47,27 @@ public class DebugInfoInstaller {
 	public void installDebugInfo(InstallDebugInfoRequest request) {
 		for (File javaFile : request.getGeneratedJavaFiles()) {
 			File traceFile = new File(traceFileNameProvider.getTraceFromJava(javaFile.getAbsolutePath()));
-			if (traceFile.exists()) {
-				try {
-					installDebugInfo(request, javaFile, traceFile);
-				} catch (IOException e) {
-					throw Throwables.propagate(e);
-				}
+			try {
+				installDebugInfo(request, javaFile, traceFile);
+			} catch (IOException e) {
+				throw Throwables.propagate(e);
 			}
 		}
 	}
 
 	private void installDebugInfo(InstallDebugInfoRequest request, File javaFile, File traceFile) throws IOException {
+		if (!traceFile.exists())
+			return;
 		AbstractTraceRegion trace = readTraceFile(traceFile);
+		ITraceToBytecodeInstaller installer = createTraceToBytecodeInstaller(request, trace.getAssociatedPath());
+		if (installer == null)
+			return;
 		URI javaFileUri = URI.createFileURI(javaFile.getAbsolutePath());
 		ResourceSet resourceSet = request.getResourceSet();
+		Stopwatch timer = Stopwatch.createStarted();
 		Resource javaResource = resourceSet.getResource(javaFileUri, true);
+		javaResource.getContents();
+		logger.warn("Loading Java file took " + timer);
 		for (EObject object : javaResource.getContents()) {
 			if (object instanceof JvmGenericType) {
 				JvmGenericType type = (JvmGenericType) object;
@@ -101,7 +108,7 @@ public class DebugInfoInstaller {
 			return traceAsSmapInstaller.get();
 		case NONE:
 		default:
-			return new NullSourceInstaller();
+			return null;
 		}
 	}
 
@@ -112,18 +119,5 @@ public class DebugInfoInstaller {
 		}finally{
 			in.close();
 		}
-	}
-	
-	private static class NullSourceInstaller implements ITraceToBytecodeInstaller {
-
-		@Override
-		public byte[] installTrace(byte[] javaClassBytecode) throws IOException {
-			return javaClassBytecode;
-		}
-
-		@Override
-		public void setTrace(String javaFileName, AbstractTraceRegion trace) {
-		}
-
 	}
 }

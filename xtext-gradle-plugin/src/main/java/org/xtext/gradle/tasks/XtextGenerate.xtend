@@ -21,6 +21,8 @@ import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig
+import com.google.common.base.Stopwatch
+import org.xtext.gradle.protocol.GradleBuildResponse
 
 class XtextGenerate extends DefaultTask {
 	
@@ -42,6 +44,8 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
 	
+	Collection<File> generatedFiles
+	
 	@OutputDirectories
 	def getOutputDirectories() {
 		sourceSetOutputs.dirs
@@ -49,6 +53,7 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
+		val timer = Stopwatch.createStarted
 		val builderUpToDate = isBuilderUpToDate
 
 		val removedFiles = newArrayList
@@ -68,6 +73,7 @@ class XtextGenerate extends DefaultTask {
 			initializeBuilder
 		}
 		build(outOfDateFiles, removedFiles)
+		logger.quiet("Generation took " + timer)
 	}
 	
 	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
@@ -90,18 +96,20 @@ class XtextGenerate extends DefaultTask {
 			it.logger = logger
 		]
 		try {
-			builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request)
+			val response = builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request) as GradleBuildResponse
+			generatedFiles = response.generatedFiles
 		} catch (InvocationTargetException e) {
 			throw e.cause
 		}
 	}
 	
 	def installDebugInfo() {
+		val timer = Stopwatch.createStarted
 		if (!builderUpToDate) {
 			initializeBuilder
 		}
 		val request = new GradleInstallDebugInfoRequest => [
-			containerHandle = project.path + ":" + sources.name
+			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
 			it.classesDir = classesDir
 			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
 				new GradleSourceInstallerConfig() => [
@@ -115,6 +123,7 @@ class XtextGenerate extends DefaultTask {
 		} catch (InvocationTargetException e) {
 			throw e.cause
 		}
+		logger.quiet("Debug Info took " + timer)
 	}
 	
 	private def initializeBuilder() {

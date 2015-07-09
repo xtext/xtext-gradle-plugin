@@ -29,10 +29,12 @@ import org.eclipse.xtext.resource.impl.ProjectDescription;
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsData;
 import org.eclipse.xtext.workspace.WorkspaceConfigAdapter;
 import org.eclipse.xtext.xbase.lib.Functions.Function1;
+import org.eclipse.xtext.xbase.lib.Procedures.Procedure2;
 import org.gradle.api.GradleException;
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstaller;
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig;
 import org.xtext.gradle.protocol.GradleBuildRequest;
+import org.xtext.gradle.protocol.GradleBuildResponse;
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest;
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig;
 import org.xtext.gradle.protocol.GradleOutputConfig;
@@ -69,8 +71,9 @@ public class XtextGradleBuilder {
 		return encoding;
 	}
 
-	public void build(GradleBuildRequest gradleRequest) {
+	public GradleBuildResponse build(GradleBuildRequest gradleRequest) {
 		BuildRequest request = new BuildRequest();
+		final GradleBuildResponse response = new GradleBuildResponse();
 		
 		request.setBaseDir(createFolderURI(gradleRequest.getProjectDir()));
 		
@@ -122,6 +125,12 @@ public class XtextGradleBuilder {
 		
 		GradleValidatonCallback validator = new GradleValidatonCallback(gradleRequest.getLogger());
 		request.setAfterValidate(validator);
+		request.setAfterGenerateFile(new Procedure2<URI, URI>() {
+			@Override
+			public void apply(URI source, URI target) {
+				response.getGeneratedFiles().add(new File(target.toFileString()));
+			}
+		});
 		
 		final Registry registry = IResourceServiceProvider.Registry.INSTANCE;
 		Result result = incrementalbuilder.build(request, new Function1<URI, IResourceServiceProvider>() {
@@ -136,6 +145,7 @@ public class XtextGradleBuilder {
 		}
 		index.setContainer(containerHandle, resultingIndex.getResourceDescriptions());
 		generatedMappings.put(containerHandle, resultingIndex.getFileMappings());
+		return response;
 	}
 	
 	public void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
@@ -148,12 +158,7 @@ public class XtextGradleBuilder {
 			sourceInstallerConfig.setHideSyntheticVariables(entry.getValue().isHideSyntheticVariables());
 			request.getSourceInstallerByFileExtension().put(entry.getKey(), sourceInstallerConfig);
 		}
-		Source2GeneratedMapping mappings = generatedMappings.get(gradleRequest.getContainerHandle());
-		for (URI uri : mappings.getAllGenerated()) {
-			if (uri.fileExtension().equals("java")) {
-				request.getGeneratedJavaFiles().add(new File(uri.toFileString()));
-			}
-		}
+		request.getGeneratedJavaFiles().addAll(gradleRequest.getGeneratedJavaFiles());
 		
 		XtextResourceSet resourceSet = sharedInjector.getInstance(XtextResourceSet.class);
 		resourceSet.setClasspathURIContext(ClassLoader.getSystemClassLoader());
