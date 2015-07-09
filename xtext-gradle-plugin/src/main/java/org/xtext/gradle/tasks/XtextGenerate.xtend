@@ -24,25 +24,19 @@ class XtextGenerate extends DefaultTask {
 	
 	static Object builder
 
-	@Accessors SourceDirectorySet sources
-	
-	@Accessors XtextSourceSetOutputs sourceSetOutputs
-	
+	@Accessors @InputFiles @SkipWhenEmpty SourceDirectorySet sources
+
 	@Accessors @Nested Set<Language> languages
 
 	@Accessors @InputFiles FileCollection xtextClasspath
 
 	@Accessors @InputFiles @Optional FileCollection classpath
-	
+
 	@Accessors @Input @Optional String bootClasspath
-	
+
 	@Accessors @Input String encoding = "UTF-8"
-	
-	@InputFiles @SkipWhenEmpty
-	def getInputFiles() {
-		val fileExtensions = getFileExtensions
-		sources.filter[fileExtensions.contains(name.split("\\.").last)]
-	}
+
+	@Accessors XtextSourceSetOutputs sourceSetOutputs
 	
 	@OutputDirectories
 	def getOutputDirectories() {
@@ -59,7 +53,7 @@ class XtextGenerate extends DefaultTask {
 			inputs.outOfDate[outOfDateFiles += file]
 			inputs.removed[removedFiles += file]
 		} else {
-			outOfDateFiles += inputFiles
+			outOfDateFiles += sources
 		}
 		
 		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {
@@ -130,10 +124,6 @@ class XtextGenerate extends DefaultTask {
 	
 	private def getLanguageSetups() {
 		languages.map[setup].toSet
-	}
-	
-	private def getFileExtensions() {
-		languages.map[fileExtension].toSet
 	}
 	
 	private def getBuilderClassLoader() {

@@ -29,10 +29,16 @@ class DefaultXtextSourceSetOutputs implements XtextSourceSetOutputs {
 		outletsByPropertyName.put(name, outlet)
 	}
 	
-	def dir(String propertyName, Object value) {
-		val outlet = outletsByPropertyName.get(propertyName)
+	def propertyMissing(String name, Object value) {
+		val outlet = outletsByPropertyName.get(name)
 		if (outlet == null)
-			throw new MissingPropertyException('''Unknown output directory '«propertyName»''')
+			throw new MissingPropertyException('''
+				Unknown output directory '«name»'
+				Known directories are:
+				«FOR dir : outletsByPropertyName.keySet»
+					«dir»
+				«ENDFOR»
+			''')
 		dirs.put(outlet, value)
 	}
 }

@@ -13,26 +13,26 @@ import org.xtext.gradle.tasks.internal.DefaultXtextSourceSet
 import org.gradle.util.ConfigureUtil
 import groovy.lang.Closure
 
-@Accessors
-class XtextExtension {
-	String version = "2.9.0"
-	val NamedDomainObjectContainer<XtextSourceSet> sourceSets
-	val NamedDomainObjectContainer<Language> languages;
 
-	@Accessors(NONE) Project project
+class XtextExtension {
+	@Accessors String version = "2.9.0"
+	@Accessors val NamedDomainObjectContainer<XtextSourceSet> sourceSets
+	@Accessors val NamedDomainObjectContainer<Language> languages;
+
+	Project project
 
 	new(Project project, FileResolver fileResolver) {
 		this.project = project
-		languages = project.container(Language)[name|new Language(name, project)]
 		sourceSets = project.container(XtextSourceSet)[name|new DefaultXtextSourceSet(name, project, fileResolver)]
-	}
-
-	def languages(Action<? super NamedDomainObjectContainer<Language>> configureAction) {
-		configureAction.execute(languages)
+		languages = project.container(Language)[name|new Language(name, project)]
 	}
 
 	def sourceSets(Action<? super NamedDomainObjectContainer<XtextSourceSet>> configureAction) {
 		configureAction.execute(sourceSets)
+	}
+
+	def languages(Action<? super NamedDomainObjectContainer<Language>> configureAction) {
+		configureAction.execute(languages)
 	}
 
 	def setParseJava(boolean parseJava) {
@@ -51,11 +51,12 @@ class XtextExtension {
 @Accessors
 class Language implements Named {
 	@Input val String name
+	String qualifiedName
 	String fileExtension
 	@Input String setup
 	@Input Map<String, String> preferences = newHashMap
 	@Nested val NamedDomainObjectContainer<Outlet> outlets
-	String qualifiedName
+	
 	@Accessors(NONE) val Project project
 
 	new(String name, Project project) {
@@ -96,6 +97,7 @@ class Outlet implements Named {
 	public static val DEFAULT_OUTLET = "DEFAULT_OUTPUT"
 
 	val Language language
+	
 	@Input val String name
 	@Input boolean hideSyntheticVariables = true
 	@Input boolean producesJava = false
