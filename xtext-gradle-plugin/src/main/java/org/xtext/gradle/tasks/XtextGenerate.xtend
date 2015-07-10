@@ -106,7 +106,7 @@ class XtextGenerate extends DefaultTask {
 				allPreferences.putAll(validator.severities.mapValues[toString])
 				allPreferences
 			]
-			it.logger = logger
+			it.logger = this.logger
 		]
 		try {
 			val response = builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request) as GradleBuildResponse
