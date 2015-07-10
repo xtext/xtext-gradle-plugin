@@ -173,7 +173,14 @@ public class FileClassLoader extends ClassLoader {
 	private final class ArchiveURLStreamHandler extends URLStreamHandler {
 		@Override
 		protected URLConnection openConnection(URL url) throws IOException {
-			return new ArchiveURLConnection(url);
+			return new ArchiveURLConnection(url) {
+				@Override
+				protected InputStream createInputStream(String nestedURL) throws IOException {
+					InputStream stream = super.createInputStream(nestedURL);
+					openStreams.add(stream);
+					return stream;
+				}
+			};
 		}
 	}
 
@@ -181,5 +188,4 @@ public class FileClassLoader extends ClassLoader {
 	public Enumeration<URL> getResources(String name) throws IOException {
 		throw new UnsupportedOperationException("getResources() not implemented");
 	}
-
 }
