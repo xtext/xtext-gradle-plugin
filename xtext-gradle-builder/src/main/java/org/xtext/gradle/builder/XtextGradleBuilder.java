@@ -20,6 +20,8 @@ import org.eclipse.xtext.build.Source2GeneratedMapping;
 import org.eclipse.xtext.generator.OutputConfiguration;
 import org.eclipse.xtext.generator.OutputConfigurationAdapter;
 import org.eclipse.xtext.parser.IEncodingProvider;
+import org.eclipse.xtext.preferences.MapBasedPreferenceValues;
+import org.eclipse.xtext.preferences.PreferenceValuesByLanguage;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.resource.IResourceServiceProvider;
 import org.eclipse.xtext.resource.IResourceServiceProvider.Registry;
@@ -28,6 +30,10 @@ import org.eclipse.xtext.resource.impl.ChunkedResourceDescriptions;
 import org.eclipse.xtext.resource.impl.ProjectDescription;
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsData;
 import org.eclipse.xtext.workspace.WorkspaceConfigAdapter;
+import org.eclipse.xtext.xbase.compiler.GeneratorConfig;
+import org.eclipse.xtext.xbase.compiler.GeneratorConfigProvider;
+import org.eclipse.xtext.xbase.compiler.GeneratorConfigProvider.GeneratorConfigAdapter;
+import org.eclipse.xtext.xbase.compiler.JavaVersion;
 import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure2;
 import org.gradle.api.GradleException;
@@ -35,6 +41,7 @@ import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstaller;
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig;
 import org.xtext.gradle.protocol.GradleBuildRequest;
 import org.xtext.gradle.protocol.GradleBuildResponse;
+import org.xtext.gradle.protocol.GradleGeneratorConfig;
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest;
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig;
 import org.xtext.gradle.protocol.GradleOutputConfig;
@@ -102,17 +109,33 @@ public class XtextGradleBuilder {
 		
 		XtextResourceSet resourceSet = sharedInjector.getInstance(XtextResourceSet.class);
 		resourceSet.eAdapters().add(new WorkspaceConfigAdapter(new GradleWorkspaceConfig(gradleRequest)));
+		GeneratorConfigAdapter generatorConfigAdapter = new GeneratorConfigProvider.GeneratorConfigAdapter();
 		Map<String, Set<OutputConfiguration>> outputConfigurationsPerLanguage = Maps.newHashMap();
-		for (Entry<String, Set<GradleOutputConfig>> gradleOutputConfigs : gradleRequest.getOutputConfigsPerLanguage().entrySet()) {
+		for (Entry<String, GradleGeneratorConfig> entry : gradleRequest.getGeneratorConfigsByLanguage().entrySet()) {
+			GradleGeneratorConfig gradleGeneratorConfig = entry.getValue();
 			Set<OutputConfiguration> outputConfigs = Sets.newHashSet();
-			for (GradleOutputConfig gradleOutputConfig : gradleOutputConfigs.getValue()) {
+			for (GradleOutputConfig gradleOutputConfig : gradleGeneratorConfig.getOutputConfigs()) {
 				OutputConfiguration outputConfig = new OutputConfiguration(gradleOutputConfig.getOutletName());
 				outputConfig.setOutputDirectory(URI.createFileURI(gradleOutputConfig.getTarget().getAbsolutePath()).toString());
 				outputConfigs.add(outputConfig);
 			}
-			outputConfigurationsPerLanguage.put(gradleOutputConfigs.getKey(), outputConfigs);
+			outputConfigurationsPerLanguage.put(entry.getKey(), outputConfigs);
+			GeneratorConfig generatorConfig = new GeneratorConfig();
+			generatorConfig.setGenerateSyntheticSuppressWarnings(gradleGeneratorConfig.isGenerateSyntheticSuppressWarnings());
+			generatorConfig.setGenerateGeneratedAnnotation(gradleGeneratorConfig.isGenerateGeneratedAnnotation());
+			generatorConfig.setIncludeDateInGeneratedAnnotation(gradleGeneratorConfig.isIncludeDateInGeneratedAnnotation());
+			generatorConfig.setGeneratedAnnotationComment(gradleGeneratorConfig.getGeneratedAnnotationComment());
+			generatorConfig.setJavaSourceVersion(JavaVersion.fromQualifier(gradleGeneratorConfig.getJavaSourceLevel().toString()));
+			generatorConfigAdapter.getLanguage2GeneratorConfig().put(entry.getKey(), generatorConfig);
 		}
+		generatorConfigAdapter.attachToEmfObject(resourceSet);
 		resourceSet.eAdapters().add(new OutputConfigurationAdapter(outputConfigurationsPerLanguage));
+		PreferenceValuesByLanguage preferenceValuesByLanguage = new PreferenceValuesByLanguage();
+		for (Entry<String, Map<String, String>> entry : gradleRequest.getPreferencesByLanguage().entrySet()) {
+			preferenceValuesByLanguage.put(entry.getKey(), new MapBasedPreferenceValues(entry.getValue()));
+		}
+		preferenceValuesByLanguage.attachToEmfObject(resourceSet);
+		
 		resourceSet.setClasspathURIContext(new FileClassLoader(gradleRequest.getClassPath(), ClassLoader.getSystemClassLoader()));
 		ProjectDescription projectDescription = new ProjectDescription();
 		projectDescription.setName(containerHandle);

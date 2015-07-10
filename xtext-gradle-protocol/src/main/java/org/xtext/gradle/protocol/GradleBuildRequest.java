@@ -3,7 +3,6 @@ package org.xtext.gradle.protocol;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import org.gradle.api.logging.Logger;
 
@@ -19,7 +18,8 @@ public class GradleBuildRequest {
 	private Collection<File> deletedFiles = Lists.newArrayList();
 	private Collection<File> classPath;
 	private Collection<File> sourceFolders = Lists.newArrayList();
-	private Map<String, Set<GradleOutputConfig>> outputConfigsPerLanguage = Maps.newHashMap();
+	private Map<String, GradleGeneratorConfig> generatorConfigsByLanguage = Maps.newHashMap();
+	private Map<String, Map<String, String>> preferencesByLanguage = Maps.newHashMap();
 	private File classesDir;
 	
 	public Collection<File> getClassPath() {
@@ -53,15 +53,7 @@ public class GradleBuildRequest {
 	public void setSourceFolders(Collection<File> sourceFolders) {
 		this.sourceFolders = sourceFolders;
 	}
-	
-	public Map<String, Set<GradleOutputConfig>> getOutputConfigsPerLanguage() {
-		return outputConfigsPerLanguage;
-	}
-	
-	public void setOutputConfigsPerLanguage(Map<String, Set<GradleOutputConfig>> outputConfigsPerLanguage) {
-		this.outputConfigsPerLanguage = outputConfigsPerLanguage;
-	}
-	
+
 	public File getClassesDir() {
 		return classesDir;
 	}
@@ -100,5 +92,21 @@ public class GradleBuildRequest {
 
 	public void setLogger(Logger logger) {
 		this.logger = logger;
+	}
+	
+	public Map<String, GradleGeneratorConfig> getGeneratorConfigsByLanguage() {
+		return generatorConfigsByLanguage;
+	}
+	
+	public void setGeneratorConfigsByLanguage(Map<String, GradleGeneratorConfig> generatorConfigsByLanguage) {
+		this.generatorConfigsByLanguage = generatorConfigsByLanguage;
+	}
+
+	public Map<String, Map<String, String>> getPreferencesByLanguage() {
+		return preferencesByLanguage;
+	}
+
+	public void setPreferencesByLanguage(Map<String, Map<String, String>> preferencesByLanguage) {
+		this.preferencesByLanguage = preferencesByLanguage;
 	}
 }

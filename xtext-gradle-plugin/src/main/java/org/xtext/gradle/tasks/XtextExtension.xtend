@@ -1,5 +1,6 @@
 package org.xtext.gradle.tasks;
 
+import groovy.lang.Closure
 import java.util.Map
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Action
@@ -9,10 +10,11 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
-import org.xtext.gradle.tasks.internal.DefaultXtextSourceSet
+import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
-import groovy.lang.Closure
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
+import org.xtext.gradle.protocol.IssueSeverity
+import org.xtext.gradle.tasks.internal.DefaultXtextSourceSet
 
 class XtextExtension {
 	@Accessors String version = "2.9.0"
@@ -34,18 +36,6 @@ class XtextExtension {
 	def languages(Action<? super NamedDomainObjectContainer<Language>> configureAction) {
 		configureAction.execute(languages)
 	}
-
-	def setParseJava(boolean parseJava) {
-		if (parseJava) {
-			languages.maybeCreate("java") => [
-				fileExtension = "java"
-				setup = "org.eclipse.xtext.java.JavaSourceLanguageSetup"
-				qualifiedName = "org.eclipse.xtext.java.Java"
-			]
-		} else {
-			languages.remove(languages.findByName("java"))
-		}
-	}
 }
 
 @Accessors
@@ -54,17 +44,17 @@ class Language implements Named {
 	String qualifiedName
 	String fileExtension
 	@Input String setup
-	@Input Map<String, String> preferences = newHashMap
-	@Nested val NamedDomainObjectContainer<Outlet> outlets
-	@Input boolean hideSyntheticVariables = true
-	@Input SourceInstaller sourceInstaller = SourceInstaller.SMAP
+	@Nested val GeneratorConfig generator
+	@Nested val debugger = new DebuggerConfig
+	@Nested val validator = new ValidatorConfig
+	@Input Map<String, Object> preferences = newHashMap
 	
 	@Accessors(NONE) val Project project
 
 	new(String name, Project project) {
 		this.name = name
 		this.project = project
-		this.outlets = project.container(Outlet)[outlet| new Outlet(this, outlet)]
+		this.generator = new GeneratorConfig(project, this)
 	}
 
 	@Input
@@ -76,9 +66,33 @@ class Language implements Named {
 	def getFileExtension() {
 		fileExtension ?: name
 	}
+	
+	def generator(Closure<?> configureClosure) {
+		ConfigureUtil.configure(configureClosure, generator)
+	}
+	
+	def debugger(Closure<?> configureClosure) {
+		ConfigureUtil.configure(configureClosure, debugger)
+	}
+	
+	def validator(Closure<?> configureClosure) {
+		ConfigureUtil.configure(configureClosure, validator)
+	}
 
 	def preferences(Map<String, String> preferences) {
 		this.preferences.putAll(preferences)
+	}
+}
+
+@Accessors
+class GeneratorConfig {
+	@Input boolean suppressWarningsAnnotation = true
+	@Input String javaSourceLevel = '1.6'
+	@Nested val GeneratedAnnotationOptions generatedAnnotation = new GeneratedAnnotationOptions
+	@Nested val NamedDomainObjectContainer<Outlet> outlets
+	
+	new (Project project,Language language) {
+		this.outlets = project.container(Outlet)[outlet| new Outlet(language, outlet)]
 	}
 
 	def outlets(Closure<?> configureClosure) {
@@ -92,6 +106,44 @@ class Language implements Named {
 	def outlet(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, outlet)
 	}
+	
+	def generatedAnnotation (Closure<?> configureClosure) {
+		ConfigureUtil.configure(configureClosure, generatedAnnotation)
+	}
+}
+
+@Accessors
+class GeneratedAnnotationOptions {
+	@Input boolean active
+	@Input boolean includeDate
+	@Input @Optional String comment
+}
+
+@Accessors
+class DebuggerConfig {
+	@Input SourceInstaller sourceInstaller = SourceInstaller.NONE
+	@Input boolean hideSyntheticVariables = true
+}
+
+@Accessors
+class ValidatorConfig {
+	@Input Map<String, IssueSeverity> severities = newHashMap
+	
+	def void error(String code) {
+		severities.put(code, IssueSeverity.ERROR)
+	}
+	
+	def void warning(String code) {
+		severities.put(code, IssueSeverity.WARNING)
+	}
+	
+	def void info(String code) {
+		severities.put(code, IssueSeverity.INFO)
+	}
+	
+	def void ignore(String code) {
+		severities.put(code, IssueSeverity.IGNORE)
+	}
 }
 
 @Accessors
@@ -99,7 +151,6 @@ class Outlet implements Named {
 	public static val DEFAULT_OUTLET = "DEFAULT_OUTPUT"
 
 	val Language language
-	
 	@Input val String name
 	@Input boolean producesJava = false
 }

@@ -21,7 +21,7 @@ import org.xtext.gradle.tasks.internal.DefaultXtextSourceSetOutputs
 
 import static extension org.xtext.gradle.GradleExtensions.*
 
-class XtextPlugin implements Plugin<Project> {
+class XtextBuilderPlugin implements Plugin<Project> {
 
 	val FileResolver fileResolver
 
@@ -60,8 +60,8 @@ class XtextPlugin implements Plugin<Project> {
 
 	private def configureOutletDefaults() {
 		xtext.languages.all [ language |
-			language.outlets.create(Outlet.DEFAULT_OUTLET)
-			language.outlets.all [ outlet |
+			language.generator.outlets.create(Outlet.DEFAULT_OUTLET)
+			language.generator.outlets.all [ outlet |
 				xtext.sourceSets.all [ sourceSet |
 					val outletFragment = if (outlet.name == Outlet.DEFAULT_OUTLET) {
 							""
@@ -106,15 +106,15 @@ class XtextPlugin implements Plugin<Project> {
 	private def integrateWithJavaPlugin() {
 		project.plugins.withType(JavaPlugin) [
 			val java = project.convention.findPlugin(JavaPluginConvention)
-			xtext.parseJava = true
 			java.sourceSets.all [ javaSourceSet |
 				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
+					javaSourceSet.allSource.source(xtextSourceSet)
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
 					xtextSourceSet.source(javaSourceSet.java)
 					xtextSourceSet.source(javaSourceSet.resources)
 					project.afterEvaluate [ p |
-						val javaOutlets = xtext.languages.map[outlets].flatten.filter[producesJava]
+						val javaOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava]
 						javaOutlets.forEach[
 							javaSourceSet.java.srcDir(xtextSourceSet.output.getDir(it))
 						]

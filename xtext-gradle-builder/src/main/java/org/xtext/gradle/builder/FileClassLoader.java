@@ -29,7 +29,6 @@ import com.google.common.io.ByteStreams;
  * classloader has been closed.
  */
 public class FileClassLoader extends ClassLoader {
-	
 
 	private static final Logger logger = LoggerFactory.getLogger(FileClassLoader.class);
 

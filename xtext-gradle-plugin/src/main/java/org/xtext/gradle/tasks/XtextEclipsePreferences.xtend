@@ -27,5 +27,4 @@ class XtextEclipsePreferences extends EclipsePreferences {
 	override public load() throws BackingStoreException {
 		super.load
 	}
-
 }

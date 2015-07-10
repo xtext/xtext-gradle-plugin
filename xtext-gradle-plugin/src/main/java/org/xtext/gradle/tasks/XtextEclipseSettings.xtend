@@ -19,7 +19,7 @@ class XtextEclipseSettings extends DefaultTask {
 			//TODO Write all the settings!
 			prefs.putBoolean("is_project_specific", true)
 			sourceSets.forEach[
-				language.outlets.forEach[outlet|
+				language.generator.outlets.forEach[outlet|
 					prefs.put(outlet.getOutletKey("directory"), project.relativePath(output.getDir(outlet)).trimTrailingSeparator)
 				]
 			]

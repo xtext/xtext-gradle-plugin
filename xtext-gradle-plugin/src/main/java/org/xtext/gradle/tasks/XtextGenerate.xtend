@@ -1,5 +1,6 @@
 package org.xtext.gradle.tasks;
 
+import com.google.common.base.Stopwatch
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
@@ -7,6 +8,7 @@ import java.util.Collection
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
+import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.Input
@@ -18,11 +20,11 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.xtext.gradle.protocol.GradleBuildRequest
-import org.xtext.gradle.protocol.GradleOutputConfig
+import org.xtext.gradle.protocol.GradleBuildResponse
+import org.xtext.gradle.protocol.GradleGeneratorConfig
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig
-import com.google.common.base.Stopwatch
-import org.xtext.gradle.protocol.GradleBuildResponse
+import org.xtext.gradle.protocol.GradleOutputConfig
 
 class XtextGenerate extends DefaultTask {
 	
@@ -85,13 +87,27 @@ class XtextGenerate extends DefaultTask {
 			deletedFiles = removedFiles
 			classPath = classpath?.files ?: emptyList
 			sourceFolders = sources.srcDirs
-			outputConfigsPerLanguage = languages.toMap[qualifiedName].mapValues[
-				outlets.map[outlet|
-					new GradleOutputConfig => [
-						outletName = outlet.name
-						target = sourceSetOutputs.getDir(outlet)
-					]
-				].toSet
+			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
+				val config = generator
+				new GradleGeneratorConfig => [
+					generateSyntheticSuppressWarnings = config.suppressWarningsAnnotation
+					generateGeneratedAnnotation = config.generatedAnnotation.active
+					includeDateInGeneratedAnnotation = config.generatedAnnotation.includeDate
+					generatedAnnotationComment = config.generatedAnnotation.comment
+					javaSourceLevel = JavaVersion.toVersion(config.javaSourceLevel)
+					outputConfigs = config.outlets.map[outlet|
+						new GradleOutputConfig => [
+							outletName = outlet.name
+							target = sourceSetOutputs.getDir(outlet)
+						]
+					].toSet
+				]
+			]
+			preferencesByLanguage = languages.toMap[qualifiedName].mapValues[
+				val allPreferences = newHashMap
+				allPreferences.putAll(preferences.mapValues[toString])
+				allPreferences.putAll(validator.severities.mapValues[toString])
+				allPreferences
 			]
 			it.logger = logger
 		]
@@ -113,8 +129,8 @@ class XtextGenerate extends DefaultTask {
 			it.classesDir = classesDir
 			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
 				new GradleSourceInstallerConfig() => [
-					sourceInstaller = lang.sourceInstaller
-					hideSyntheticVariables = lang.hideSyntheticVariables
+					sourceInstaller = lang.debugger.sourceInstaller
+					hideSyntheticVariables = lang.debugger.hideSyntheticVariables
 				]
 			]
 		]
