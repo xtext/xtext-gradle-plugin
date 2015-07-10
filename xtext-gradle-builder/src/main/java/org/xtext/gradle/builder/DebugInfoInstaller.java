@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
@@ -64,10 +63,8 @@ public class DebugInfoInstaller {
 			return;
 		URI javaFileUri = URI.createFileURI(javaFile.getAbsolutePath());
 		ResourceSet resourceSet = request.getResourceSet();
-		Stopwatch timer = Stopwatch.createStarted();
 		Resource javaResource = resourceSet.getResource(javaFileUri, true);
 		javaResource.getContents();
-		logger.warn("Loading Java file took " + timer);
 		for (EObject object : javaResource.getContents()) {
 			if (object instanceof JvmGenericType) {
 				JvmGenericType type = (JvmGenericType) object;

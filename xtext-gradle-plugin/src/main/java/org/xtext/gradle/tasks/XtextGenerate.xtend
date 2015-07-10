@@ -1,6 +1,5 @@
 package org.xtext.gradle.tasks;
 
-import com.google.common.base.Stopwatch
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
@@ -55,7 +54,6 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
-		val timer = Stopwatch.createStarted
 		val builderUpToDate = isBuilderUpToDate
 
 		val removedFiles = newArrayList
@@ -75,7 +73,6 @@ class XtextGenerate extends DefaultTask {
 			initializeBuilder
 		}
 		build(outOfDateFiles, removedFiles)
-		logger.quiet("Generation took " + timer)
 	}
 	
 	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
@@ -120,7 +117,6 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	def installDebugInfo() {
-		val timer = Stopwatch.createStarted
 		if (!builderUpToDate) {
 			initializeBuilder
 		}
@@ -139,7 +135,6 @@ class XtextGenerate extends DefaultTask {
 		} catch (InvocationTargetException e) {
 			throw e.cause
 		}
-		logger.quiet("Debug Info took " + timer)
 	}
 	
 	private def initializeBuilder() {
