@@ -5,6 +5,8 @@ import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.JavaVersion
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 
 class XtextEclipseSettings extends DefaultTask {
 
@@ -14,14 +16,47 @@ class XtextEclipseSettings extends DefaultTask {
 	@TaskAction
 	def writeSettings() {
 		languages.forEach [ Language language |
-			val prefs = new XtextEclipsePreferences(project, language.qualifiedName)
+			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName)
 			prefs.load
-			//TODO Write all the settings!
-			prefs.putBoolean("is_project_specific", true)
-			sourceSets.forEach[
-				language.generator.outlets.forEach[outlet|
-					prefs.put(outlet.getOutletKey("directory"), project.relativePath(output.getDir(outlet)).trimTrailingSeparator)
+			prefs.putBoolean("BuilderConfiguration.is_project_specific", true)
+			prefs.putBoolean("ValidatorConfiguration.is_project_specific", true)
+			language.generator => [
+				prefs.putBoolean("generateSuppressWarnings", suppressWarningsAnnotation)
+				prefs.putBoolean("generateGeneratedAnnotation", generatedAnnotation.active)
+				prefs.putBoolean("includeDateInGenerated", generatedAnnotation.includeDate)
+				if (generatedAnnotation.comment != null) {
+					prefs.put("generatedAnnotationComment", generatedAnnotation.comment)
+				}
+				prefs.put("targetJavaVersion", "Java" + JavaVersion.toVersion(javaSourceLevel).majorVersion)
+				prefs.putBoolean("useJavaCompilerCompliance", false)
+				outlets.forEach[outlet|
+					sourceSets.forEach[
+						srcDirs.forEach[dir|
+							prefs.put(
+								outlet.getOutletKey("sourceFolder." + project.relativePath(dir).canonicalize + ".directory"), 
+								project.relativePath(output.getDir(outlet)).canonicalize
+							)
+						]
+					]
+					prefs.putBoolean(
+						outlet.getOutletKey("hideLocalSyntheticVariables"),
+						language.debugger.isHideSyntheticVariables
+					)
+					prefs.putBoolean(
+						outlet.getOutletKey("installDslAsPrimarySource"),
+						language.debugger.sourceInstaller == SourceInstaller.PRIMARY
+					)
+					prefs.putBoolean(
+						outlet.getOutletKey("userOutputPerSourceFolder"),
+						true
+					)
 				]
+			]
+			language.validator.severities.entrySet.forEach[
+				prefs.put(key, value.toString)
+			]
+			language.preferences.entrySet.forEach[
+				prefs.put(key, value.toString)
 			]
 			prefs.save
 		]
@@ -29,7 +64,7 @@ class XtextEclipseSettings extends DefaultTask {
 
 	def String getOutletKey(Outlet output, String preferenceName) '''outlet.«output.name».«preferenceName»'''
 	
-	private def trimTrailingSeparator(String path) {
-		CharMatcher.anyOf("/\\").trimTrailingFrom(path)
+	private def canonicalize(String path) {
+		CharMatcher.anyOf("/").trimTrailingFrom(path.replace('\\', '/'))
 	}
 }
