@@ -9,6 +9,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import org.gradle.api.internal.file.FileCollectionInternal
 
 @Accessors
 class IdeaExtension {
@@ -47,7 +48,7 @@ class IdeaExtension {
 				val dependencyLibs = unpackedDependencies
 					.map[project.fileTree(it / "lib")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
-				#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
+				#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)] as FileCollectionInternal
 			}
 			
 			override getBuildDependencies() {

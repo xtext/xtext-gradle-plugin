@@ -58,16 +58,22 @@ public class XtextGradleBuilder {
 	private final DebugInfoInstaller debugInfoInstaller = sharedInjector.getInstance(DebugInfoInstaller.class);
 	private Set<String> languageSetups;
 	private String encoding;
+	private String owner;
 	
-	public XtextGradleBuilder(Set<String> setupNames, String encoding) throws Exception {
+	public XtextGradleBuilder(String owner, Set<String> setupNames, String encoding) throws Exception {
 		for (String setupName : setupNames) {
 			Class<?> setupClass = getClass().getClassLoader().loadClass(setupName);
 			ISetup setup= (ISetup) setupClass.newInstance();
 			Injector injector = setup.createInjectorAndDoEMFRegistration();
 			injector.getInstance(IEncodingProvider.Runtime.class).setDefaultEncoding(encoding);
 		}
+		this.owner = owner;
 		this.languageSetups = setupNames;
 		this.encoding = encoding;
+	}
+	
+	public String getOwner() {
+		return owner;
 	}
 	
 	public Set<String> getLanguageSetups() {

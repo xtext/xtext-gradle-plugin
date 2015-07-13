@@ -4,7 +4,8 @@ buildscript {
   }
   dependencies {
     classpath 'org.xtend:xtend-gradle-plugin:0.4.5'
-    classpath 'com.github.oehme.sobula:sobula:0.5.0'
+    //TODO sobula (through nebula) is incompatible with Gradle 2.3+, fix it!
+    //classpath 'com.github.oehme.sobula:sobula:0.5.0'
   }
 }
 
@@ -34,10 +35,11 @@ subprojects {
 }
 
 allprojects {
-  apply plugin: 'com.github.oehme.sobula.plugin-release'
+  //apply plugin: 'com.github.oehme.sobula.plugin-release'
+  apply plugin: 'maven'
 
   group = "org.xtext"
-  bintray.pkg.name = "$rootProject.group:$rootProject.name"
+  /*bintray.pkg.name = "$rootProject.group:$rootProject.name"
 
   contacts {
     "xtext@itemis.com" {
@@ -50,10 +52,11 @@ allprojects {
   //TODO create bintray and central users
   bintray.user = "oehme"
   bintray.pkg.version.mavenCentralSync.user = "oehme"
+  */
   repositories {
     jcenter()
     mavenLocal()
   }
 }
 
-bintray.publications = [] // don't publish a POM for the root project
+//bintray.publications = [] // don't publish a POM for the root project

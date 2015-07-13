@@ -142,9 +142,9 @@ class XtextGenerate extends DefaultTask {
 			(builder.class.classLoader as URLClassLoader).close
 		}
 		val builderClass = builderClassLoader.loadClass("org.xtext.gradle.builder.XtextGradleBuilder")
-		val builderConstructor = builderClass.getConstructor(Set, String)
+		val builderConstructor = builderClass.getConstructor(String, Set, String)
 		try {
-			builder = builderConstructor.newInstance(languageSetups, encoding)
+			builder = builderConstructor.newInstance(project.rootDir.path, languageSetups, encoding)
 		} catch (InvocationTargetException e) {
 			throw e.cause
 		}
@@ -165,6 +165,10 @@ class XtextGenerate extends DefaultTask {
 		}
 		val builderEncoding = builder.class.getMethod("getEncoding").invoke(builder)
 		if (builderEncoding != encoding) {
+			return false
+		}
+		val builderOwner= builder.class.getMethod("getOwner").invoke(builder)
+		if (builderOwner != project.rootDir.path) {
 			return false
 		}
 		return true
