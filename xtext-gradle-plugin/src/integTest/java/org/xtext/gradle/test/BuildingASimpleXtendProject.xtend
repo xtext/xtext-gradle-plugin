@@ -13,6 +13,9 @@ class BuildingASimpleXtendProject {
 			buildscript {
 				repositories {
 					mavenLocal()
+					maven {
+						url https://oss.sonatype.org/content/repositories/snapshots
+					}
 					jcenter()
 				}
 				dependencies {
@@ -26,6 +29,9 @@ class BuildingASimpleXtendProject {
 			
 			repositories {
 				mavenLocal()
+				maven {
+					url https://oss.sonatype.org/content/repositories/snapshots
+				}
 				jcenter()
 			}
 			
