@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.hash.HashCode
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.Map
 import java.util.Set
@@ -14,10 +15,10 @@ import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import static org.junit.Assert.*
 import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
-import java.io.ByteArrayOutputStream
+
+import static org.junit.Assert.*
 
 @FinalFieldsConstructor
 class ProjectUnderTest extends ExternalResource {
@@ -132,7 +133,7 @@ class FileCollectionSnapshot {
 	
 	Map<File, FileSnapshot> files
 
-	def FileCollectionDiff diff(FileCollectionSnapshot before) {
+	def FileCollectionDiff changesSince(FileCollectionSnapshot before) {
 		val added = newHashSet
 		val deleted = newHashSet
 		val modified = newHashSet

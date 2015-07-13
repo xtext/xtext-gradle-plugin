@@ -80,7 +80,7 @@ class BuildingASimpleXtendProject {
 
 		executeTasks("build")
 		val after = snapshot
-		val diff = after.diff(before)
+		val diff = after.changesSince(before)
 		
 		diff.shouldBeUntouched(javaFile)
 	}
@@ -113,7 +113,7 @@ class BuildingASimpleXtendProject {
 		'''
 		executeTasks("build")
 		val after = snapshot
-		val diff = after.diff(before)
+		val diff = after.changesSince(before)
 
 		diff.shouldBeModified(upStreamJava)
 		diff.shouldBeUnchanged(downStreamJava)
@@ -147,7 +147,7 @@ class BuildingASimpleXtendProject {
 		'''
 		executeTasks("build")
 		val after = snapshot
-		val diff = after.diff(before)
+		val diff = after.changesSince(before)
 
 		diff.shouldBeModified(aJava)
 		diff.shouldBeUnchanged(cJava)
