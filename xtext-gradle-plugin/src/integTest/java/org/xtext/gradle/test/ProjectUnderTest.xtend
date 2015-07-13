@@ -17,6 +17,7 @@ import org.gradle.tooling.ProjectConnection
 import static org.junit.Assert.*
 import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
+import java.io.ByteArrayOutputStream
 
 @FinalFieldsConstructor
 class ProjectUnderTest extends ExternalResource {
@@ -84,7 +85,15 @@ class ProjectUnderTest extends ExternalResource {
 	def BuildResult executeTasks(String... tasks) {
 		val result = new BuildResult
 		try {
-			gradle.newBuild.setStandardError(System.err).setStandardOutput(System.out).forTasks(tasks).run
+			val out = new ByteArrayOutputStream
+			val err = new ByteArrayOutputStream
+			gradle.newBuild
+				.setStandardOutput(out)
+				.setStandardError(err)
+				.forTasks(tasks)
+				.run
+			result.standardOut = new String(out.toByteArray, Charsets.UTF_8)
+			result.standardErr = new String(err.toByteArray, Charsets.UTF_8)
 		} catch (GradleConnectionException e) {
 			result.failure = e
 		}
@@ -94,6 +103,8 @@ class ProjectUnderTest extends ExternalResource {
 	@Accessors(PUBLIC_GETTER)
 	static class BuildResult {
 		Throwable failure
+		String standardOut
+		String standardErr
 		
 		def void shouldSucceed() {
 			assertNull(failure)
