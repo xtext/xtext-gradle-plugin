@@ -114,5 +114,38 @@ class BuildingASimpleXtendProject {
 		diff.shouldBeTouched(downStreamJava)
 		diff.shouldBeUntouched(unrelatedJava)
 	}
+	
+	@Test
+	def affectedResourcesAreDetectedAcrossXtendAndJava() {
+		val upStream = createFile('src/main/java/A.xtend', '''
+			class A {}
+		''')
+		createFile('src/main/java/B.java', '''
+			public class B extends A {
+			}
+		''')
+		createFile('src/main/java/C.xtend', '''
+			class C extends B {}
+		''')
+
+		executeTasks("build")
+
+		val aJava = file("build/xtend/main/A.java")
+		val cJava = file("build/xtend/main/C.java")
+		val before = snapshot
+
+		upStream.content = '''
+			class A {
+				def void foo() {}
+			}
+		'''
+		executeTasks("build")
+		val after = snapshot
+		val diff = after.diff(before)
+
+		diff.shouldBeModified(aJava)
+		diff.shouldBeUnchanged(cJava)
+		diff.shouldBeTouched(cJava)
+	}
 }
 
