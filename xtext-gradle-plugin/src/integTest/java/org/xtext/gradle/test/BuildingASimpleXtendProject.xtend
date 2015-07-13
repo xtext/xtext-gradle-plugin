@@ -14,7 +14,7 @@ class BuildingASimpleXtendProject {
 				repositories {
 					mavenLocal()
 					maven {
-						url https://oss.sonatype.org/content/repositories/snapshots
+						url 'https://oss.sonatype.org/content/repositories/snapshots'
 					}
 					jcenter()
 				}
@@ -30,7 +30,7 @@ class BuildingASimpleXtendProject {
 			repositories {
 				mavenLocal()
 				maven {
-					url https://oss.sonatype.org/content/repositories/snapshots
+					url 'https://oss.sonatype.org/content/repositories/snapshots'
 				}
 				jcenter()
 			}
