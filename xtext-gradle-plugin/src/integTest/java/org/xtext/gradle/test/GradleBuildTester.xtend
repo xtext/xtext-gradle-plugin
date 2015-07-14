@@ -83,6 +83,10 @@ class GradleBuildTester extends ExternalResource {
 		Files.toString(file, Charsets.UTF_8)
 	}
 	
+	def byte[] getContent(File file) {
+		Files.toByteArray(file)
+	}
+	
 	def void shouldExist(File file) {
 		assertTrue(file.exists)
 	}
