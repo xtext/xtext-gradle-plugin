@@ -111,7 +111,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
 					javaSourceSet.allSource.source(xtextSourceSet)
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
-					xtextSourceSet.source(javaSourceSet.allSource)
+					xtextSourceSet.source(javaSourceSet.java)
+					xtextSourceSet.source(javaSourceSet.resources)
 					project.afterEvaluate [ p |
 						val javaOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava]
 						javaOutlets.forEach[
