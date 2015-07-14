@@ -6,12 +6,15 @@ import org.junit.Test
 import org.xtext.gradle.tasks.XtextEclipsePreferences
 import static org.junit.Assert.*
 import org.eclipse.core.internal.preferences.EclipsePreferences
+import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 
 class WhenTheEclipsePluginIsApplied {
-	@Rule public extension ProjectUnderTest = new ProjectUnderTest
+	@Rule public extension GradleBuildTester tester = new GradleBuildTester
+	extension ProjectUnderTest rootProject
 
 	@Before
 	def void setup() {
+		rootProject = tester.rootProject
 		buildFile = '''
 			buildscript {
 				repositories {
@@ -57,7 +60,7 @@ class WhenTheEclipsePluginIsApplied {
 	@Test
 	def properSettingsAreGenerated() {
 		executeTasks("eclipse")
-		val prefs = new XtextEclipsePreferences(rootDir, "org.eclipse.xtend.core.Xtend")
+		val prefs = new XtextEclipsePreferences(projectDir, "org.eclipse.xtend.core.Xtend")
 		prefs.load
 		
 		prefs.shouldContain("BuilderConfiguration.is_project_specific", true)

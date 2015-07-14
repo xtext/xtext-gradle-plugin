@@ -11,7 +11,6 @@ import java.util.Map
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
-import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -19,22 +18,23 @@ import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
 
 import static org.junit.Assert.*
+import java.util.Collections
+import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 
-@FinalFieldsConstructor
-class ProjectUnderTest extends ExternalResource {
+class GradleBuildTester extends ExternalResource {
 	val temp = new TemporaryFolder
-	@Accessors val String projectName
+	ProjectUnderTest rootProject
 	ProjectConnection gradle
 
-	new() {
-		this("root")
-	}
-	
 	override protected before() throws Throwable {
 		temp.create
-		temp.newFolder(projectName)
+		rootProject = new ProjectUnderTest => [
+			name = "root"
+			projectDir = temp.newFolder(name)
+			owner = this
+		]
 		gradle = GradleConnector.newConnector
-			.forProjectDirectory(rootDir)
+			.forProjectDirectory(rootProject.projectDir)
 			.connect
 	}
 	
@@ -43,44 +43,8 @@ class ProjectUnderTest extends ExternalResource {
 		temp.delete
 	}
 	
-	def File getRootDir() {
-		new File(temp.root, projectName)
-	}
-	
-	def void setBuildFile(CharSequence content) {
-		new File(rootDir, 'build.gradle').content = content
-	}
-	
-	def File file(String relativePath) {
-		new File(rootDir, relativePath)
-	}
-	
-	def File createFile(String relativePath, CharSequence content) {
-		val file = file(relativePath)
-		file.content = content
-		file
-	}
-	
-	def void setContent(File file, CharSequence content) {
-		file.parentFile.mkdirs
-		file.createNewFile
-		Files.write(content, file, Charsets.UTF_8)
-	}
-	
-	def String getContentAsString(File file) {
-		Files.toString(file, Charsets.UTF_8)
-	}
-	
-	def void shouldExist(File file) {
-		assertTrue(file.exists)
-	}
-	
-	def void shouldContain(File file, CharSequence content) {
-		assertEquals(content.toString, file.contentAsString)
-	}
-	
-	def FileCollectionSnapshot snapshot() {
-		FileCollectionSnapshot.forFolder(file("build"))
+	def ProjectUnderTest getRootProject() {
+		rootProject
 	}
 	
 	def BuildResult executeTasks(String... tasks) {
@@ -101,6 +65,87 @@ class ProjectUnderTest extends ExternalResource {
 		result
 	}
 	
+	def void setContent(File file, CharSequence content) {
+		file.parentFile.mkdirs
+		file.createNewFile
+		Files.write(content, file, Charsets.UTF_8)
+	}
+	
+	def void append(File file, CharSequence content) {
+		if (file.exists) {
+			file.content = file.contentAsString + content
+		} else {
+			file.content = content
+		}
+	}
+	
+	def String getContentAsString(File file) {
+		Files.toString(file, Charsets.UTF_8)
+	}
+	
+	def void shouldExist(File file) {
+		assertTrue(file.exists)
+	}
+	
+	def void shouldContain(File file, CharSequence content) {
+		assertEquals(content.toString, file.contentAsString)
+	}
+	
+	private def addSubProjectToBuild(ProjectUnderTest project) {
+		val settingsFile = rootProject.file("settings.gradle")
+		settingsFile.append("\ninclude '" + project.path + "'")
+	}
+	
+	@Accessors(PUBLIC_GETTER)
+	static class ProjectUnderTest {
+		extension GradleBuildTester owner
+		ProjectUnderTest parent
+		String name
+		File projectDir
+		val subProjects = <ProjectUnderTest>newLinkedHashSet
+		
+		def void setBuildFile(CharSequence content) {
+			new File(projectDir, 'build.gradle').content = content
+		}
+		
+		def File file(String relativePath) {
+			new File(projectDir, relativePath)
+		}
+		
+		def File createFile(String relativePath, CharSequence content) {
+			val file = file(relativePath)
+			file.content = content
+			file
+		}
+		
+		def FileCollectionSnapshot snapshotBuildDir() {
+			FileCollectionSnapshot.forFolder(file("build"))
+		}
+		
+		def ProjectUnderTest createSubProject(String name) {
+			val newProject = new ProjectUnderTest
+			newProject.name = name
+			newProject.projectDir = file(name)
+			newProject.parent = this
+			newProject.owner = owner
+			subProjects += newProject
+			owner.addSubProjectToBuild(newProject)
+			newProject
+		}
+		
+		def Set<ProjectUnderTest> getSubProjects() {
+			Collections.unmodifiableSet(subProjects)
+		}
+		
+		def String getPath() {
+			if (parent == null) {
+				""
+			} else {
+				parent.path + ":" + name
+			}
+		}
+	}
+	
 	@Accessors(PUBLIC_GETTER)
 	static class BuildResult {
 		Throwable failure
@@ -115,6 +160,7 @@ class ProjectUnderTest extends ExternalResource {
 			assertNotNull(failure)
 		}
 	}
+	
 }
 
 @Data

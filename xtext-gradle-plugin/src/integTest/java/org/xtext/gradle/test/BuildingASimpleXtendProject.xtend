@@ -3,12 +3,15 @@ package org.xtext.gradle.test
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 
 class BuildingASimpleXtendProject {
-	@Rule public extension ProjectUnderTest = new ProjectUnderTest
+	@Rule public extension GradleBuildTester tester = new GradleBuildTester
+	extension ProjectUnderTest rootProject
 
 	@Before
 	def void setup() {
+		rootProject = tester.rootProject
 		buildFile = '''
 			buildscript {
 				repositories {
@@ -76,10 +79,10 @@ class BuildingASimpleXtendProject {
 
 		executeTasks("build")
 		val javaFile = file("build/xtend/main/HelloWorld.java")
-		val before = snapshot
+		val before = snapshotBuildDir
 
 		executeTasks("build")
-		val after = snapshot
+		val after = snapshotBuildDir
 		val diff = after.changesSince(before)
 		
 		diff.shouldBeUntouched(javaFile)
@@ -104,7 +107,7 @@ class BuildingASimpleXtendProject {
 		val upStreamJava = file("build/xtend/main/UpStream.java")
 		val downStreamJava = file("build/xtend/main/DownStream.java")
 		val unrelatedJava = file("build/xtend/main/Unrelated.java")
-		val before = snapshot
+		val before = snapshotBuildDir
 
 		upStream.content = '''
 			class UpStream {
@@ -112,7 +115,7 @@ class BuildingASimpleXtendProject {
 			}
 		'''
 		executeTasks("build")
-		val after = snapshot
+		val after = snapshotBuildDir
 		val diff = after.changesSince(before)
 
 		diff.shouldBeModified(upStreamJava)
@@ -138,7 +141,7 @@ class BuildingASimpleXtendProject {
 
 		val aJava = file("build/xtend/main/A.java")
 		val cJava = file("build/xtend/main/C.java")
-		val before = snapshot
+		val before = snapshotBuildDir
 
 		upStream.content = '''
 			class A {
@@ -146,7 +149,7 @@ class BuildingASimpleXtendProject {
 			}
 		'''
 		executeTasks("build")
-		val after = snapshot
+		val after = snapshotBuildDir
 		val diff = after.changesSince(before)
 
 		diff.shouldBeModified(aJava)
