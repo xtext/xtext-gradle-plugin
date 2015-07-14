@@ -238,4 +238,11 @@ class FileCollectionDiff {
 		shouldBeUnchanged(file)
 		assertFalse(touched.contains(file))
 	}
+	
+	def void shouldBeEmpty() {
+		assertTrue(added.isEmpty)
+		assertTrue(deleted.isEmpty)
+		assertTrue(modified.isEmpty)
+		assertTrue(touched.isEmpty)
+	}
 }

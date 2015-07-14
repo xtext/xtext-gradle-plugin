@@ -73,4 +73,38 @@ class BuildingAMultiModuleXtendProject {
 		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
 		executeTasks("build").shouldSucceed
 	}
+	
+	
+	@Test
+	def void downStreamProjectsAreNotRebuiltWhenUpStreamClassesStayTheSame() {
+		val upStreamFile = upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
+		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
+		executeTasks("build")
+		val snapshot = downStreamProject.snapshotBuildDir
+		
+		upStreamFile.content = '''
+			class A 
+			{}
+		'''
+		executeTasks("build")
+		val diff = snapshot.changesSince(downStreamProject.snapshotBuildDir)
+		
+		diff.shouldBeEmpty
+	}
+	
+	@Test
+	def void upStreamChangesArePickedUpDownStream() {
+		val upStreamFile = upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
+		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
+		executeTasks("build")
+		val snapshot = downStreamProject.snapshotBuildDir
+		val downStreamJavaFile = downStreamProject.file("build/xtend/main/B.java")
+		
+		upStreamFile.content = '''
+			class A implements Cloneable {}
+		'''
+		executeTasks("build")
+		val diff = snapshot.changesSince(downStreamProject.snapshotBuildDir)
+		diff.shouldBeTouched(downStreamJavaFile)
+	}
 }

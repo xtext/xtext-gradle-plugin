@@ -54,6 +54,7 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
+		generatedFiles = newHashSet
 		val builderUpToDate = isBuilderUpToDate
 
 		val removedFiles = newArrayList
@@ -65,9 +66,17 @@ class XtextGenerate extends DefaultTask {
 			outOfDateFiles += sources
 		}
 		
+		val outOfDateClasspathEntries = newHashSet
+		outOfDateClasspathEntries.addAll(outOfDateFiles)
+		outOfDateClasspathEntries.retainAll(classpath?.files ?: #{})
+		if (!outOfDateClasspathEntries.isEmpty) {
+			outOfDateFiles += sources
+		}
+		
 		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {
 			return
 		}
+		
 		
 		if (!builderUpToDate) {
 			initializeBuilder
