@@ -12,6 +12,7 @@ class XtextJavaLanguagePlugin implements Plugin<Project> {
 		xtext.languages.maybeCreate("java") => [
 			setup = "org.eclipse.xtext.java.JavaSourceLanguageSetup"
 			qualifiedName = "org.eclipse.xtext.java.Java"
+			generator.outlets.clear
 		]
 	}
 }

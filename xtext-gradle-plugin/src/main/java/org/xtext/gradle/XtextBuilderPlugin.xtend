@@ -8,7 +8,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -104,15 +104,14 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	}
 
 	private def integrateWithJavaPlugin() {
-		project.plugins.withType(JavaPlugin) [
+		project.plugins.withType(JavaBasePlugin) [
 			val java = project.convention.findPlugin(JavaPluginConvention)
 			java.sourceSets.all [ javaSourceSet |
 				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
 					javaSourceSet.allSource.source(xtextSourceSet)
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
-					xtextSourceSet.source(javaSourceSet.java)
-					xtextSourceSet.source(javaSourceSet.resources)
+					xtextSourceSet.source(javaSourceSet.allSource)
 					project.afterEvaluate [ p |
 						val javaOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava]
 						javaOutlets.forEach[
