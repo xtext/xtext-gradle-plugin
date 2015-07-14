@@ -42,6 +42,10 @@ class WhenTheEclipsePluginIsApplied {
 							}
 							javaSourceLevel = '1.6'
 						}
+						validator {
+							error 'org.eclipse.xtend.some.some.issue'
+						}
+						preferences('org.eclipse.xtend.some.pref' : true)
 					}
 				}
 			}
@@ -68,6 +72,9 @@ class WhenTheEclipsePluginIsApplied {
 		prefs.shouldContain("outlet.DEFAULT_OUTPUT.hideLocalSyntheticVariables", true)
 		prefs.shouldContain("outlet.DEFAULT_OUTPUT.sourceFolder.src/main/java.directory", "build/xtend/main")
 		prefs.shouldContain("outlet.DEFAULT_OUTPUT.sourceFolder.src/test/java.directory", "build/xtend/test")
+		
+		prefs.shouldContain("org.eclipse.xtend.some.some.issue", "error")
+		prefs.shouldContain("org.eclipse.xtend.some.pref", "true")
 	}
 	
 	def shouldContain(EclipsePreferences prefs, String key, Object value) {
