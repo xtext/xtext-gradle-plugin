@@ -3,13 +3,12 @@ package org.xtext.gradle.idea.tasks
 import groovy.lang.Closure
 import java.io.File
 import java.util.List
+import java.util.concurrent.Callable
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
-import org.gradle.api.internal.file.FileCollectionInternal
 
 @Accessors
 class IdeaExtension {
@@ -37,8 +36,8 @@ class IdeaExtension {
 	}
 	
 	def FileCollection getExternalLibs() {
-		new LazilyInitializedFileCollection {
-			override createDelegate() {
+		project.files(new Callable<FileCollection> () {
+			override call() throws Exception {
 				val unpackedDependencies = pluginDependencies.externalDependencies.map[
 					pluginsCache / id / version
 				]
@@ -48,13 +47,11 @@ class IdeaExtension {
 				val dependencyLibs = unpackedDependencies
 					.map[project.fileTree(it / "lib")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
-				#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)] as FileCollectionInternal
+				#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
 			}
 			
-			override getBuildDependencies() {
-				[#{downloadIdea, downloadPlugins}]
-			}
-		}
+		})
+		.builtBy(downloadIdea, downloadPlugins)
 	}
 	
 	def FileCollection getIdeaCoreLibs() {
