@@ -1,0 +1,25 @@
+plugins {
+	id "nebula.nebula-integtest" version "2.2.1"
+}
+
+description 'A plugin for integrating Xtext based Code generators with the Android build tools'
+
+dependencies {
+	compile project(':xtext-gradle-plugin')
+	compile 'com.android.tools.build:gradle:1.2.2'
+}
+
+jar {
+  manifest {
+    attributes("Implementation-Version": project.version)
+  }
+}
+
+integrationTest {
+	dependsOn(':xtext-gradle-builder:install', ':xtext-gradle-protocol:install', ':xtext-gradle-plugin:install', install)
+	systemProperty 'gradle.project.version', version
+}
+
+project.afterEvaluate {
+	compileIntegTestXtend.classpath = sourceSets.integTest.compileClasspath
+}

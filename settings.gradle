@@ -1,1 +1,1 @@
-include 'xtext-gradle-protocol', 'xtext-gradle-builder', 'xtext-gradle-plugin', 'xtext-idea-gradle-plugin'
+include 'xtext-gradle-protocol', 'xtext-gradle-builder', 'xtext-gradle-plugin', 'xtext-idea-gradle-plugin', 'xtext-android-gradle-plugin'
