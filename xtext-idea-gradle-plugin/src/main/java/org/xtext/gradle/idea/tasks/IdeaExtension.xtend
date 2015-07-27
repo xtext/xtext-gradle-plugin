@@ -49,7 +49,7 @@ class IdeaExtension {
 					.map[project.files(it / "classes")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
 				val dependencyLibs = unpackedDependencies
-					.map[project.fileTree(it / "lib")]
+					.map[project.fileTree(it / "lib").include("*.jar")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
 				#[ideaCoreLibs, dependencyClasses, dependencyLibs].filterNull.reduce[a, b| a.plus(b)]
 			}
