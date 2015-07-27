@@ -65,6 +65,9 @@ class IdeaComponentPlugin implements Plugin<Project> {
 			idea.pluginDependencies.externalDependencies.forEach [
 				assembleSandboxTask.rootSpec.addChild.into(id).from(idea.pluginsCache / id / version)
 			]
+			idea.pluginDependencies.endorsedDependencies.forEach [
+				assembleSandboxTask.rootSpec.addChild.into(id).from(idea.ideaHome / "plugins" / id)
+			]
 			val upstreamSandBoxTasks = idea.pluginDependencies.projectDependencies
 				.map[project.project(id)]
 				.map[(tasks.getAt(ASSEMBLE_SANDBOX_TASK_NAME) as AssembleSandbox)]

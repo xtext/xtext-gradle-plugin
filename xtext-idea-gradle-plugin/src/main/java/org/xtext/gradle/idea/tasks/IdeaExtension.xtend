@@ -41,6 +41,10 @@ class IdeaExtension {
 				val unpackedDependencies = pluginDependencies.externalDependencies.map[
 					pluginsCache / id / version
 				]
+				+
+				pluginDependencies.endorsedDependencies.map[
+					getIdeaHome / "plugins"/ id
+				]
 				val dependencyClasses = unpackedDependencies
 					.map[project.files(it / "classes")]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
@@ -111,6 +115,7 @@ class IdeaPluginRepositories implements Iterable<IdeaPluginRepository> {
 class IdeaPluginDependencies {
 
 	val dependencies = <IdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
+	val projectDependencies = <IdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
 
 	def IdeaPluginDependency id(String id) {
 		val dependency = new IdeaPluginDependency(id)
@@ -119,7 +124,13 @@ class IdeaPluginDependencies {
 	}
 
 	def project(String id) {
-		id(id)
+		val dependency = new IdeaPluginDependency(id)
+		projectDependencies += dependency
+		dependency
+	}
+	
+	def getEndorsedDependencies() {
+		dependencies.filter[version == null]
 	}
 
 	def getExternalDependencies() {
@@ -127,7 +138,7 @@ class IdeaPluginDependencies {
 	}
 
 	def getProjectDependencies() {
-		dependencies.filter[version == null]
+		projectDependencies
 	}
 }
 
