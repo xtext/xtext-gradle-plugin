@@ -46,7 +46,13 @@ class IdeaExtension {
 					getIdeaHome / "plugins"/ id
 				]
 				val dependencyClasses = unpackedDependencies
-					.map[project.files(it / "classes")]
+					.map[
+						val classesDir = it / "classes"
+						if (classesDir.exists)
+							project.files(classesDir)
+						else
+							project.files
+					]
 					.reduce[FileCollection a, FileCollection b| a.plus(b)]
 				val dependencyLibs = unpackedDependencies
 					.map[project.fileTree(it / "lib").include("*.jar") as FileCollection]
