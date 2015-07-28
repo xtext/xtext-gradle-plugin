@@ -40,7 +40,10 @@ ideaDevelopment {
 		url 'https://hudson.eclipse.org/xtext/job/xtext-intellij/lastSuccessfulBuild/artifact/git-repo/intellij/build/ideaRepository/updatePlugins.xml'
 	}
 	pluginDependencies {
+	 	//you can have external dependencies fetched from above repositories
 		id 'org.eclipse.xtext.idea' version '2.9.0-SNAPSHOT'
+		//or depend on plugins that are shipped with IDEA Community Edition
+		id 'junit'
 	}
 }
 ```
