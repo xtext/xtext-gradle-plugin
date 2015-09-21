@@ -1,11 +1,10 @@
 buildscript {
   repositories {
     jcenter()
-    mavenLocal()
   }
   dependencies {
     classpath 'org.xtend:xtend-gradle-plugin:0.4.7'
-    classpath 'com.github.oehme.sobula:sobula:0.6.0'
+    classpath 'com.github.oehme.sobula:sobula:0.6.3'
   }
 }
 
@@ -26,7 +25,7 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   apply plugin: 'java-gradle-plugin'
 
   dependencies {
-    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.0'
+    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.4'
   }
 }
 

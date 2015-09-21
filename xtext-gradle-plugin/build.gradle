@@ -19,7 +19,3 @@ integrationTest {
 	dependsOn(':xtext-gradle-builder:install', ':xtext-gradle-protocol:install', install)
 	systemProperty 'gradle.project.version', version
 }
-
-project.afterEvaluate {
-	compileIntegTestXtend.classpath = sourceSets.integTest.compileClasspath
-}
