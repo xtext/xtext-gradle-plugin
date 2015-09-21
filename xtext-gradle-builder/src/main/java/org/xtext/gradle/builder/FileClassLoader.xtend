@@ -52,7 +52,7 @@ class FileClassLoader extends ClassLoader implements Closeable {
 			} else if (file.isDirectory) {
 				folders.add(file)
 			} else {
-				throw new IllegalArgumentException("This classloader only supports jars and directories")
+				logger.debug('''Ignored classpath entry «file» as it is neither a jar nor a folder''')
 			}
 		]
 	}
