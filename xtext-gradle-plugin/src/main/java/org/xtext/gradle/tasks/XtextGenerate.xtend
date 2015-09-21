@@ -77,7 +77,6 @@ class XtextGenerate extends DefaultTask {
 			return
 		}
 		
-		
 		if (!builderUpToDate) {
 			initializeBuilder
 		}

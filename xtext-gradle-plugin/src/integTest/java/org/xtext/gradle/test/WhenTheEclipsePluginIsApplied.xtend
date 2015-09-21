@@ -1,12 +1,13 @@
 package org.xtext.gradle.test
 
+import org.eclipse.core.internal.preferences.EclipsePreferences
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.xtext.gradle.tasks.XtextEclipsePreferences
-import static org.junit.Assert.*
-import org.eclipse.core.internal.preferences.EclipsePreferences
+import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
+
+import static org.junit.Assert.*
 
 class WhenTheEclipsePluginIsApplied {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester

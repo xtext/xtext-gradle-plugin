@@ -35,9 +35,9 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
 
 class XtextGradleBuilder {
-	val index = new ChunkedResourceDescriptions()
-	val generatedMappings = new ConcurrentHashMap<String, Source2GeneratedMapping>()
-	val sharedInjector = Guice.createInjector()
+	val index = new ChunkedResourceDescriptions
+	val generatedMappings = new ConcurrentHashMap<String, Source2GeneratedMapping>
+	val sharedInjector = Guice.createInjector
 	val incrementalbuilder = sharedInjector.getInstance(IncrementalBuilder)
 	val debugInfoInstaller = sharedInjector.getInstance(DebugInfoInstaller)
 	
@@ -77,48 +77,14 @@ class XtextGradleBuilder {
 			afterValidate = validator
 			afterGenerateFile = [source, target| response.generatedFiles.add(new File(target.toFileString))]
 			
-			resourceSet = sharedInjector.getInstance(XtextResourceSet) => [resourceSet|
-				resourceSet.classpathURIContext = new FileClassLoader(gradleRequest.classPath, ClassLoader.systemClassLoader)
-				resourceSet.eAdapters += new WorkspaceConfigAdapter(new GradleWorkspaceConfig(gradleRequest))
-				
-				new GeneratorConfigProvider.GeneratorConfigAdapter => [
-					attachToEmfObject(resourceSet)
-					language2GeneratorConfig.putAll(
-						gradleRequest.generatorConfigsByLanguage.mapValues[gradleConfig|
-							new GeneratorConfig => [
-								generateSyntheticSuppressWarnings = gradleConfig.isGenerateSyntheticSuppressWarnings
-								generateGeneratedAnnotation = gradleConfig.isGenerateGeneratedAnnotation
-								includeDateInGeneratedAnnotation = 	gradleConfig.isIncludeDateInGeneratedAnnotation
-								generatedAnnotationComment = gradleConfig.generatedAnnotationComment
-								javaSourceVersion = JavaVersion.fromQualifier(gradleConfig.javaSourceLevel.toString)
-							]
-						]
-					)
-				]
-				
-				resourceSet.eAdapters += new OutputConfigurationAdapter(
-					gradleRequest.generatorConfigsByLanguage.mapValues[
-						outputConfigs.map[gradleOutputConfig|
-							new OutputConfiguration(gradleOutputConfig.outletName) => [
-								outputDirectory = URI.createFileURI(gradleOutputConfig.target.absolutePath).toString
-							]
-						].toSet
-					]
-				)
-				
-				new PreferenceValuesByLanguage => [
-					attachToEmfObject(resourceSet)
-					for (entry : gradleRequest.preferencesByLanguage.entrySet) {
-						put(entry.key, new MapBasedPreferenceValues(entry.value))
-					}
-				]
-				
-				new ProjectDescription => [
-					name = containerHandle
-					//TODO dependencies
-					attachToEmfObject(resourceSet)
-				]
-				val contextualIndex = index.createShallowCopyWith(resourceSet)
+			resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
+				classpathURIContext = new FileClassLoader(gradleRequest.classPath, ClassLoader.systemClassLoader)
+				attachWorkspaceConfig(gradleRequest)
+				attachGeneratorConfig(gradleRequest)
+				attachOutputConfig(gradleRequest)
+				attachPreferences(gradleRequest)
+				attachProjectDescription(containerHandle, it)
+				val contextualIndex = index.createShallowCopyWith(it)
 				contextualIndex.setContainer(containerHandle, indexChunk)
 			]
 		]
@@ -135,7 +101,57 @@ class XtextGradleBuilder {
 		generatedMappings.put(containerHandle, resultingIndex.fileMappings)
 		return response
 	}
+	
+	private def attachWorkspaceConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
+		resourceSet.eAdapters += new WorkspaceConfigAdapter(new GradleWorkspaceConfig(gradleRequest))
+	}
+	
+	private def attachProjectDescription(String containerHandle, XtextResourceSet resourceSet) {
+		new ProjectDescription => [
+			name = containerHandle
+			//TODO dependencies
+			attachToEmfObject(resourceSet)
+		]
+	}
+	
+	private def attachGeneratorConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
+		new GeneratorConfigProvider.GeneratorConfigAdapter => [
+			attachToEmfObject(resourceSet)
+			language2GeneratorConfig.putAll(
+				gradleRequest.generatorConfigsByLanguage.mapValues[gradleConfig|
+					new GeneratorConfig => [
+						generateSyntheticSuppressWarnings = gradleConfig.isGenerateSyntheticSuppressWarnings
+						generateGeneratedAnnotation = gradleConfig.isGenerateGeneratedAnnotation
+						includeDateInGeneratedAnnotation = 	gradleConfig.isIncludeDateInGeneratedAnnotation
+						generatedAnnotationComment = gradleConfig.generatedAnnotationComment
+						javaSourceVersion = JavaVersion.fromQualifier(gradleConfig.javaSourceLevel.toString)
+					]
+				]
+			)
+		]
+	}
 
+	private def attachOutputConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
+		resourceSet.eAdapters += new OutputConfigurationAdapter(
+			gradleRequest.generatorConfigsByLanguage.mapValues[
+				outputConfigs.map[gradleOutputConfig|
+					new OutputConfiguration(gradleOutputConfig.outletName) => [
+						outputDirectory = URI.createFileURI(gradleOutputConfig.target.absolutePath).toString
+					]
+				].toSet
+			]
+		)
+	}
+
+	private def attachPreferences(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
+		new PreferenceValuesByLanguage => [
+			attachToEmfObject(resourceSet)
+			for (entry : gradleRequest.preferencesByLanguage.entrySet) {
+				put(entry.key, new MapBasedPreferenceValues(entry.value))
+			}
+		]
+	}
+	
 	def void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
 		val request = new InstallDebugInfoRequest => [
 			classesDir = gradleRequest.classesDir

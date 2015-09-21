@@ -1,4 +1,4 @@
-package org.xtext.gradle.tasks
+package org.xtext.gradle.tasks.internal
 
 import java.io.File
 import org.eclipse.core.internal.preferences.EclipsePreferences
