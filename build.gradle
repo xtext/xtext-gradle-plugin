@@ -20,13 +20,16 @@ subprojects {
   }
 }
 
-configure(subprojects.findAll{p-> p.name.contains('plugin')}){
+configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
   apply plugin: 'org.xtend.xtend'
-  apply plugin: 'java-gradle-plugin'
 
   dependencies {
     compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.4'
   }
+}
+
+configure(subprojects.findAll{p-> p.name.contains('plugin')}){
+  apply plugin: 'java-gradle-plugin'
 }
 
 allprojects {
