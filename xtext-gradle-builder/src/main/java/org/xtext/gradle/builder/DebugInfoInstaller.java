@@ -13,6 +13,7 @@ import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmMember;
 import org.eclipse.xtext.generator.trace.AbstractTraceRegion;
 import org.eclipse.xtext.generator.trace.ITraceToBytecodeInstaller;
+import org.eclipse.xtext.generator.trace.SourceRelativeURI;
 import org.eclipse.xtext.generator.trace.TraceAsPrimarySourceInstaller;
 import org.eclipse.xtext.generator.trace.TraceAsSmapInstaller;
 import org.eclipse.xtext.generator.trace.TraceFileNameProvider;
@@ -58,7 +59,7 @@ public class DebugInfoInstaller {
 		if (!traceFile.exists())
 			return;
 		AbstractTraceRegion trace = readTraceFile(traceFile);
-		ITraceToBytecodeInstaller installer = createTraceToBytecodeInstaller(request, trace.getAssociatedPath());
+		ITraceToBytecodeInstaller installer = createTraceToBytecodeInstaller(request, trace.getAssociatedSrcRelativePath());
 		if (installer == null)
 			return;
 		URI javaFileUri = URI.createFileURI(javaFile.getAbsolutePath());
@@ -86,7 +87,7 @@ public class DebugInfoInstaller {
 	}
 
 	private void installDebugInfo(InstallDebugInfoRequest request, File javaFile, File classFile, AbstractTraceRegion trace) throws IOException {
-		ITraceToBytecodeInstaller traceToBytecodeInstaller = createTraceToBytecodeInstaller(request, trace.getAssociatedPath());
+		ITraceToBytecodeInstaller traceToBytecodeInstaller = createTraceToBytecodeInstaller(request, trace.getAssociatedSrcRelativePath());
 		traceToBytecodeInstaller.setTrace(javaFile.getName(), trace);
 		File outputFile = new File(classFile.getAbsolutePath().replace(request.getClassesDir().getAbsolutePath(), request.getOutputDir().getAbsolutePath()));
 		logger.info("Installing Xtext debug information into " + classFile + " using " + traceToBytecodeInstaller.getClass().getSimpleName());
@@ -94,8 +95,8 @@ public class DebugInfoInstaller {
 		Files.write(traceToBytecodeInstaller.installTrace(Files.toByteArray(classFile)), outputFile);
 	}
 
-	private ITraceToBytecodeInstaller createTraceToBytecodeInstaller(InstallDebugInfoRequest request, URI sourceFile) {
-		SourceInstallerConfig debugInfoConfig = request.getSourceInstallerByFileExtension().get(sourceFile.fileExtension());
+	private ITraceToBytecodeInstaller createTraceToBytecodeInstaller(InstallDebugInfoRequest request, SourceRelativeURI sourceFile) {
+		SourceInstallerConfig debugInfoConfig = request.getSourceInstallerByFileExtension().get(sourceFile.getURI().fileExtension());
 		switch(debugInfoConfig.getSourceInstaller()) {
 		case PRIMARY:
 			TraceAsPrimarySourceInstaller installer = traceAsPrimarySourceInstallerProvider.get();
