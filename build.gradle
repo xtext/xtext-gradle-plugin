@@ -1,24 +1,11 @@
 buildscript {
   repositories {
     jcenter()
+    mavenLocal()
   }
   dependencies {
-    classpath 'org.xtend:xtend-gradle-plugin:0.4.5'
-    //TODO sobula (through nebula) is incompatible with Gradle 2.3+, fix it!
-    //classpath 'com.github.oehme.sobula:sobula:0.5.0'
-  }
-}
-
-/*
- * TODO this weird order is a workaround for a bug in the nebula publishing plugin
- * If they don't fix it soon, sobula should be rewritten to work without it.
- */
-configure(subprojects.findAll{p-> p.name.contains('plugin')}){
-  apply plugin: 'org.xtend.xtend'
-  apply plugin: 'java-gradle-plugin'
-
-  dependencies {
-    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.0'
+    classpath 'org.xtend:xtend-gradle-plugin:0.4.7'
+    classpath 'com.github.oehme.sobula:sobula:0.6.0'
   }
 }
 
@@ -34,12 +21,20 @@ subprojects {
   }
 }
 
+configure(subprojects.findAll{p-> p.name.contains('plugin')}){
+  apply plugin: 'org.xtend.xtend'
+  apply plugin: 'java-gradle-plugin'
+
+  dependencies {
+    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.0'
+  }
+}
+
 allprojects {
-  //apply plugin: 'com.github.oehme.sobula.plugin-release'
-  apply plugin: 'maven'
+  apply plugin: 'com.github.oehme.sobula.plugin-release'
 
   group = "org.xtext"
-  /*bintray.pkg.name = "$rootProject.group:$rootProject.name"
+  bintray.pkg.name = "$rootProject.group:$rootProject.name"
 
   contacts {
     "xtext@itemis.com" {
@@ -52,14 +47,11 @@ allprojects {
   //TODO create bintray and central users
   bintray.user = "oehme"
   bintray.pkg.version.mavenCentralSync.user = "oehme"
-  */
+
   repositories {
     jcenter()
 		maven {
 			url 'https://oss.sonatype.org/content/repositories/snapshots'
 		}
-    mavenLocal()
   }
 }
-
-//bintray.publications = [] // don't publish a POM for the root project
