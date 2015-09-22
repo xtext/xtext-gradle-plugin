@@ -33,6 +33,7 @@ class FileClassLoader extends ClassLoader implements Closeable {
 	val ImmutableList<File> files
 	val List<ZipFile> archives
 	val List<File> folders
+	val List<File> plainFiles
 	val List<InputStream> openStreams = newLinkedList
 	boolean open = true
 
@@ -41,6 +42,7 @@ class FileClassLoader extends ClassLoader implements Closeable {
 		this.files = ImmutableList.copyOf(files)
 		archives = Lists.newArrayListWithCapacity(files.size)
 		folders = Lists.newArrayListWithCapacity(files.size)
+		plainFiles = Lists.newArrayListWithCapacity(files.size)
 		files.filter[exists].forEach [ file |
 			if (file.name.endsWith(".jar")) {
 				try {
@@ -52,7 +54,7 @@ class FileClassLoader extends ClassLoader implements Closeable {
 			} else if (file.isDirectory) {
 				folders.add(file)
 			} else {
-				logger.debug('''Ignored classpath entry «file» as it is neither a jar nor a folder''')
+				plainFiles.add(file)
 			}
 		]
 	}
@@ -130,6 +132,15 @@ class FileClassLoader extends ClassLoader implements Closeable {
 		}
 		if (!open) {
 			return null
+		}
+		for(file : plainFiles) {
+			if (file.name == name) {
+				try {
+					return file.toURL
+				} catch (MalformedURLException e) {
+					logger.error('''error accessing resource «name»''', e)
+				}
+			}
 		}
 		for (folder : folders) {
 			val child = new File(folder, name)
