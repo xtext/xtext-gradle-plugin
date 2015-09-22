@@ -33,6 +33,8 @@ import org.xtext.gradle.protocol.GradleBuildResponse
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
+import java.net.URLClassLoader
+import java.io.IOException
 
 class XtextGradleBuilder {
 	val index = new ChunkedResourceDescriptions
@@ -63,6 +65,7 @@ class XtextGradleBuilder {
 
 	def GradleBuildResponse build(GradleBuildRequest gradleRequest) {
 		val containerHandle = gradleRequest.containerHandle
+		val jvmTypesLoader = new URLClassLoader(gradleRequest.classPath.map[toURI.toURL], ClassLoader.systemClassLoader)
 		val validator = new GradleValidatonCallback(gradleRequest.logger)
 		val response = new GradleBuildResponse
 		
@@ -79,7 +82,7 @@ class XtextGradleBuilder {
 			afterGenerateFile = [source, target| response.generatedFiles.add(new File(target.toFileString))]
 			
 			resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
-				classpathURIContext = new FileClassLoader(gradleRequest.classPath, ClassLoader.systemClassLoader)
+				classpathURIContext = jvmTypesLoader
 				attachWorkspaceConfig(gradleRequest)
 				attachGeneratorConfig(gradleRequest)
 				attachOutputConfig(gradleRequest)
@@ -91,7 +94,15 @@ class XtextGradleBuilder {
 		]
 		
 		val registry = IResourceServiceProvider.Registry.INSTANCE
-		val result = incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
+		val result = try {
+			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
+		} finally {
+			try {
+				jvmTypesLoader.close	
+			} catch (IOException e) {
+				gradleRequest.logger.debug("Error closing jvm types loader", e)
+			}
+		}
 		
 		if (!validator.isErrorFree) {
 			throw new GradleException("Xtext validation failed, see build log for details.")
