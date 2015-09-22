@@ -60,7 +60,7 @@ class WhenTheEclipsePluginIsApplied {
 
 	@Test
 	def properSettingsAreGenerated() {
-		executeTasks("eclipse")
+		build("eclipse")
 		val prefs = new XtextEclipsePreferences(projectDir, "org.eclipse.xtend.core.Xtend")
 		prefs.load
 		

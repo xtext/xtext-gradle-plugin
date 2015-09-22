@@ -100,7 +100,7 @@ class WhenConfiguringTheDebuggerSupport {
 			}
 		''')
 		
-		executeTasks("build")
+		build("build")
 		val classFile = file("build/classes/main/HelloWorld.class")
 		
 		classFile.shouldExist

@@ -4,9 +4,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
+import static org.junit.Assert.*
+import org.gradle.testkit.runner.TaskOutcome
 
 class BuildingASimpleXtendProject {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
+	val extension XtextBuilderAssertions = new XtextBuilderAssertions
 	extension ProjectUnderTest rootProject
 
 	@Before
@@ -65,7 +68,7 @@ class BuildingASimpleXtendProject {
 			class HelloWorld {}
 		'''
 
-		executeTasks("build").shouldSucceed
+		build("build")
 
 		file('build/xtend/main/HelloWorld.java').shouldExist
 		file('build/xtend/main/.HelloWorld.java._trace').shouldExist
@@ -77,16 +80,9 @@ class BuildingASimpleXtendProject {
 			class HelloWorld {}
 		'''
 
-		executeTasks("build")
-		val javaFile = file("build/xtend/main/HelloWorld.java")
-		val before = snapshotBuildDir
-
-		executeTasks("build")
-		val after = snapshotBuildDir
-		val diff = after.changesSince(before)
-		
-		diff.shouldBeUnchanged(javaFile)
-		//TODO use testkit api to assert UP-TO-DATE
+		build("build")
+		val secondResult = build("build")
+		assertEquals(TaskOutcome.UP_TO_DATE, secondResult.task(":generateXtext").outcome)
 	}
 
 	@Test
@@ -94,35 +90,27 @@ class BuildingASimpleXtendProject {
 		val upStream = createFile('src/main/java/UpStream.xtend', '''
 			class UpStream {}
 		''')
-		createFile('src/main/java/DownStream.xtend', '''
+		val downStream = createFile('src/main/java/DownStream.xtend', '''
 			class DownStream {
 				UpStream upStream
 			}
 		''')
-		createFile('src/main/java/Unrelated.xtend', '''
+		val unrelated = createFile('src/main/java/Unrelated.xtend', '''
 			class Unrelated {}
 		''')
 
-		executeTasks("build")
-
-		val upStreamJava = file("build/xtend/main/UpStream.java")
-		val downStreamJava = file("build/xtend/main/DownStream.java")
-		val unrelatedJava = file("build/xtend/main/Unrelated.java")
-		val before = snapshotBuildDir
+		build("build")
 
 		upStream.content = '''
 			class UpStream {
 				def void foo() {}
 			}
 		'''
-		executeTasks("build")
-		val after = snapshotBuildDir
-		val diff = after.changesSince(before)
+		val secondResult = build("build", "-i")
 
-		diff.shouldBeModified(upStreamJava)
-		diff.shouldBeUnchanged(downStreamJava)
-		diff.shouldBeUnchanged(unrelatedJava)
-		//TODO use testkit api to assert not UP-TO-DATE
+		secondResult.hasRunGeneratorFor(upStream)
+		secondResult.hasRunGeneratorFor(downStream)
+		secondResult.hasNotRunGeneratorFor(unrelated)
 	}
 	
 	@Test
@@ -134,27 +122,21 @@ class BuildingASimpleXtendProject {
 			public class B extends A {
 			}
 		''')
-		createFile('src/main/java/C.xtend', '''
+		val downStream = createFile('src/main/java/C.xtend', '''
 			class C extends B {}
 		''')
 
-		executeTasks("build")
-
-		val aJava = file("build/xtend/main/A.java")
-		val cJava = file("build/xtend/main/C.java")
-		val before = snapshotBuildDir
+		build("build")
 
 		upStream.content = '''
 			class A {
 				def void foo() {}
 			}
 		'''
-		executeTasks("build")
-		val after = snapshotBuildDir
-		val diff = after.changesSince(before)
+		val secondResult = build("build", "-i")
 
-		diff.shouldBeModified(aJava)
-		diff.shouldBeUnchanged(cJava)
+		secondResult.hasRunGeneratorFor(upStream)
+		secondResult.hasRunGeneratorFor(downStream)
 	}
 }
 

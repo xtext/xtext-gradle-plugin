@@ -4,10 +4,13 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
+import org.gradle.testkit.runner.TaskOutcome
+import static org.junit.Assert.*
 
 //TODO use a different language than Xtend
 class BuildingAPlainLanguageProject {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
+	val extension XtextBuilderAssertions = new XtextBuilderAssertions
 	extension ProjectUnderTest rootProject
 
 	@Before
@@ -70,7 +73,7 @@ class BuildingAPlainLanguageProject {
 			class HelloWorld {}
 		'''
 
-		executeTasks("generateXtext").shouldSucceed
+		build("generateXtext")
 
 		file('build/xtend/main/HelloWorld.java').shouldExist
 		file('build/xtend/main/.HelloWorld.java._trace').shouldExist
@@ -82,16 +85,9 @@ class BuildingAPlainLanguageProject {
 			class HelloWorld {}
 		'''
 
-		executeTasks("generateXtext")
-		val javaFile = file("build/xtend/main/HelloWorld.java")
-		val before = snapshotBuildDir
-
-		executeTasks("generateXtext")
-		val after = snapshotBuildDir
-		val diff = after.changesSince(before)
-		
-		diff.shouldBeUnchanged(javaFile)
-		//TODO use testkit api to assert UP-TO-DATE
+		build("generateXtext")
+		val secondResult = build("generateXtext")
+		assertEquals(TaskOutcome.UP_TO_DATE, secondResult.task(":generateXtext").outcome)
 	}
 
 	@Test
@@ -99,34 +95,25 @@ class BuildingAPlainLanguageProject {
 		val upStream = createFile('src/main/xtend/UpStream.xtend', '''
 			class UpStream {}
 		''')
-		createFile('src/main/xtend/DownStream.xtend', '''
+		val downStream = createFile('src/main/xtend/DownStream.xtend', '''
 			class DownStream {
 				UpStream upStream
 			}
 		''')
-		createFile('src/main/xtend/Unrelated.xtend', '''
+		val unrelated = createFile('src/main/xtend/Unrelated.xtend', '''
 			class Unrelated {}
 		''')
 
-		executeTasks("generateXtext")
-
-		val upStreamJava = file("build/xtend/main/UpStream.java")
-		val downStreamJava = file("build/xtend/main/DownStream.java")
-		val unrelatedJava = file("build/xtend/main/Unrelated.java")
-		val before = snapshotBuildDir
-
+		build("generateXtext")
 		upStream.content = '''
 			class UpStream {
 				def void foo() {}
 			}
 		'''
-		executeTasks("generateXtext")
-		val after = snapshotBuildDir
-		val diff = after.changesSince(before)
-
-		diff.shouldBeModified(upStreamJava)
-		diff.shouldBeUnchanged(downStreamJava)
-		diff.shouldBeUnchanged(unrelatedJava)
-		//TODO use testkit api to assert not UP-TO-DATE
+		val secondResult = build("generateXtext", "-i")
+		
+		secondResult.hasRunGeneratorFor(upStream)
+		secondResult.hasRunGeneratorFor(downStream)
+		secondResult.hasNotRunGeneratorFor(unrelated)
 	}
 }

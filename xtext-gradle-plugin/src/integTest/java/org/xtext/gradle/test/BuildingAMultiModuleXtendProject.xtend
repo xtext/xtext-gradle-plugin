@@ -4,10 +4,12 @@ import org.junit.Test
 import org.junit.Rule
 import org.junit.Before
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
+import org.gradle.testkit.runner.TaskOutcome
+import static org.junit.Assert.*
 
 class BuildingAMultiModuleXtendProject {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
-	
+	val extension XtextBuilderAssertions = new XtextBuilderAssertions
 	ProjectUnderTest upStreamProject
 	ProjectUnderTest downStreamProject
 	
@@ -71,7 +73,7 @@ class BuildingAMultiModuleXtendProject {
 	def void upStreamClassesCanBeReferenced() {
 		upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
 		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
-		executeTasks("build").shouldSucceed
+		build("build")
 	}
 	
 	
@@ -79,33 +81,26 @@ class BuildingAMultiModuleXtendProject {
 	def void downStreamProjectsAreNotRebuiltWhenUpStreamClassesStayTheSame() {
 		val upStreamFile = upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
 		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
-		executeTasks("build")
-		val snapshot = downStreamProject.snapshotBuildDir
+		build("build")
 		
 		upStreamFile.content = '''
 			class A 
 			{}
 		'''
-		executeTasks("build")
-		val diff = snapshot.changesSince(downStreamProject.snapshotBuildDir)
-		
-		diff.shouldBeEmpty
+		val secondResult = build("build")
+		assertEquals(TaskOutcome.UP_TO_DATE, secondResult.task(":downStream:generateXtext").outcome)
 	}
 	
 	@Test
 	def void upStreamChangesArePickedUpDownStream() {
-		val upStreamFile = upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
-		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
-		executeTasks("build")
-		val snapshot = downStreamProject.snapshotBuildDir
-		val downStreamJavaFile = downStreamProject.file("build/xtend/main/B.java")
+		val upStream = upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
+		val downStream = downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
+		build("build")
 		
-		upStreamFile.content = '''
+		upStream.content = '''
 			class A implements Cloneable {}
 		'''
-		executeTasks("build")
-		val diff = snapshot.changesSince(downStreamProject.snapshotBuildDir)
-		diff.shouldBeUnchanged(downStreamJavaFile)
-		//TODO use testkit api to assert not UP-TO-DATE
+		val result = build("build", "-i")
+		result.hasRunGeneratorFor(downStream)
 	}
 }
