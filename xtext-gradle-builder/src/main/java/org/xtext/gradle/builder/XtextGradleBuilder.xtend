@@ -49,6 +49,7 @@ class XtextGradleBuilder {
 	val String encoding
 
 	new(String owner, Set<String> setupNames, String encoding) throws Exception {
+		System.setProperty("org.eclipse.emf.common.util.ReferenceClearingQueue", "false")
 		for (setupName : setupNames) {
 			val setupClass = class.classLoader.loadClass(setupName)
 			val setup = setupClass.newInstance as ISetup
