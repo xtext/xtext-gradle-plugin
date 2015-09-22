@@ -63,7 +63,9 @@ class DebugInfoInstaller {
 		val outputFile = new File(classFile.absolutePath.replace(request.classesDir.absolutePath, request.outputDir.absolutePath))
 		logger.info('''Installing Xtext debug information into «classFile» using «traceToBytecodeInstaller.class.simpleName»''')
 		outputFile.parentFile.mkdirs
-		Files.write(traceToBytecodeInstaller.installTrace(Files.toByteArray(classFile)), outputFile)
+		val classContent = Files.toByteArray(classFile)
+		val newClassContent = traceToBytecodeInstaller.installTrace(classContent) ?: classContent
+		Files.write(newClassContent, outputFile)
 	}
 
 	def private createTraceToBytecodeInstaller(InstallDebugInfoRequest request, SourceRelativeURI sourceFile) {
