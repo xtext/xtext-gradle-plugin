@@ -5,6 +5,7 @@ buildscript {
   dependencies {
     classpath 'org.xtend:xtend-gradle-plugin:0.4.7'
     classpath 'com.github.oehme.sobula:sobula:0.6.3'
+    classpath "com.netflix.nebula:nebula-project-plugin:2.2.1"
   }
 }
 
@@ -30,6 +31,22 @@ configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
 
 configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   apply plugin: 'java-gradle-plugin'
+  apply plugin: "nebula.nebula-integtest"
+
+  jar {
+    manifest {
+      attributes("Implementation-Version": project.version)
+    }
+  }
+
+  dependencies {
+    integTestCompile gradleTestKit()
+  }
+
+  integrationTest {
+    dependsOn(install)
+    systemProperty 'gradle.project.version', version
+  }
 }
 
 allprojects {
