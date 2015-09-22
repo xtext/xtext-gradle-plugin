@@ -2,6 +2,7 @@ package org.xtext.gradle.builder
 
 import com.google.inject.Guice
 import java.io.File
+import java.net.URLClassLoader
 import java.util.Set
 import java.util.concurrent.ConcurrentHashMap
 import org.eclipse.emf.common.util.URI
@@ -33,8 +34,6 @@ import org.xtext.gradle.protocol.GradleBuildResponse
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
-import java.net.URLClassLoader
-import java.io.IOException
 
 class XtextGradleBuilder {
 	val index = new ChunkedResourceDescriptions
@@ -97,11 +96,7 @@ class XtextGradleBuilder {
 		val result = try {
 			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
 		} finally {
-			try {
-				jvmTypesLoader.close	
-			} catch (IOException e) {
-				gradleRequest.logger.debug("Error closing jvm types loader", e)
-			}
+			cleanup(gradleRequest, request)
 		}
 		
 		if (!validator.isErrorFree) {
@@ -112,6 +107,18 @@ class XtextGradleBuilder {
 		index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
 		generatedMappings.put(containerHandle, resultingIndex.fileMappings)
 		return response
+	}
+	
+	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {
+		val resourceSet = request.resourceSet
+		val jvmTypesLoader = resourceSet.classpathURIContext as URLClassLoader
+		try {
+			jvmTypesLoader.close
+		} catch (Exception e) {
+			gradleRequest.logger.debug("Couldn't close jvm types classloader", e)
+		}
+		resourceSet.resources.clear
+		resourceSet.eAdapters.clear
 	}
 	
 	private def attachWorkspaceConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
