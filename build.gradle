@@ -44,7 +44,7 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   }
 
   integrationTest {
-    dependsOn(install)
+    dependsOn("install")
     systemProperty 'gradle.project.version', version
   }
 }
