@@ -43,10 +43,6 @@ class BuildingASimpleXtendProject {
 			dependencies {
 				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
 			}
-			
-			xtext {
-				version = '2.9.0-SNAPSHOT'
-			}
 		'''
 	}
 

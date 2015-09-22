@@ -11,7 +11,7 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.tasks.XtextSourceSet
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
-
+//FIXME this will break in Gradle 2.8!
 class DefaultXtextSourceSet extends DefaultSourceDirectorySet implements XtextSourceSet {
 	@Accessors val XtextSourceSetOutputs output
 

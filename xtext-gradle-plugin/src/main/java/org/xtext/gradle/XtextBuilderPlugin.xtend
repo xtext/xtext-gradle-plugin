@@ -19,8 +19,6 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceSetOutputs
 
-import static extension org.xtext.gradle.GradleExtensions.*
-
 class XtextBuilderPlugin implements Plugin<Project> {
 
 	val FileResolver fileResolver
@@ -37,10 +35,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 		project.plugins.<BasePlugin>apply(BasePlugin)
 		xtext = project.extensions.create("xtext", XtextExtension, project, fileResolver);
-		xtextTooling = project.configurations.create("xtextTooling")
+		xtextTooling = project.configurations.create("xtextTooling") [
+			exclude(#{'group' -> 'asm'})
+		]
 		createGeneratorTasks
 		configureOutletDefaults
-		automaticallyAddXtextToolingDependencies
 		addSourceSetIncludes
 		integrateWithJavaPlugin
 		integrateWithEclipsePlugin
@@ -53,7 +52,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
-				xtextClasspath = xtextTooling
+				project.afterEvaluate[p|
+					xtextClasspath = xtextTooling.plus(xtext.getXtextBuilderDependencies(classpath ?: project.files))
+				]
 			]
 		]
 	}
@@ -76,23 +77,6 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		]
 	}
 
-	private def automaticallyAddXtextToolingDependencies() {
-		//TODO make this more defensive if a language has a better way of telling the Xtext version, e.g. by looking at the compile classpath
-		project.afterEvaluate [
-			project.dependencies => [
-				add(
-					"xtextTooling",
-					externalModule('''org.eclipse.xtext:org.eclipse.xtext.builder.standalone:«xtext.version»''') [
-						force = true
-						exclude(#{'group' -> 'asm'})
-					]
-				)
-				add("xtextTooling", '''org.xtext:xtext-gradle-builder:«pluginVersion»''')
-				add("xtextTooling", 'com.google.inject:guice:4.0')
-			]
-		]
-	}
-	
 	private def addSourceSetIncludes() {
 		project.afterEvaluate [
 			xtext.languages.all [lang|
@@ -144,9 +128,5 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
 			eclipse.project.natures("org.eclipse.xtext.ui.shared.xtextNature")
 		]
-	}
-
-	private def String getPluginVersion() {
-		this.class.package.implementationVersion
 	}
 }

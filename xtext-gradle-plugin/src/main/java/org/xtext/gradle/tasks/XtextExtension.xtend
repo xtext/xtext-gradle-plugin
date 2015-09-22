@@ -15,9 +15,14 @@ import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceSet
+import org.gradle.api.file.FileCollection
+import java.util.regex.Pattern
+import static extension org.xtext.gradle.GradleExtensions.*
+import org.gradle.api.GradleException
+import java.util.concurrent.Callable
 
 class XtextExtension {
-	@Accessors String version = "2.9.0"
+	@Accessors String version
 	@Accessors val NamedDomainObjectContainer<XtextSourceSet> sourceSets
 	@Accessors val NamedDomainObjectContainer<Language> languages;
 
@@ -35,6 +40,48 @@ class XtextExtension {
 
 	def languages(Action<? super NamedDomainObjectContainer<Language>> configureAction) {
 		configureAction.execute(languages)
+	}
+	
+	static val LIB_PATTERN = Pattern.compile("org\\.eclipse\\.xtext\\..*-(\\d.*?).jar")
+	
+	def String getXtextVersion(FileCollection classpath) {
+		if (version != null)
+			return version
+		for (file : classpath) {
+			val matcher = LIB_PATTERN.matcher(file.name)
+			if (matcher.matches) {
+				return matcher.group(1)
+			}
+		}
+		return null
+	}
+	
+	def FileCollection getXtextBuilderDependencies(FileCollection classpath) {
+		project.files([|
+			val version = classpath.xtextVersion
+			if (version != null) {
+				val dependencies = #[
+					project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext:«version»''') [
+						force = true
+						exclude(#{'group' -> 'asm'})
+					],
+					project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''') [
+						force = true
+						exclude(#{'group' -> 'asm'})
+					],
+					project.dependencies.externalModule('com.google.inject:guice:4.0')[
+						force = true
+					]
+				]
+				return project.configurations.detachedConfiguration(dependencies)
+			}
+			throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
+		] as Callable<FileCollection>)
+		.builtBy(classpath.buildDependencies)
+	}
+	
+	private def String getPluginVersion() {
+		this.class.package.implementationVersion
 	}
 }
 
