@@ -32,9 +32,7 @@ class BuildingAMultiModuleXtendProject {
 			}
 			
 			subprojects {
-				apply plugin: 'java'
-				apply plugin: 'org.xtext.builder'
-				apply plugin: 'org.xtext.java'
+				apply plugin: 'org.xtext.xtend'
 
 				repositories {
 					mavenLocal()
@@ -46,21 +44,10 @@ class BuildingAMultiModuleXtendProject {
 
 				dependencies {
 					compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
-					xtextTooling 'org.eclipse.xtend:org.eclipse.xtend.core:2.9.0-SNAPSHOT'
 				}
 
 				xtext {
 					version = '2.9.0-SNAPSHOT'
-					languages {
-						xtend {
-							setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
-							generator {
-								outlet {
-									producesJava = true
-								}
-							}
-						}
-					}
 				}
 			}
 			project('«downStreamProject.path»').dependencies {
