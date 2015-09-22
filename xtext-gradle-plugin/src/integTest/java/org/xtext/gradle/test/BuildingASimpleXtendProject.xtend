@@ -85,7 +85,8 @@ class BuildingASimpleXtendProject {
 		val after = snapshotBuildDir
 		val diff = after.changesSince(before)
 		
-		diff.shouldBeUntouched(javaFile)
+		diff.shouldBeUnchanged(javaFile)
+		//TODO use testkit api to assert UP-TO-DATE
 	}
 
 	@Test
@@ -120,8 +121,8 @@ class BuildingASimpleXtendProject {
 
 		diff.shouldBeModified(upStreamJava)
 		diff.shouldBeUnchanged(downStreamJava)
-		diff.shouldBeTouched(downStreamJava)
-		diff.shouldBeUntouched(unrelatedJava)
+		diff.shouldBeUnchanged(unrelatedJava)
+		//TODO use testkit api to assert not UP-TO-DATE
 	}
 	
 	@Test
@@ -154,7 +155,6 @@ class BuildingASimpleXtendProject {
 
 		diff.shouldBeModified(aJava)
 		diff.shouldBeUnchanged(cJava)
-		diff.shouldBeTouched(cJava)
 	}
 }
 

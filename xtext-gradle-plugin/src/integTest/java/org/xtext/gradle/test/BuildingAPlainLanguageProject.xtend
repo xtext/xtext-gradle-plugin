@@ -90,7 +90,8 @@ class BuildingAPlainLanguageProject {
 		val after = snapshotBuildDir
 		val diff = after.changesSince(before)
 		
-		diff.shouldBeUntouched(javaFile)
+		diff.shouldBeUnchanged(javaFile)
+		//TODO use testkit api to assert UP-TO-DATE
 	}
 
 	@Test
@@ -125,7 +126,7 @@ class BuildingAPlainLanguageProject {
 
 		diff.shouldBeModified(upStreamJava)
 		diff.shouldBeUnchanged(downStreamJava)
-		diff.shouldBeTouched(downStreamJava)
-		diff.shouldBeUntouched(unrelatedJava)
+		diff.shouldBeUnchanged(unrelatedJava)
+		//TODO use testkit api to assert not UP-TO-DATE
 	}
 }

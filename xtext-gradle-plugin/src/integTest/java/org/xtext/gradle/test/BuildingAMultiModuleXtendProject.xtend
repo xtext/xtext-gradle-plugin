@@ -105,6 +105,7 @@ class BuildingAMultiModuleXtendProject {
 		'''
 		executeTasks("build")
 		val diff = snapshot.changesSince(downStreamProject.snapshotBuildDir)
-		diff.shouldBeTouched(downStreamJavaFile)
+		diff.shouldBeUnchanged(downStreamJavaFile)
+		//TODO use testkit api to assert not UP-TO-DATE
 	}
 }

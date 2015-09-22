@@ -176,7 +176,7 @@ class FileCollectionSnapshot {
 
 	static def forFiles(File... files) {
 		val snapshots = files.toMap[it].mapValues [
-			new FileSnapshot(it, Files.hash(it, Hashing.md5), lastModified)
+			new FileSnapshot(it, Files.hash(it, Hashing.md5))
 		]
 		new FileCollectionSnapshot(ImmutableMap.copyOf(snapshots))
 	}
@@ -187,20 +187,17 @@ class FileCollectionSnapshot {
 		val added = newHashSet
 		val deleted = newHashSet
 		val modified = newHashSet
-		val touched = newHashSet
 		files.entrySet.forEach [
 			val existingSnapshot = before.files.get(key)
 			if (existingSnapshot == null) {
 				added.add(value.file)
 			} else if (existingSnapshot.checksum != value.checksum) {
 				modified.add(value.file)
-			} else if (existingSnapshot.lastModified != value.lastModified) {
-				touched.add(value.file)
 			}
 		]
 		deleted.addAll(before.files.keySet)
 		deleted.removeAll(files.keySet)
-		new FileCollectionDiff(added, deleted, modified, touched)
+		new FileCollectionDiff(added, deleted, modified)
 	}
 }
 
@@ -208,7 +205,6 @@ class FileCollectionSnapshot {
 class FileSnapshot {
 	File file
 	HashCode checksum
-	long lastModified
 }
 
 @Data
@@ -216,7 +212,6 @@ class FileCollectionDiff {
 	Set<File> added
 	Set<File> deleted
 	Set<File> modified
-	Set<File> touched
 
 	def void shouldBeAdded(File file) {
 		assertTrue(added.contains(file))
@@ -230,23 +225,13 @@ class FileCollectionDiff {
 		assertTrue(modified.contains(file))
 	}
 
-	def void shouldBeTouched(File file) {
-		assertTrue(touched.contains(file))
-	}
-
 	def void shouldBeUnchanged(File file) {
 		assertFalse(added.contains(file) || deleted.contains(file) || modified.contains(file))
 	}
 
-	def void shouldBeUntouched(File file) {
-		shouldBeUnchanged(file)
-		assertFalse(touched.contains(file))
-	}
-	
 	def void shouldBeEmpty() {
 		assertTrue(added.isEmpty)
 		assertTrue(deleted.isEmpty)
 		assertTrue(modified.isEmpty)
-		assertTrue(touched.isEmpty)
 	}
 }
