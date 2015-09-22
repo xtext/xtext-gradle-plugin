@@ -6,6 +6,7 @@ import org.junit.Test
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 import static org.junit.Assert.*
 import org.gradle.testkit.runner.TaskOutcome
+import org.junit.Ignore
 
 class BuildingASimpleXtendProject {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
@@ -124,6 +125,24 @@ class BuildingASimpleXtendProject {
 
 		secondResult.hasRunGeneratorFor(upStream)
 		secondResult.hasRunGeneratorFor(downStream)
+	}
+	
+	@Test
+	@Ignore("Fails due to assumption in xtend.core that URLClassLoaders are used")
+	def void builtInActiveAnnotationsWork() {
+		file('src/main/java/HelloWorld.xtend').content = '''
+			import org.eclipse.xtend.lib.annotations.Data
+			
+			@Data 
+			class HelloWorld {
+				String greeting
+				def test() {
+					getGreeting
+				}
+			}
+		'''
+
+		build("generateXtext")
 	}
 }
 
