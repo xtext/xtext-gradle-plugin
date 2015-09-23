@@ -94,7 +94,8 @@ class XtextGenerate extends DefaultTask {
 			containerHandle = project.path + ":" + sources.name
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
-			classPath = classpath?.files ?: emptyList
+			it.classpath = classpath?.files ?: emptyList
+			it.bootClasspath = bootClasspath
 			sourceFolders = sources.srcDirs
 			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
 				val config = generator

@@ -34,33 +34,22 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 	}
 
 	private def configureAndroid() {
-		android = project.extensions.getByName("android") as BaseExtension
-		variants = switch android {
-			AppExtension: android.applicationVariants
-			LibraryExtension: android.libraryVariants
-			default: throw new GradleException('''Unknown packaging type «android.class.simpleName»''')
-		}
-		configureSourceSetDefaults
-		configureGeneratorDefaults
-		configureOutletDefaults
+		project.afterEvaluate[
+			android = project.extensions.getByName("android") as BaseExtension
+			variants = switch android {
+				AppExtension: android.applicationVariants
+				LibraryExtension: android.libraryVariants
+				default: throw new GradleException('''Unknown packaging type «android.class.simpleName»''')
+			}
+			configureSourceSetDefaults
+			configureGeneratorDefaults
+			configureOutletDefaults
+		]
 	}
 
 	private def configureSourceSetDefaults() {
 		variants.all [ variant |
 			xtext.sourceSets.maybeCreate(variant.name) => [ sourceSet |
-				project.afterEvaluate[
-					val sourceDirs = newArrayList
-					val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
-					sourceDirs += javaDirs
-					sourceDirs += #[
-						variant.aidlCompile.sourceOutputDir,
-						variant.generateBuildConfig.sourceOutputDir,
-						variant.renderscriptCompile.sourceOutputDir
-					]
-					sourceDirs += variant.outputs.map[processResources.sourceOutputDir]					
-					sourceSet.srcDirs(sourceDirs)
-				]
-				
 				val generatorTask = project.tasks.getByName(sourceSet.generatorTaskName) as XtextGenerate
 				generatorTask.dependsOn(
 					variant.aidlCompile,
@@ -69,21 +58,27 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 				)
 				generatorTask.dependsOn(variant.outputs.map[processResources])
 				variant.javaCompiler.doLast[generatorTask.installDebugInfo]
-				project.afterEvaluate[
-					generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
-					generatorTask.classpath = variant.javaCompiler.classpath
-					generatorTask.classesDir = variant.javaCompiler.destinationDir
-					variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
+				val sourceDirs = newArrayList
+				val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
+				sourceDirs += javaDirs
+				sourceDirs += #[
+					variant.aidlCompile.sourceOutputDir,
+					variant.generateBuildConfig.sourceOutputDir,
+					variant.renderscriptCompile.sourceOutputDir
 				]
+				sourceDirs += variant.outputs.map[processResources.sourceOutputDir]					
+				sourceSet.srcDirs(sourceDirs)
+				generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
+				generatorTask.classpath = variant.javaCompiler.classpath.plus(project.files(android.bootClasspath))
+				generatorTask.classesDir = variant.javaCompiler.destinationDir
+				variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
 			]
 		]
 	}
 
 	private def configureGeneratorDefaults() {
-		project.afterEvaluate[
-			xtext.languages.all [
-				generator.javaSourceLevel = android.compileOptions.sourceCompatibility.toString
-			]
+		xtext.languages.all [
+			generator.javaSourceLevel = android.compileOptions.sourceCompatibility.toString
 		]
 	}
 

@@ -64,7 +64,7 @@ class XtextGradleBuilder {
 
 	def GradleBuildResponse build(GradleBuildRequest gradleRequest) {
 		val containerHandle = gradleRequest.containerHandle
-		val jvmTypesLoader = new URLClassLoader(gradleRequest.classPath.map[toURI.toURL], ClassLoader.systemClassLoader)
+		val jvmTypesLoader = gradleRequest.jvmTypesLoader
 		val validator = new GradleValidatonCallback(gradleRequest.logger)
 		val response = new GradleBuildResponse
 		
@@ -107,6 +107,15 @@ class XtextGradleBuilder {
 		index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
 		generatedMappings.put(containerHandle, resultingIndex.fileMappings)
 		return response
+	}
+	
+	def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
+		val parent = if (gradleRequest.bootClasspath == null) {
+			ClassLoader.systemClassLoader
+		} else {
+			new AlternateJdkLoader(gradleRequest.bootClasspath.split(File.pathSeparator).map[new File(it)])
+		}
+		new URLClassLoader(gradleRequest.classpath.map[toURI.toURL], parent)
 	}
 	
 	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {

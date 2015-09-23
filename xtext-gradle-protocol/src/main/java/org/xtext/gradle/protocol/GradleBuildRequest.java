@@ -16,18 +16,27 @@ public class GradleBuildRequest {
 	private String projectName;
 	private Collection<File> dirtyFiles = Lists.newArrayList();
 	private Collection<File> deletedFiles = Lists.newArrayList();
-	private Collection<File> classPath;
+	private Collection<File> classpath;
+	private String bootClasspath;
 	private Collection<File> sourceFolders = Lists.newArrayList();
 	private Map<String, GradleGeneratorConfig> generatorConfigsByLanguage = Maps.newHashMap();
 	private Map<String, Map<String, String>> preferencesByLanguage = Maps.newHashMap();
 	private File classesDir;
 	
-	public Collection<File> getClassPath() {
-		return classPath;
+	public Collection<File> getClasspath() {
+		return classpath;
 	}
 	
-	public void setClassPath(Collection<File> classPath) {
-		this.classPath = classPath;
+	public void setClasspath(Collection<File> classPath) {
+		this.classpath = classPath;
+	}
+	
+	public String getBootClasspath() {
+		return bootClasspath;
+	}
+	
+	public void setBootClasspath(String bootClasspath) {
+		this.bootClasspath = bootClasspath;
 	}
 
 	public Collection<File> getDirtyFiles() {
