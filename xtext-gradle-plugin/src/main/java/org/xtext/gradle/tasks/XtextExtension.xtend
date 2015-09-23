@@ -2,11 +2,13 @@ package org.xtext.gradle.tasks;
 
 import groovy.lang.Closure
 import java.util.Map
+import java.util.regex.Pattern
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
@@ -14,27 +16,22 @@ import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
-import org.xtext.gradle.tasks.internal.DefaultXtextSourceSet
-import org.gradle.api.file.FileCollection
-import java.util.regex.Pattern
-import static extension org.xtext.gradle.GradleExtensions.*
-import org.gradle.api.GradleException
-import java.util.concurrent.Callable
+import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
 
 class XtextExtension {
 	@Accessors String version
-	@Accessors val NamedDomainObjectContainer<XtextSourceSet> sourceSets
+	@Accessors val NamedDomainObjectContainer<XtextSourceDirectorySet> sourceSets
 	@Accessors val NamedDomainObjectContainer<Language> languages;
 
 	Project project
 
 	new(Project project, FileResolver fileResolver) {
 		this.project = project
-		sourceSets = project.container(XtextSourceSet)[name|new DefaultXtextSourceSet(name, project, fileResolver)]
+		sourceSets = project.container(XtextSourceDirectorySet)[name|new DefaultXtextSourceDirectorySet(name, project)]
 		languages = project.container(Language)[name|new Language(name, project)]
 	}
 
-	def sourceSets(Action<? super NamedDomainObjectContainer<XtextSourceSet>> configureAction) {
+	def sourceSets(Action<? super NamedDomainObjectContainer<XtextSourceDirectorySet>> configureAction) {
 		configureAction.execute(sourceSets)
 	}
 
@@ -54,34 +51,6 @@ class XtextExtension {
 			}
 		}
 		return null
-	}
-	
-	def FileCollection getXtextBuilderDependencies(FileCollection classpath) {
-		project.files([|
-			val version = classpath.xtextVersion
-			if (version != null) {
-				val dependencies = #[
-					project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext:«version»''') [
-						force = true
-						exclude(#{'group' -> 'asm'})
-					],
-					project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''') [
-						force = true
-						exclude(#{'group' -> 'asm'})
-					],
-					project.dependencies.externalModule('com.google.inject:guice:4.0')[
-						force = true
-					]
-				]
-				return project.configurations.detachedConfiguration(dependencies)
-			}
-			throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
-		] as Callable<FileCollection>)
-		.builtBy(classpath.buildDependencies)
-	}
-	
-	private def String getPluginVersion() {
-		this.class.package.implementationVersion
 	}
 }
 

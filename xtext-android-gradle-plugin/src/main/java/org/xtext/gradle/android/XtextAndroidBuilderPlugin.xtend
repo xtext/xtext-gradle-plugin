@@ -18,8 +18,6 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
 
-import static extension org.xtext.gradle.GradleExtensions.*
-
 class XtextAndroidBuilderPlugin implements Plugin<Project> {
 
 	Project project
@@ -50,7 +48,7 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 	private def configureSourceSetDefaults() {
 		variants.all [ variant |
 			xtext.sourceSets.maybeCreate(variant.name) => [ sourceSet |
-				val lazySourceDirs = project.lazyFileCollection[
+				project.afterEvaluate[
 					val sourceDirs = newArrayList
 					val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
 					sourceDirs += javaDirs
@@ -59,9 +57,9 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 						variant.generateBuildConfig.sourceOutputDir,
 						variant.renderscriptCompile.sourceOutputDir
 					]
-					sourceDirs += variant.outputs.map[processResources.sourceOutputDir]	
+					sourceDirs += variant.outputs.map[processResources.sourceOutputDir]					
+					sourceSet.srcDirs(sourceDirs)
 				]
-				sourceSet.srcDirs(lazySourceDirs)
 				
 				val generatorTask = project.tasks.getByName(sourceSet.generatorTaskName) as XtextGenerate
 				generatorTask.dependsOn(

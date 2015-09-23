@@ -5,6 +5,8 @@ import org.eclipse.xtext.xbase.lib.Procedures.Procedure1
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionAdapter
 
 class GradleExtensions {
 
@@ -13,9 +15,14 @@ class GradleExtensions {
 		config.apply(dependency as ExternalModuleDependency)
 		dependency
 	}
-	
-	
-	static def lazyFileCollection(Project project, Callable<?> fileSupplier) {
-		project.files(fileSupplier)
+
+	static def beforeExecute(Task task, (Task) => void action) {
+		task.project.gradle.taskGraph.addTaskExecutionListener(new TaskExecutionAdapter() {
+			override beforeExecute(Task someTask) {
+				if (someTask == task) {
+					action.apply(someTask)
+				}
+			}
+		})
 	}
 }

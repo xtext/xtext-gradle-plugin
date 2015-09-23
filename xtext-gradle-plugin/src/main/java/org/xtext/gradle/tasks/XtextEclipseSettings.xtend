@@ -11,7 +11,7 @@ import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
 
 class XtextEclipseSettings extends DefaultTask {
 
-	@Accessors Set<XtextSourceSet> sourceSets
+	@Accessors Set<XtextSourceDirectorySet> sourceSets
 	@Accessors Set<Language> languages
 
 	@TaskAction

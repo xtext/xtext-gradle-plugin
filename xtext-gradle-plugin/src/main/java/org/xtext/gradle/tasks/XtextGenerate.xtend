@@ -9,7 +9,6 @@ import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
@@ -29,7 +28,7 @@ class XtextGenerate extends DefaultTask {
 	
 	static Object builder
 
-	@Accessors @InputFiles @SkipWhenEmpty SourceDirectorySet sources
+	@Accessors XtextSourceDirectorySet sources
 
 	@Accessors @Nested Set<Language> languages
 
@@ -47,6 +46,11 @@ class XtextGenerate extends DefaultTask {
 	
 	Collection<File> generatedFiles
 	
+	@InputFiles @SkipWhenEmpty
+	def getSources() {
+		sources.files
+	}
+	
 	@OutputDirectories
 	def getOutputDirectories() {
 		sourceSetOutputs.dirs
@@ -63,14 +67,14 @@ class XtextGenerate extends DefaultTask {
 			inputs.outOfDate[outOfDateFiles += file]
 			inputs.removed[removedFiles += file]
 		} else {
-			outOfDateFiles += sources
+			outOfDateFiles += getSources
 		}
 		
 		val outOfDateClasspathEntries = newHashSet
 		outOfDateClasspathEntries.addAll(outOfDateFiles)
 		outOfDateClasspathEntries.retainAll(classpath?.files ?: #{})
 		if (!outOfDateClasspathEntries.isEmpty) {
-			outOfDateFiles += sources
+			outOfDateFiles += getSources
 		}
 		
 		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {

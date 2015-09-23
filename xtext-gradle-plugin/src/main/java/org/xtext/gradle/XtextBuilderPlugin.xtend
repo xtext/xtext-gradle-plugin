@@ -3,6 +3,7 @@ package org.xtext.gradle;
 import com.google.common.base.CaseFormat
 import javax.inject.Inject
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -18,6 +19,8 @@ import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceSetOutputs
+
+import static extension org.xtext.gradle.GradleExtensions.*
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -52,11 +55,39 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
-				project.afterEvaluate[p|
-					xtextClasspath = xtextTooling.plus(xtext.getXtextBuilderDependencies(classpath ?: project.files))
-				]
+				xtextClasspath = xtextTooling
+				enhanceBuilderDependencies
 			]
 		]
+	}
+	
+	def void enhanceBuilderDependencies(XtextGenerate generatorTask) {
+		generatorTask.beforeExecute[
+			val builderClasspathBefore = generatorTask.xtextClasspath
+			val classpath = generatorTask.classpath
+			val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
+			if (version == null) {
+				throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
+			}
+			val dependencies = #[
+				project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext:«version»''') [
+					force = true
+					exclude(#{'group' -> 'asm'})
+				],
+				project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''') [
+					force = true
+					exclude(#{'group' -> 'asm'})
+				],
+				project.dependencies.externalModule('com.google.inject:guice:4.0')[
+					force = true
+				]
+			]
+			generatorTask.xtextClasspath = project.configurations.detachedConfiguration(dependencies).plus(builderClasspathBefore)
+		]
+	}
+	
+	private def String getPluginVersion() {
+		this.class.package.implementationVersion
 	}
 
 	private def configureOutletDefaults() {
@@ -93,11 +124,17 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			java.sourceSets.all [ javaSourceSet |
 				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
-					javaSourceSet.allSource.source(xtextSourceSet)
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
-					xtextSourceSet.source(javaSourceSet.java)
-					xtextSourceSet.source(javaSourceSet.resources)
 					project.afterEvaluate [ p |
+						xtextSourceSet.srcDirs.forEach[
+							javaSourceSet.allSource.srcDir(it)
+						]
+						javaSourceSet.java.srcDirs.forEach[
+							xtextSourceSet.srcDir(it)
+						]
+						javaSourceSet.resources.srcDirs.forEach[
+							xtextSourceSet.srcDir(it)
+						]
 						val javaOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava]
 						javaOutlets.forEach[
 							javaSourceSet.java.srcDir(xtextSourceSet.output.getDir(it))
