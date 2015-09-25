@@ -37,7 +37,7 @@ class XtextEclipseSettings extends DefaultTask {
 			prefs.putBoolean("generateSuppressWarnings", suppressWarningsAnnotation)
 			prefs.putBoolean("generateGeneratedAnnotation", generatedAnnotation.active)
 			prefs.putBoolean("includeDateInGenerated", generatedAnnotation.includeDate)
-			if (generatedAnnotation.comment != null) {
+			if (generatedAnnotation.comment !== null) {
 				prefs.put("generatedAnnotationComment", generatedAnnotation.comment)
 			}
 			prefs.put("targetJavaVersion", "Java" + JavaVersion.toVersion(javaSourceLevel).majorVersion)

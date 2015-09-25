@@ -31,7 +31,7 @@ class DefaultXtextSourceSetOutputs implements XtextSourceSetOutputs {
 	
 	def propertyMissing(String name, Object value) {
 		val outlet = outletsByPropertyName.get(name)
-		if (outlet == null)
+		if (outlet === null)
 			throw new MissingPropertyException('''
 				Unknown output directory '«name»'
 				Known directories are:

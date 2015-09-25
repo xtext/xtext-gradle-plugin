@@ -151,7 +151,7 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	private def initializeBuilder() {
-		if (builder != null) {
+		if (builder !== null) {
 			(builder.class.classLoader as URLClassLoader).close
 		}
 		val builderClass = builderClassLoader.loadClass("org.xtext.gradle.builder.XtextGradleBuilder")
@@ -193,6 +193,6 @@ class XtextGenerate extends DefaultTask {
 	
 	private def getBuilderClassLoader() {
 		//TODO parent filtering, we don't want asm etc.
-		new URLClassLoader(xtextClasspath.map[toURL], class.classLoader)
+		new URLClassLoader(xtextClasspath.map[toURI.toURL], class.classLoader)
 	}
 }
