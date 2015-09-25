@@ -58,6 +58,10 @@ class GradleBuildTester extends ExternalResource {
 		}
 	}
 
+	def void << (File file, CharSequence content) {
+		file.append(content)
+	}
+
 	def String getContentAsString(File file) {
 		Files.toString(file, Charsets.UTF_8)
 	}
@@ -89,6 +93,10 @@ class GradleBuildTester extends ExternalResource {
 
 		def void setBuildFile(CharSequence content) {
 			new File(projectDir, 'build.gradle').content = content
+		}
+
+		def File getBuildFile() {
+			new File(projectDir, 'build.gradle')
 		}
 
 		def File file(String relativePath) {
