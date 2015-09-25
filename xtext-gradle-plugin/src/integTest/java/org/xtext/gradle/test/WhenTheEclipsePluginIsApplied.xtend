@@ -1,6 +1,7 @@
 package org.xtext.gradle.test
 
 import org.eclipse.core.internal.preferences.EclipsePreferences
+import org.junit.Ignore
 import org.junit.Test
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
 
@@ -40,26 +41,42 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 	}
 
 	@Test
-	def properSettingsAreGenerated() {
-		build("eclipse")
-		val prefs = new XtextEclipsePreferences(projectDir, "org.eclipse.xtend.core.Xtend")
+	def void properSettingsAreGenerated() {
+		// when
+		build('eclipse')
+		
+		// then
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
 		prefs.load
 
-		prefs.shouldContain("BuilderConfiguration.is_project_specific", true)
-		prefs.shouldContain("ValidatorConfiguration.is_project_specific", true)
-		prefs.shouldContain("generateSuppressWarnings", true)
-		prefs.shouldContain("generateGeneratedAnnotation", false)
-		prefs.shouldContain("includeDateInGenerated", false)
-		prefs.shouldContain("useJavaCompilerCompliance", false)
-		prefs.shouldContain("targetJavaVersion", "Java6")
-		prefs.shouldContain("outlet.DEFAULT_OUTPUT.userOutputPerSourceFolder", true)
-		prefs.shouldContain("outlet.DEFAULT_OUTPUT.installDslAsPrimarySource", false)
-		prefs.shouldContain("outlet.DEFAULT_OUTPUT.hideLocalSyntheticVariables", true)
-		prefs.shouldContain("outlet.DEFAULT_OUTPUT.sourceFolder.src/main/java.directory", "build/xtend/main")
-		prefs.shouldContain("outlet.DEFAULT_OUTPUT.sourceFolder.src/test/java.directory", "build/xtend/test")
+		prefs.shouldContain('BuilderConfiguration.is_project_specific', true)
+		prefs.shouldContain('ValidatorConfiguration.is_project_specific', true)
+		prefs.shouldContain('generateSuppressWarnings', true)
+		prefs.shouldContain('generateGeneratedAnnotation', false)
+		prefs.shouldContain('includeDateInGenerated', false)
+		prefs.shouldContain('useJavaCompilerCompliance', false)
+		prefs.shouldContain('targetJavaVersion', 'Java6')
+		prefs.shouldContain('outlet.DEFAULT_OUTPUT.userOutputPerSourceFolder', true)
+		prefs.shouldContain('outlet.DEFAULT_OUTPUT.installDslAsPrimarySource', false)
+		prefs.shouldContain('outlet.DEFAULT_OUTPUT.hideLocalSyntheticVariables', true)
+		prefs.shouldContain('outlet.DEFAULT_OUTPUT.sourceFolder.src/main/java.directory', 'build/xtend/main')
+		prefs.shouldContain('outlet.DEFAULT_OUTPUT.sourceFolder.src/test/java.directory', 'build/xtend/test')
 
-		prefs.shouldContain("org.eclipse.xtend.some.some.issue", "error")
-		prefs.shouldContain("org.eclipse.xtend.some.pref", "true")
+		prefs.shouldContain('org.eclipse.xtend.some.some.issue', 'error')
+		prefs.shouldContain('org.eclipse.xtend.some.pref', 'true')
+	}
+	
+	@Test @Ignore
+	def void settingsAreCleanedProperly() {
+		// given
+		build('eclipse')
+		
+		// when
+		build('cleanEclipse')
+		
+		// then
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldNotExist
 	}
 
 	def shouldContain(EclipsePreferences prefs, String key, Object value) {
