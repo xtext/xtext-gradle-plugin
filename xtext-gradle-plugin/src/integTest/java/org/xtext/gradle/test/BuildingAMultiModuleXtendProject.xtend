@@ -1,47 +1,24 @@
 package org.xtext.gradle.test
 
-import org.junit.Test
-import org.junit.Rule
-import org.junit.Before
-import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 import org.gradle.testkit.runner.TaskOutcome
+import org.junit.Test
+import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
+
 import static org.junit.Assert.*
 
-class BuildingAMultiModuleXtendProject {
-	@Rule public extension GradleBuildTester tester = new GradleBuildTester
-	val extension XtextBuilderAssertions = new XtextBuilderAssertions
+class BuildingAMultiModuleXtendProject extends AbstractIntegrationTest {
+	
 	ProjectUnderTest upStreamProject
 	ProjectUnderTest downStreamProject
 	
-	@Before
-	def void setup() {
+	override setup() {
+		super.setup
 		upStreamProject = rootProject.createSubProject("upStream")
 		downStreamProject = rootProject.createSubProject("downStream")
-		rootProject.buildFile = '''
-			buildscript {
-				repositories {
-					mavenLocal()
-					maven {
-						url 'https://oss.sonatype.org/content/repositories/snapshots'
-					}
-					jcenter()
-				}
-				dependencies {
-					classpath 'org.xtext:xtext-gradle-plugin:«System.getProperty("gradle.project.version") ?: 'unspecified'»'
-				}
-			}
-			
+		rootProject.buildFile << '''
 			subprojects {
 				apply plugin: 'org.xtext.xtend'
-
-				repositories {
-					mavenLocal()
-					maven {
-						url 'https://oss.sonatype.org/content/repositories/snapshots'
-					}
-					jcenter()
-				}
-
+				
 				dependencies {
 					compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
 				}
