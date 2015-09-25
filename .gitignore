@@ -8,7 +8,9 @@ bin/
 # IntelliJ
 *.iml
 *.ipr
+*.iws
 .idea/
+out/
 
 # Gradle
 .gradle/
