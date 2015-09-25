@@ -43,35 +43,26 @@ abstract class AbstractPluginTest {
 	protected def void apply(Project project, Class<? extends Plugin<?>> pluginClass) {
 		project.apply[plugin(pluginClass)]
 	}
-	
+
 	protected def void task(Project project, Class<? extends Task> taskClass, String taskName) {
-		project.task(#{'type' -> taskClass}, taskName)	
+		project.task(#{'type' -> taskClass}, taskName)
 	}
 
-	/**
-	 * No exception is thrown if plugin is applied to a project.
-	 */
 	@Test
-	def void noExceptionOnApply() {
+	def void shouldNotThrowExceptionIfApplied() {
 		// when
 		project.apply(pluginClass)
 	}
 
-	/**
-	 * No exception is thrown if plugin is applied twice to a project.
-	 */
 	@Test
-	def void applyIsIdempotent() {
+	def void shouldNotThrowExceptionIfAppliedTwice() {
 		// when
 		project.apply(pluginClass)
 		project.apply(pluginClass)
 	}
 
-	/**
-	 * No expection is thrown if plugin is applied to a subproject.
-	 */
 	@Test
-	def void applyOnSingleSubproject() {
+	def void canBeAppliedOnSubproject() {
 		// given
 		val subproject = project.createSubproject('subproject')
 
@@ -79,12 +70,8 @@ abstract class AbstractPluginTest {
 		subproject.apply(pluginClass)
 	}
 
-	/**
-	 * No exception is thrown if plugin is applied to the root project and multiple
-	 * subprojects.
-	 */
 	@Test
-	def void applyOnRootAndMultipleSubprojects() {
+	def void canBeAppliedOnRootAndMultipleSubprojects() {
 		// given
 		val subprojects = #['a', 'b', 'c'].map[project.createSubproject(it)]
 

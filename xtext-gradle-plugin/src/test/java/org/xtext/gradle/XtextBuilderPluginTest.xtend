@@ -32,11 +32,8 @@ class XtextBuilderPluginTest extends AbstractPluginTest {
 		assertNotNull(project.configurations.getByName('xtextTooling'))
 	}
 
-	/**
-	 * A task should be added for every Java source set.
-	 */
 	@Test
-	def void generateXtextTaskIsAddedForAllSourceSets() {
+	def void generateXtextTaskIsAddedForEverySourceSet() {
 		// given
 		project.apply(JavaBasePlugin)
 		val java = project.convention.findPlugin(JavaPluginConvention)
