@@ -1,9 +1,6 @@
 package org.xtext.gradle.test
 
-import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Test
-
-import static org.junit.Assert.*
 
 class BuildingASimpleXtendProject extends AbstractIntegrationTest {
 
@@ -38,7 +35,7 @@ class BuildingASimpleXtendProject extends AbstractIntegrationTest {
 
 		build("build")
 		val secondResult = build("build")
-		assertEquals(TaskOutcome.UP_TO_DATE, secondResult.task(":generateXtext").outcome)
+		secondResult.xtextTask.shouldBeUpToDate
 	}
 
 	@Test

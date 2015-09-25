@@ -7,7 +7,9 @@ import java.util.Collections
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
 
@@ -86,6 +88,18 @@ class GradleBuildTester extends ExternalResource {
 
 	def void shouldContain(File file, CharSequence content) {
 		assertEquals(content.toString, file.contentAsString)
+	}
+	
+	def void shouldBeUpToDate(BuildTask task) {
+		if (task.outcome != TaskOutcome.UP_TO_DATE) {
+			fail('''Expected task '«task.path»' to be <UP-TO-DATE> but was: <«task.outcome»>''')			
+		}
+	}
+	
+	def void shouldNotBeUpToDate(BuildTask task) {
+		if (task.outcome == TaskOutcome.UP_TO_DATE) {
+			fail('''Expected task '«task.path»' not to be <UP-TO-DATE> but it was.''')
+		}
 	}
 
 	private def addSubProjectToBuild(ProjectUnderTest project) {

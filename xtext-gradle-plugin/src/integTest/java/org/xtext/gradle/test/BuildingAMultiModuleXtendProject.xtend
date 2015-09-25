@@ -1,10 +1,7 @@
 package org.xtext.gradle.test
 
-import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Test
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
-
-import static org.junit.Assert.*
 
 class BuildingAMultiModuleXtendProject extends AbstractIntegrationTest {
 	
@@ -48,7 +45,7 @@ class BuildingAMultiModuleXtendProject extends AbstractIntegrationTest {
 			{}
 		'''
 		val secondResult = build("build")
-		assertEquals(TaskOutcome.UP_TO_DATE, secondResult.task(":downStream:generateXtext").outcome)
+		secondResult.getXtextTask(downStreamProject).shouldBeUpToDate
 	}
 	
 	@Test
@@ -63,4 +60,5 @@ class BuildingAMultiModuleXtendProject extends AbstractIntegrationTest {
 		val result = build("build", "-i")
 		result.hasRunGeneratorFor(downStream)
 	}
+
 }

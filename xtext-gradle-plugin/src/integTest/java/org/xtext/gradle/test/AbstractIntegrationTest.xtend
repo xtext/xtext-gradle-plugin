@@ -1,5 +1,7 @@
 package org.xtext.gradle.test
 
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
 import org.junit.Before
 import org.junit.Rule
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
@@ -36,5 +38,14 @@ class AbstractIntegrationTest {
 			jcenter()
 		}
 	'''
+	
+	def BuildTask getXtextTask(BuildResult buildResult) {
+		buildResult.getXtextTask(rootProject)
+	}
+	
+	def BuildTask getXtextTask(BuildResult buildResult, ProjectUnderTest project) {
+		val taskName = '''«project.path»:generateXtext'''
+		return buildResult.task(taskName)
+	}
 
 }
