@@ -8,7 +8,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.gradle.api.Task
 
 /**
  * Abstract base class for all plugin unit tests.
@@ -42,10 +41,6 @@ abstract class AbstractPluginTest {
 
 	protected def void apply(Project project, Class<? extends Plugin<?>> pluginClass) {
 		project.apply[plugin(pluginClass)]
-	}
-
-	protected def void task(Project project, Class<? extends Task> taskClass, String taskName) {
-		project.task(#{'type' -> taskClass}, taskName)
 	}
 
 	@Test
