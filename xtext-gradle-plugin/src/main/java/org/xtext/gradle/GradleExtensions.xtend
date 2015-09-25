@@ -1,11 +1,9 @@
 package org.xtext.gradle
 
-import java.util.concurrent.Callable
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1
-import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionAdapter
 
 class GradleExtensions {
@@ -25,4 +23,5 @@ class GradleExtensions {
 			}
 		})
 	}
+
 }

@@ -42,7 +42,7 @@ class XtextExtension {
 	static val LIB_PATTERN = Pattern.compile("org\\.eclipse\\.xtext\\..*-(\\d.*?).jar")
 	
 	def String getXtextVersion(FileCollection classpath) {
-		if (version != null)
+		if (version !== null)
 			return version
 		for (file : classpath) {
 			val matcher = LIB_PATTERN.matcher(file.name)

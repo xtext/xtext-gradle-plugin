@@ -39,7 +39,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 			val builderClasspathBefore = generatorTask.xtextClasspath
 			val classpath = generatorTask.classpath
 			val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
-			if (version == null) {
+			if (version === null) {
 				throw new GradleException('''Could not infer Xtend classpath, because xtext.version was not set and no Xtend libraries were found on the «classpath» classpath''')
 			}
 			val dependencies = #[

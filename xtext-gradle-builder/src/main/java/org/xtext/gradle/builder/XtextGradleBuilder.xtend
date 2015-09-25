@@ -110,7 +110,7 @@ class XtextGradleBuilder {
 	}
 	
 	def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
-		val parent = if (gradleRequest.bootClasspath == null) {
+		val parent = if (gradleRequest.bootClasspath === null) {
 			ClassLoader.systemClassLoader
 		} else {
 			new AlternateJdkLoader(gradleRequest.bootClasspath.split(File.pathSeparator).map[new File(it)])

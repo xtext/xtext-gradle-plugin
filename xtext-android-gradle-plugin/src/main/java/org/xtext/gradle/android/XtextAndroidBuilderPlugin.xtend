@@ -16,7 +16,6 @@ import org.xtext.gradle.XtextBuilderPlugin
 import org.xtext.gradle.tasks.Outlet
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
-import org.xtext.gradle.tasks.XtextSourceSetOutputs
 
 class XtextAndroidBuilderPlugin implements Plugin<Project> {
 
@@ -91,10 +90,11 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 						} else {
 							CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, outlet.name)
 						}
-					val output = sourceSet.output as XtextSourceSetOutputs
+					val output = sourceSet.output
 					output.dir(outlet, '''«project.buildDir»/generated/source/«outletFragment»/«sourceSet.name»''')
 				]
 			]
 		]
 	}
+
 }

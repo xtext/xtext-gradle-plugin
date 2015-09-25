@@ -117,7 +117,7 @@ class GradleBuildTester extends ExternalResource {
 		}
 
 		def String getPath() {
-			if (parent == null) {
+			if (parent === null) {
 				""
 			} else {
 				parent.path + ":" + name
