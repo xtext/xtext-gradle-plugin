@@ -71,7 +71,17 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def void shouldExist(File file) {
-		assertTrue(file.exists)
+		if (!file.exists) {
+			val relativePath = rootProject.projectDir.toPath.relativize(file.toPath)
+			fail('''File '«relativePath»' should exist but it does not.''')
+		}
+	}
+	
+	def void shouldNotExist(File file) {
+		if (file.exists) {
+			val relativePath = rootProject.projectDir.toPath.relativize(file.toPath)
+			fail('''File '«relativePath»' should not exist but it does.''')
+		}
 	}
 
 	def void shouldContain(File file, CharSequence content) {
