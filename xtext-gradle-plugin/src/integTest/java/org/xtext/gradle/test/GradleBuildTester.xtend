@@ -7,7 +7,9 @@ import java.util.Collections
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
 
@@ -58,6 +60,10 @@ class GradleBuildTester extends ExternalResource {
 		}
 	}
 
+	def void << (File file, CharSequence content) {
+		file.append(content)
+	}
+
 	def String getContentAsString(File file) {
 		Files.toString(file, Charsets.UTF_8)
 	}
@@ -67,11 +73,33 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def void shouldExist(File file) {
-		assertTrue(file.exists)
+		if (!file.exists) {
+			val relativePath = rootProject.projectDir.toPath.relativize(file.toPath)
+			fail('''File '«relativePath»' should exist but it does not.''')
+		}
+	}
+	
+	def void shouldNotExist(File file) {
+		if (file.exists) {
+			val relativePath = rootProject.projectDir.toPath.relativize(file.toPath)
+			fail('''File '«relativePath»' should not exist but it does.''')
+		}
 	}
 
 	def void shouldContain(File file, CharSequence content) {
 		assertEquals(content.toString, file.contentAsString)
+	}
+	
+	def void shouldBeUpToDate(BuildTask task) {
+		if (task.outcome != TaskOutcome.UP_TO_DATE) {
+			fail('''Expected task '«task.path»' to be <UP-TO-DATE> but was: <«task.outcome»>''')			
+		}
+	}
+	
+	def void shouldNotBeUpToDate(BuildTask task) {
+		if (task.outcome == TaskOutcome.UP_TO_DATE) {
+			fail('''Expected task '«task.path»' not to be <UP-TO-DATE> but it was.''')
+		}
 	}
 
 	private def addSubProjectToBuild(ProjectUnderTest project) {
@@ -89,6 +117,10 @@ class GradleBuildTester extends ExternalResource {
 
 		def void setBuildFile(CharSequence content) {
 			new File(projectDir, 'build.gradle').content = content
+		}
+
+		def File getBuildFile() {
+			new File(projectDir, 'build.gradle')
 		}
 
 		def File file(String relativePath) {
