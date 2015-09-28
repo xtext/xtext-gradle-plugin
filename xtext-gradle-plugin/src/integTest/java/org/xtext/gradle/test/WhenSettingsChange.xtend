@@ -29,15 +29,7 @@ class WhenSettingsChange extends AbstractIntegrationTest {
 			}
 		''')
 		buildFile << '''
-			xtext {
-				languages {
-					xtend {
-						generator {
-							javaSourceLevel = "1.7"
-						}
-					}
-				}
-			}
+			xtext.languages.xtend.generator.javaSourceLevel = "1.7"
 		'''
 		build('build').xtextTask.shouldNotBeUpToDate
 		build('build').xtextTask.shouldBeUpToDate
