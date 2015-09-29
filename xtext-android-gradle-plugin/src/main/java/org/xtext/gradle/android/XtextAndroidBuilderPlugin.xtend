@@ -40,9 +40,9 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 				LibraryExtension: android.libraryVariants
 				default: throw new GradleException('''Unknown packaging type «android.class.simpleName»''')
 			}
-			configureSourceSetDefaults
-			configureGeneratorDefaults
 			configureOutletDefaults
+			configureGeneratorDefaults
+			configureSourceSetDefaults
 		]
 	}
 
@@ -91,7 +91,7 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 							CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, outlet.name)
 						}
 					val output = sourceSet.output
-					output.dir(outlet, '''«project.buildDir»/generated/source/«outletFragment»/«sourceSet.name»''')
+					output.dir(outlet, '''«project.buildDir»/generated/source/«language.name»«outletFragment»/«sourceSet.name»''')
 				]
 			]
 		]
