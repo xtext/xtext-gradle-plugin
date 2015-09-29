@@ -90,7 +90,7 @@ class IdeaExtension {
 	}
 
 	def File getSourcesZip() {
-		getIdeaHome / 'sources.zip'
+		getIdeaHome / new IdeaDistribution(ideaVersion).sourceArchiveName
 	}
 
 	def File getSandboxDir() {

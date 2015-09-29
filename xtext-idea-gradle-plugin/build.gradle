@@ -1,6 +1,5 @@
 description 'A plugin for for building IntelliJ IDEA Xtext plugins'
 
 dependencies {
-  compile 'org.apache.httpcomponents:httpclient:4.4'
   compile 'com.google.guava:guava:18.0'
 }
