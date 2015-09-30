@@ -1,7 +1,10 @@
 package org.xtext.gradle.idea
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.execution.TaskExecutionGraphListener
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.testing.Test
@@ -10,13 +13,14 @@ import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.eclipse.model.Library
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.xtext.gradle.idea.tasks.AssembleSandbox
 import org.xtext.gradle.idea.tasks.IdeaExtension
 import org.xtext.gradle.idea.tasks.RunIdea
-import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.GradleException
-import org.gradle.api.execution.TaskExecutionGraphListener
+
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+
 class IdeaComponentPlugin implements Plugin<Project> {
 	public static val IDEA_PROVIDED_CONFIGURATION_NAME = "ideaProvided"
 	public static val ASSEMBLE_SANDBOX_TASK_NAME = "assembleSandbox"
@@ -65,6 +69,9 @@ class IdeaComponentPlugin implements Plugin<Project> {
 			idea.pluginDependencies.externalDependencies.forEach [
 				assembleSandboxTask.rootSpec.addChild.into(id).from(idea.pluginsCache / id / version)
 			]
+			idea.pluginDependencies.endorsedDependencies.forEach [
+				assembleSandboxTask.rootSpec.addChild.into(id).from(idea.ideaHome / "plugins" / id)
+			]
 			val upstreamSandBoxTasks = idea.pluginDependencies.projectDependencies
 				.map[project.project(id)]
 				.map[(tasks.getAt(ASSEMBLE_SANDBOX_TASK_NAME) as AssembleSandbox)]
@@ -104,6 +111,13 @@ class IdeaComponentPlugin implements Plugin<Project> {
 				]
 			]
 		]
+		
+		project.plugins.withType(IdeaPlugin) [
+			project.tasks.getByName("ideaModule").dependsOn(idea.downloadIdea, idea.downloadPlugins)
+			val ideaModel = project.extensions.getByType(IdeaModel)
+			ideaModel.module.scopes.get("PROVIDED").get("plus").add(ideaProvided)
+		]
+		
 		project.plugins.withType(IdeaAggregatorPlugin) [
 			throw new GradleException("Do not apply idea-component and idea-aggregator to the same project")
 		]
