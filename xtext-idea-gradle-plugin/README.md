@@ -33,7 +33,7 @@ dependencies {
 }
 
 ideaDevelopment {
-	//pick an IDEA build from https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt410
+	//pick a version from https://www.jetbrains.com/intellij-repository/releases
 	ideaVersion = '141.814.3'
 	pluginRepositories {
 		//Xtext IDEA plugin nightly builds
