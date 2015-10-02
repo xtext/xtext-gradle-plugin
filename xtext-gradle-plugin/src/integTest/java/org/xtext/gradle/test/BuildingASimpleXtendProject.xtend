@@ -102,5 +102,33 @@ class BuildingASimpleXtendProject extends AbstractIntegrationTest {
 
 		build("generateXtext")
 	}
+	
+	@Test
+	def void shouldCompileAfterErrorIsFixed() {
+		// given
+		val file = createFile('src/main/java/HelloWorld.xtend', '''
+			class HelloWorld {
+				
+				def void helloWorld() {
+					println "This is Groovy syntax"
+				}
+				
+			}
+		''')
+		buildAndFail('build')
+		
+		// expect: no failure
+		file.content = '''
+			class HelloWorld {
+				
+				def void helloWorld() {
+					println("This is Xtend syntax")
+				}
+				
+			}
+		'''
+		build('build')
+	}
+
 }
 
