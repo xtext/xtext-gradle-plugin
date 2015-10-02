@@ -21,15 +21,7 @@ class WhenSettingsChange extends AbstractIntegrationTest {
 				options.encoding = "UTF-8"
 			}
 		'''
-		createFile('src/main/java/HelloWorld.xtend', '''
-			class HelloWorld {
-				
-				def void helloWorld() {
-					#['hello', 'world'].forEach[println(toFirstUpper)]
-				}
-				
-			}
-		''')
+		createXtendHelloWorld
 		build('build').xtextTask.shouldNotBeUpToDate
 		build('build').xtextTask.shouldBeUpToDate
 	}

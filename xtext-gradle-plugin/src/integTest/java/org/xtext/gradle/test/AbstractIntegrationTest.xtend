@@ -1,5 +1,6 @@
 package org.xtext.gradle.test
 
+import java.io.File
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.junit.Before
@@ -46,6 +47,18 @@ class AbstractIntegrationTest {
 			compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
 		}
 	'''
+	
+	protected def File createXtendHelloWorld() {
+		createFile('src/main/java/HelloWorld.xtend', '''
+			class HelloWorld {
+				
+				def void helloWorld() {
+					#['hello', 'world'].forEach[println(toFirstUpper)]
+				}
+				
+			}
+		''')
+	}
 	
 	def BuildTask getXtextTask(BuildResult buildResult) {
 		buildResult.getXtextTask(rootProject)
