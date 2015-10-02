@@ -12,24 +12,36 @@ import org.junit.runners.Parameterized.Parameters
 import org.xtext.gradle.tasks.XtextGenerate
 
 import static java.nio.charset.StandardCharsets.*
+import static org.junit.Assert.*
 
 @RunWith(Parameterized)
 class BuildingASimpleXtendProjectWithStandardCharsets extends AbstractXtendIntegrationTest {
 
-	@Parameters(name="{0}")
+	static val asciiHelloWorld = '''helloWorld = "Hello World!"'''
+	static val helloWorld = '''你好世界 = "ওহে বিশ্ব!"'''
+
+	@Parameters(name="{0} with {1}")
 	static def Collection<Object[]> standardCharsets() {
 		return #[
-			#[US_ASCII],
-			#[ISO_8859_1],
-			#[UTF_8],
-			#[UTF_16BE],
-			#[UTF_16LE],
-			#[UTF_16]
+			#[US_ASCII, asciiHelloWorld, true],
+			#[US_ASCII, helloWorld, false],
+			#[ISO_8859_1, asciiHelloWorld, true],
+			#[ISO_8859_1, helloWorld, false],
+			#[UTF_8, helloWorld, true],
+			#[UTF_16BE, helloWorld, true],
+			#[UTF_16LE, helloWorld, true],
+			#[UTF_16, helloWorld, true]
 		]
 	}
 
 	@Parameter
 	public Charset charset
+
+	@Parameter(value=1)
+	public String variableDeclaration
+
+	@Parameter(value=2)
+	public boolean expectSuccess
 
 	@Test
 	def void canCompileWithCharset() {
@@ -46,11 +58,23 @@ class BuildingASimpleXtendProjectWithStandardCharsets extends AbstractXtendInteg
 		file('src/main/java/HelloWorld.xtend') => [
 			parentFile.mkdirs
 			createNewFile
-			Files.write('''class HelloWorld {}''', it, charset)
+			Files.write('''
+				class HelloWorld {
+					val «variableDeclaration»
+				}
+			''', it, charset)
 		]
 
-		// expect: no error
-		build('build')
+		if (expectSuccess) {
+			// when
+			build('build')
+			// then
+			val fileContent = Files.toString(file('build/xtend/main/HelloWorld.java'), charset)
+			assertTrue(fileContent.contains('''private final String «variableDeclaration»;'''))
+		} else {
+			// expect: build failure
+			buildAndFail('build')
+		}
 	}
 
 }
