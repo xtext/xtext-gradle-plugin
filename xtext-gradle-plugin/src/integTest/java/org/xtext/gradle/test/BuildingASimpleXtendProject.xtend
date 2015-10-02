@@ -2,12 +2,7 @@ package org.xtext.gradle.test
 
 import org.junit.Test
 
-class BuildingASimpleXtendProject extends AbstractIntegrationTest {
-
-	override setup() {
-		super.setup
-		buildFile << xtendPluginSnippet
-	}
+class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def theGeneratorShouldRunOnValidInput() {

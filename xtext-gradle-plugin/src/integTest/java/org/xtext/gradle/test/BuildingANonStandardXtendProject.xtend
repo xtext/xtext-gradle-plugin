@@ -8,17 +8,12 @@ import static org.junit.Assert.*
 /**
  * Tests for Xtend projects that do not use the default configuration.
  */
-class BuildingANonStandardXtendProject extends AbstractIntegrationTest {
-
-	override setup() {
-		super.setup()
-		buildFile << xtendPluginSnippet
-	}
+class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def void compilesToJava8SourceWhenConfigured() {
 		// given 
-		createXtendHelloWorld
+		createHelloWorld
 		buildFile << '''
 			xtext.languages.xtend.generator.javaSourceLevel = "1.8"
 		'''
@@ -35,7 +30,7 @@ class BuildingANonStandardXtendProject extends AbstractIntegrationTest {
 	@Test
 	def void compilesToJava7SourceWhenConfigured() {
 		// given 
-		createXtendHelloWorld
+		createHelloWorld
 		buildFile << '''
 			xtext.languages.xtend.generator.javaSourceLevel = "1.7"
 		'''

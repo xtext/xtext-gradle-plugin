@@ -3,19 +3,24 @@ package org.xtext.gradle.test
 import org.junit.Test
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 
-class BuildingAMultiModuleXtendProject extends AbstractIntegrationTest {
+class BuildingAMultiModuleXtendProject extends AbstractXtendIntegrationTest {
 	
 	ProjectUnderTest upStreamProject
 	ProjectUnderTest downStreamProject
+	
+	override protected applyXtendPlugin() {
+		rootProject.buildFile << '''
+			subprojects {
+				«xtendPluginSnippet»
+			}
+		'''
+	}
 	
 	override setup() {
 		super.setup
 		upStreamProject = rootProject.createSubProject("upStream")
 		downStreamProject = rootProject.createSubProject("downStream")
 		rootProject.buildFile << '''
-			subprojects {
-				«xtendPluginSnippet»
-			}
 			project('«downStreamProject.path»').dependencies {
 				compile project('«upStreamProject.path»')
 			}

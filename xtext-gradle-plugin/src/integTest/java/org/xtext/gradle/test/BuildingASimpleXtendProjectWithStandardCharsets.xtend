@@ -14,7 +14,7 @@ import org.xtext.gradle.tasks.XtextGenerate
 import static java.nio.charset.StandardCharsets.*
 
 @RunWith(Parameterized)
-class BuildingASimpleXtendProjectWithStandardCharsets extends AbstractIntegrationTest {
+class BuildingASimpleXtendProjectWithStandardCharsets extends AbstractXtendIntegrationTest {
 
 	@Parameters(name="{0}")
 	static def Collection<Object[]> standardCharsets() {

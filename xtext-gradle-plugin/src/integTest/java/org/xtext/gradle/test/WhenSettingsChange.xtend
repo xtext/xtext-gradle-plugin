@@ -1,16 +1,15 @@
 package org.xtext.gradle.test
 
+import org.gradle.api.tasks.compile.JavaCompile
 import org.junit.Ignore
 import org.junit.Test
 import org.xtext.gradle.tasks.XtextGenerate
-import org.gradle.api.tasks.compile.JavaCompile
 
-class WhenSettingsChange extends AbstractIntegrationTest {
+class WhenSettingsChange extends AbstractXtendIntegrationTest {
 
 	override setup() {
 		super.setup
 		buildFile << '''
-			«xtendPluginSnippet»
 			xtext {
 				languages.xtend.generator.javaSourceLevel = "1.7"
 			}
@@ -21,7 +20,7 @@ class WhenSettingsChange extends AbstractIntegrationTest {
 				options.encoding = "UTF-8"
 			}
 		'''
-		createXtendHelloWorld
+		createHelloWorld
 		build('build').xtextTask.shouldNotBeUpToDate
 		build('build').xtextTask.shouldBeUpToDate
 	}

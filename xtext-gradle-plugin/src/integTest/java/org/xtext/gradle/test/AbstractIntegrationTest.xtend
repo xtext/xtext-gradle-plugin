@@ -1,13 +1,12 @@
 package org.xtext.gradle.test
 
-import java.io.File
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.junit.Before
 import org.junit.Rule
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 
-class AbstractIntegrationTest {
+abstract class AbstractIntegrationTest {
 
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject
@@ -39,26 +38,6 @@ class AbstractIntegrationTest {
 			jcenter()
 		}
 	'''
-	
-	protected def CharSequence getXtendPluginSnippet() '''
-		apply plugin: 'org.xtext.xtend'
-		
-		dependencies {
-			compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
-		}
-	'''
-	
-	protected def File createXtendHelloWorld() {
-		createFile('src/main/java/HelloWorld.xtend', '''
-			class HelloWorld {
-				
-				def void helloWorld() {
-					#['hello', 'world'].forEach[println(toFirstUpper)]
-				}
-				
-			}
-		''')
-	}
 	
 	def BuildTask getXtextTask(BuildResult buildResult) {
 		buildResult.getXtextTask(rootProject)
