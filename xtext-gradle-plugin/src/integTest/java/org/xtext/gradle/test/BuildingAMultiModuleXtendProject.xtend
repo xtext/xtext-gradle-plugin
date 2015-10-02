@@ -14,11 +14,7 @@ class BuildingAMultiModuleXtendProject extends AbstractIntegrationTest {
 		downStreamProject = rootProject.createSubProject("downStream")
 		rootProject.buildFile << '''
 			subprojects {
-				apply plugin: 'org.xtext.xtend'
-				
-				dependencies {
-					compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
-				}
+				«xtendPluginSnippet»
 			}
 			project('«downStreamProject.path»').dependencies {
 				compile project('«upStreamProject.path»')

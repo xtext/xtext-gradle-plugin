@@ -39,6 +39,14 @@ class AbstractIntegrationTest {
 		}
 	'''
 	
+	protected def CharSequence getXtendPluginSnippet() '''
+		apply plugin: 'org.xtext.xtend'
+		
+		dependencies {
+			compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
+		}
+	'''
+	
 	def BuildTask getXtextTask(BuildResult buildResult) {
 		buildResult.getXtextTask(rootProject)
 	}

@@ -7,13 +7,7 @@ class WhenSettingsChange extends AbstractIntegrationTest {
 
 	override setup() {
 		super.setup
-		buildFile << '''
-			apply plugin: 'org.xtext.xtend'
-			
-			dependencies {
-				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
-			}
-		'''
+		buildFile << xtendPluginSnippet
 	}
 
 	@Test @Ignore
