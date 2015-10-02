@@ -129,6 +129,35 @@ class BuildingASimpleXtendProject extends AbstractIntegrationTest {
 		'''
 		build('build')
 	}
+	
+	@Test
+	def void classFilesAreGenerated() {
+		// given
+		file('src/main/java/HelloWorld.xtend').content = '''
+			class HelloWorld {}
+		'''
+
+		// when
+		build('build')
+
+		// then
+		file('build/classes/main/HelloWorld.class').shouldExist
+	}
+	
+	@Test
+	def void classFilesAdhereToPackageStructure() {
+		// given
+		file('src/main/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+
+		// when
+		build('build')
+
+		// then
+		file('build/classes/main/com/example/HelloWorld.class').shouldExist
+	}
 
 }
 
