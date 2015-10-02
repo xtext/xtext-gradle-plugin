@@ -1,11 +1,9 @@
 package org.xtext.gradle.test
 
-import org.junit.Ignore
+import java.util.regex.Pattern
 import org.junit.Test
 
-import static org.hamcrest.core.IsEqual.equalTo
 import static org.junit.Assert.*
-import static org.junit.Assume.*
 
 /**
  * Tests for Xtend projects that do not use the default configuration.
@@ -18,9 +16,7 @@ class BuildingANonStandardXtendProject extends AbstractIntegrationTest {
 	}
 
 	@Test
-	def void compilesToJava8WhenConfigured() {
-		assumeTrue(System.getProperty('java.version').startsWith('1.8'))
-
+	def void compilesToJava8SourceWhenConfigured() {
 		// given 
 		createXtendHelloWorld
 		buildFile << '''
@@ -32,11 +28,12 @@ class BuildingANonStandardXtendProject extends AbstractIntegrationTest {
 
 		// then
 		val generatedJava = file('build/xtend/main/HelloWorld.java').contentAsString
-		assertTrue(generatedJava.contains('import java.util.function.Consumer;'))
+		val lambda = Pattern.compile('''\(String \w+\) -> \{''')
+		assertTrue(lambda.matcher(generatedJava).find)
 	}
 
-	@Test @Ignore
-	def void compilesToJava7WhenConfigured() {
+	@Test
+	def void compilesToJava7SourceWhenConfigured() {
 		// given 
 		createXtendHelloWorld
 		buildFile << '''
@@ -48,7 +45,8 @@ class BuildingANonStandardXtendProject extends AbstractIntegrationTest {
 
 		// then
 		val generatedJava = file('build/xtend/main/HelloWorld.java').contentAsString
-		assertFalse(generatedJava.contains('import java.util.function.Consumer;'))
+		val anonymousInnerClass = Pattern.compile('''new \w*<String>\(\) \{''')
+		assertTrue(anonymousInnerClass.matcher(generatedJava).find)
 	}
 
 	@Test
