@@ -6,7 +6,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
 
-class AbstractIntegrationTest {
+abstract class AbstractIntegrationTest {
 
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject

@@ -2,18 +2,7 @@ package org.xtext.gradle.test
 
 import org.junit.Test
 
-class BuildingASimpleXtendProject extends AbstractIntegrationTest {
-
-	override setup() {
-		super.setup
-		buildFile << '''
-			apply plugin: 'org.xtext.xtend'
-			
-			dependencies {
-				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
-			}
-		'''
-	}
+class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def theGeneratorShouldRunOnValidInput() {
@@ -108,5 +97,62 @@ class BuildingASimpleXtendProject extends AbstractIntegrationTest {
 
 		build("generateXtext")
 	}
+	
+	@Test
+	def void shouldCompileAfterErrorIsFixed() {
+		// given
+		val file = createFile('src/main/java/HelloWorld.xtend', '''
+			class HelloWorld {
+				
+				def void helloWorld() {
+					println "This is Groovy syntax"
+				}
+				
+			}
+		''')
+		buildAndFail('build')
+		
+		// expect: no failure
+		file.content = '''
+			class HelloWorld {
+				
+				def void helloWorld() {
+					println("This is Xtend syntax")
+				}
+				
+			}
+		'''
+		build('build')
+	}
+	
+	@Test
+	def void classFilesAreGenerated() {
+		// given
+		file('src/main/java/HelloWorld.xtend').content = '''
+			class HelloWorld {}
+		'''
+
+		// when
+		build('build')
+
+		// then
+		file('build/classes/main/HelloWorld.class').shouldExist
+	}
+	
+	@Test
+	def void classFilesAdhereToPackageStructure() {
+		// given
+		file('src/main/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+
+		// when
+		build('build')
+
+		// then
+		file('build/classes/main/com/example/HelloWorld.class').shouldExist
+	}
+
 }
 
