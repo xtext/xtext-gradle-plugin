@@ -79,7 +79,11 @@ class IdeaExtension {
 
 	def File getIdeaHome() {
 		if (ideaHome == null) {
-			project.gradle.gradleUserHomeDir / "ideaSDK" / ideaVersion
+			if (ideaVersion == null) {
+				throw new IllegalStateException("Cannot determine IDEA home directory. Neither 'ideaHome' nor 'ideaVersion' were set.")
+			} else {
+				project.gradle.gradleUserHomeDir / "ideaSDK" / ideaVersion
+			}
 		} else {
 			project.file(ideaHome)
 		}
