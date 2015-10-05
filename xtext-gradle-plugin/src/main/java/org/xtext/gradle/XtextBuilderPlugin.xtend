@@ -160,6 +160,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			settingsTask.languages = xtext.languages
 			settingsTask.sourceSets = xtext.sourceSets
 			project.tasks.getAt(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(settingsTask)
+			project.tasks.getAt("cleanEclipse").dependsOn("cleanXtextEclipseSettings")
 
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")

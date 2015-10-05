@@ -1,7 +1,6 @@
 package org.xtext.gradle.test
 
 import org.eclipse.core.internal.preferences.EclipsePreferences
-import org.junit.Ignore
 import org.junit.Test
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
 
@@ -67,7 +66,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 		prefs.shouldContain('org.eclipse.xtend.some.pref', 'true')
 	}
 	
-	@Test @Ignore
+	@Test
 	def void settingsAreCleanedProperly() {
 		// given
 		build('eclipse')

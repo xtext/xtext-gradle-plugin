@@ -8,11 +8,20 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.TaskAction
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
+import org.gradle.api.tasks.OutputFiles
 
 class XtextEclipseSettings extends DefaultTask {
 
 	@Accessors Set<XtextSourceDirectorySet> sourceSets
 	@Accessors Set<Language> languages
+	
+	@OutputFiles
+	def getOutputFiles() {
+		languages.map[ language|
+			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName)
+			prefs.location.toFile
+		]
+	}
 
 	@TaskAction
 	def writeSettings() {

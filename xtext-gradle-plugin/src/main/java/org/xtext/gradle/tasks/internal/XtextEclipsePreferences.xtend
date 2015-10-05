@@ -12,7 +12,7 @@ class XtextEclipsePreferences extends EclipsePreferences {
 	val File projectDir
 	val String language
 
-	override protected getLocation() {
+	override public getLocation() {
 		val path = new Path(projectDir.absolutePath)
 		computeLocation(path, language)
 	}
