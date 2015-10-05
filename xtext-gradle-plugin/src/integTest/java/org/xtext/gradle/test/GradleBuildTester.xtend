@@ -10,7 +10,6 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
 
@@ -29,7 +28,6 @@ class GradleBuildTester extends ExternalResource {
 			owner = this
 		]
 		gradle = GradleRunner.create.withProjectDir(rootProject.projectDir)
-		(gradle as DefaultGradleRunner).withJvmArguments('-Xmx512m', '-XX:MaxPermSize=512m')
 	}
 
 	override protected after() {

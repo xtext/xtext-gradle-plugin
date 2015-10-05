@@ -46,6 +46,9 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 				project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version)[
 					exclude(#{'group' -> 'asm'})
 					force = true
+				],
+				project.dependencies.externalModule('com.google.inject:guice:4.0')[
+					force = true
 				]
 			]
 			generatorTask.xtextClasspath = project.configurations.detachedConfiguration(dependencies).plus(builderClasspathBefore)
