@@ -22,7 +22,7 @@ import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.resource.impl.ChunkedResourceDescriptions
 import org.eclipse.xtext.resource.impl.ProjectDescription
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsData
-import org.eclipse.xtext.workspace.WorkspaceConfigAdapter
+import org.eclipse.xtext.workspace.ProjectConfigAdapter
 import org.eclipse.xtext.xbase.compiler.GeneratorConfig
 import org.eclipse.xtext.xbase.compiler.GeneratorConfigProvider
 import org.eclipse.xtext.xbase.compiler.JavaVersion
@@ -82,7 +82,7 @@ class XtextGradleBuilder {
 			
 			resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
 				classpathURIContext = jvmTypesLoader
-				attachWorkspaceConfig(gradleRequest)
+				attachProjectConfig(gradleRequest)
 				attachGeneratorConfig(gradleRequest)
 				attachOutputConfig(gradleRequest)
 				attachPreferences(gradleRequest)
@@ -130,8 +130,8 @@ class XtextGradleBuilder {
 		resourceSet.eAdapters.clear
 	}
 	
-	private def attachWorkspaceConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
-		resourceSet.eAdapters += new WorkspaceConfigAdapter(new GradleWorkspaceConfig(gradleRequest))
+	private def attachProjectConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
+		ProjectConfigAdapter.install(resourceSet, new GradleProjectConfig(gradleRequest))
 	}
 	
 	private def attachProjectDescription(String containerHandle, XtextResourceSet resourceSet) {
@@ -164,7 +164,7 @@ class XtextGradleBuilder {
 			gradleRequest.generatorConfigsByLanguage.mapValues[
 				outputConfigs.map[gradleOutputConfig|
 					new OutputConfiguration(gradleOutputConfig.outletName) => [
-						outputDirectory = URI.createFileURI(gradleOutputConfig.target.absolutePath).toString
+						outputDirectory = gradleOutputConfig.target.absolutePath
 					]
 				].toSet
 			]
