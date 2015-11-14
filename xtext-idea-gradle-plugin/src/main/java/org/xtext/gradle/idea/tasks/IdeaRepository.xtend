@@ -25,7 +25,7 @@ class IdeaRepository extends Sync {
 				«FOR it : files»
 					<plugin
 						id="«name.substring(0, name.indexOf('-'))»"
-						url="«rootUrl»/«name»"
+						url="file://«rootUrl»/«name»"
 						version="«name.substring(name.indexOf('-') + 1, name.lastIndexOf('.'))»"
 					/>
 				«ENDFOR»
