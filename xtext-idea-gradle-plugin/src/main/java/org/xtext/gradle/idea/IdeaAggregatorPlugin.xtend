@@ -12,6 +12,7 @@ class IdeaAggregatorPlugin implements Plugin<Project> {
 
 	override apply(Project project) {
 		project.plugins.<IdeaDevelopmentPlugin>apply(IdeaDevelopmentPlugin)
+		project.evaluationDependsOnChildren
 		val idea = project.extensions.getByType(IdeaExtension)
 
 		val aggregateSandbox = project.tasks.create(IdeaComponentPlugin.ASSEMBLE_SANDBOX_TASK_NAME, Sync) => [
