@@ -26,6 +26,7 @@ class DownloadIdea extends DefaultTask {
 	@TaskAction
 	def download() {
 		val buildInfo = new IdeaDistribution(ideaVersion)
+		project.delete(ideaHome)
 		usingTmpDir[ tmp |
 			val archiveFile = new File(tmp, buildInfo.archiveName)
 			Files.copy(new URL(buildInfo.archiveUrl).openStream, archiveFile.toPath)
@@ -34,7 +35,6 @@ class DownloadIdea extends DefaultTask {
 				from(project.zipTree(archiveFile))
 				includeEmptyDirs = false
 			]
-
 		]
 		val sourceArchiveFile = new File(ideaHome, buildInfo.sourceArchiveName)
 		Files.copy(new URL(buildInfo.sourceArchiveUrl).openStream, sourceArchiveFile.toPath)
