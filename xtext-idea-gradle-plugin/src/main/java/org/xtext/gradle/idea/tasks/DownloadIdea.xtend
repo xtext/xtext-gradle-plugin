@@ -12,6 +12,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import java.util.Date
 
 @Accessors
 class DownloadIdea extends DefaultTask {
@@ -19,7 +20,7 @@ class DownloadIdea extends DefaultTask {
 	@Input @Optional String ideaVersion
 
 	new() {
-		onlyIf[ideaVersion != null && !ideaHome.exists]
+		onlyIf[ideaVersion != null && needsRedownload(new IdeaDistribution(ideaVersion))]
 	}
 
 	@TaskAction
@@ -37,6 +38,25 @@ class DownloadIdea extends DefaultTask {
 		]
 		val sourceArchiveFile = new File(ideaHome, buildInfo.sourceArchiveName)
 		Files.copy(new URL(buildInfo.sourceArchiveUrl).openStream, sourceArchiveFile.toPath)
+		lastDownloaded = new Date
+	}
+	
+	private def lastDownloadedFile() {
+		ideaHome / '.lastDownloaded'
+	}
+	
+	private def getLastDownloaded() {
+		lastDownloadedFile.lastModified
+	}
+	
+	private def setLastDownloaded(Date lastModified) {
+		val file = lastDownloadedFile
+		file.createNewFile
+		file.lastModified = lastModified.time
+	}
+	
+	private def needsRedownload(IdeaDistribution distribution) {
+		project.gradle.startParameter.isRefreshDependencies || lastDownloaded == 0 || distribution.isSnapshot && lastDownloaded < new Date().time - 1000 * 60 * 60 * 24
 	}
 }
 
@@ -44,7 +64,11 @@ class DownloadIdea extends DefaultTask {
 	String version
 	
 	def String getRepository() {
-		if (version.endsWith("-SNAPSHOT")) "snapshots" else "releases"
+		if (isSnapshot) "snapshots" else "releases"
+	}
+	
+	def boolean isSnapshot() {
+		version.endsWith("-SNAPSHOT")
 	}
 	
 	def String getContentBaseUrl() {
