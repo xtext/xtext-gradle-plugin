@@ -22,6 +22,8 @@ import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.resource.impl.ChunkedResourceDescriptions
 import org.eclipse.xtext.resource.impl.ProjectDescription
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsData
+import org.eclipse.xtext.util.JavaVersion
+import org.eclipse.xtext.util.internal.AlternateJdkLoader
 import org.eclipse.xtext.workspace.ProjectConfigAdapter
 import org.eclipse.xtext.xbase.compiler.GeneratorConfig
 import org.eclipse.xtext.xbase.compiler.GeneratorConfigProvider
@@ -33,7 +35,6 @@ import org.xtext.gradle.protocol.GradleBuildResponse
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
-import org.eclipse.xtext.util.JavaVersion
 
 class XtextGradleBuilder {
 	val index = new ChunkedResourceDescriptions
