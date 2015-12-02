@@ -17,6 +17,7 @@ class IdeaRepositoryPlugin implements Plugin<Project> {
 			group = BasePlugin.BUILD_GROUP
 			into(project.buildDir / 'ideaRepository')
 		]
+		project.evaluationDependsOnChildren
 		project.allprojects [ p |
 			p.plugins.withType(IdeaPluginPlugin) [
 				repositoryTask.from(p.tasks.findByName(IdeaPluginPlugin.IDEA_ZIP_TASK_NAME))

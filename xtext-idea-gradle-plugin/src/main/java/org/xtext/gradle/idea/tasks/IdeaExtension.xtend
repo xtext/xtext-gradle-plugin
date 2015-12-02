@@ -9,6 +9,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 
 @Accessors
 class IdeaExtension {
@@ -23,7 +24,7 @@ class IdeaExtension {
 	new (Project project) {
 		this.project = project
 		pluginRepositories = new IdeaPluginRepositories
-		pluginDependencies = new IdeaPluginDependencies
+		pluginDependencies = new IdeaPluginDependencies(project)
 	}
 
 	def List<Object> getIdeaLibs() {
@@ -79,7 +80,11 @@ class IdeaExtension {
 
 	def File getIdeaHome() {
 		if (ideaHome == null) {
-			project.gradle.gradleUserHomeDir / "ideaSDK" / ideaVersion
+			if (ideaVersion == null) {
+				throw new IllegalStateException("Cannot determine IDEA home directory. Neither 'ideaHome' nor 'ideaVersion' were set.")
+			} else {
+				project.gradle.gradleUserHomeDir / "ideaSDK" / ideaVersion
+			}
 		} else {
 			project.file(ideaHome)
 		}
@@ -118,8 +123,9 @@ class IdeaPluginRepositories implements Iterable<IdeaPluginRepository> {
 	}
 }
 
+@FinalFieldsConstructor
 class IdeaPluginDependencies {
-
+	val Project project
 	val dependencies = <IdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
 	val projectDependencies = <IdeaPluginDependency>newTreeSet[$0.id.compareTo($1.id)]
 
@@ -130,6 +136,7 @@ class IdeaPluginDependencies {
 	}
 
 	def project(String id) {
+		project.evaluationDependsOn(id)
 		val dependency = new IdeaPluginDependency(id)
 		projectDependencies += dependency
 		dependency
