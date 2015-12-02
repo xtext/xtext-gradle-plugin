@@ -36,7 +36,7 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 		project.afterEvaluate[
 			android = project.extensions.getByName("android") as BaseExtension
 			variants = switch android {
-				AppExtension: android.applicationVariants
+				AppExtension: android.applicationVariants as DomainObjectSet<? extends BaseVariant>
 				LibraryExtension: android.libraryVariants
 				default: throw new GradleException('''Unknown packaging type «android.class.simpleName»''')
 			}
