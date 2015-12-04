@@ -17,7 +17,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 			apply plugin: 'org.xtext.java'
 			
 			xtext {
-				version = '2.9.0-SNAPSHOT'
+				version = '2.9.0'
 				languages {
 					xtend {
 						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'

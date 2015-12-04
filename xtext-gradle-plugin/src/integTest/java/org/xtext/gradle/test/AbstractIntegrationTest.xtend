@@ -32,9 +32,6 @@ abstract class AbstractIntegrationTest {
 	protected def CharSequence getRepositories() '''
 		repositories {
 			mavenLocal()
-			maven {
-				url 'https://oss.sonatype.org/content/repositories/snapshots'
-			}
 			jcenter()
 		}
 	'''

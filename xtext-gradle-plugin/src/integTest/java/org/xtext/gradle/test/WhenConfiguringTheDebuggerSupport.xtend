@@ -40,12 +40,12 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 			apply plugin: 'org.xtext.java'
 			
 			dependencies {
-				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0-SNAPSHOT'
-				xtextTooling 'org.eclipse.xtend:org.eclipse.xtend.core:2.9.0-SNAPSHOT'
+				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+				xtextTooling 'org.eclipse.xtend:org.eclipse.xtend.core:2.9.0'
 			}
 			
 			xtext {
-				version = '2.9.0-SNAPSHOT'
+				version = '2.9.0'
 				languages {
 					xtend {
 						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'

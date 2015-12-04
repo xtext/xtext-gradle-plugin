@@ -41,7 +41,7 @@ ideaDevelopment {
 	}
 	pluginDependencies {
 	 	//you can have external dependencies fetched from above repositories
-		id 'org.eclipse.xtext.idea' version '2.9.0-SNAPSHOT'
+		id 'org.eclipse.xtext.idea' version '2.9.0'
 		//or depend on plugins that are shipped with IDEA Community Edition
 		id 'junit'
 	}
