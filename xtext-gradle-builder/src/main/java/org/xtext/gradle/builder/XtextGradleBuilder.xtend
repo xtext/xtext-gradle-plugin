@@ -36,6 +36,8 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
+import org.eclipse.xtext.mwe.PathTraverser
+import java.util.List
 
 class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val index = new ChunkedResourceDescriptions
@@ -65,10 +67,13 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	override GradleBuildResponse build(GradleBuildRequest gradleRequest) {
+		val registry = IResourceServiceProvider.Registry.INSTANCE
 		val containerHandle = gradleRequest.containerHandle
 		val jvmTypesLoader = gradleRequest.jvmTypesLoader
 		val validator = new GradleValidatonCallback(gradleRequest.logger)
 		val response = new GradleBuildResponse
+		
+		indexChangedClasspathEntries(gradleRequest)
 		
 		val request = new BuildRequest => [
 			baseDir = createFolderURI(gradleRequest.projectDir)
@@ -88,13 +93,12 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 				attachGeneratorConfig(gradleRequest)
 				attachOutputConfig(gradleRequest)
 				attachPreferences(gradleRequest)
-				attachProjectDescription(containerHandle, it)
+				attachProjectDescription(containerHandle, gradleRequest.classpath.map[path].toList, it)
 				val contextualIndex = index.createShallowCopyWith(it)
 				contextualIndex.setContainer(containerHandle, indexChunk)
 			]
 		]
 		
-		val registry = IResourceServiceProvider.Registry.INSTANCE
 		val result = try {
 			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
 		} finally {
@@ -111,7 +115,44 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		return response
 	}
 	
-	def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
+	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
+		gradleRequest.dirtyFiles.filter[gradleRequest.classpath.contains(it)].forEach[dirtyClasspathEntry|
+			val registry = IResourceServiceProvider.Registry.INSTANCE
+			val containerHandle = dirtyClasspathEntry.path
+			val request = new BuildRequest => [
+				/*
+				 * TODO incremental jar indexing
+				 * Only mark files as dirty that have changed in the jar,
+				 * detect the deleted ones and reuse the existing index chunk for unchanged ones.
+				 */
+				dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [uri|
+					registry.getResourceServiceProvider(uri) !== null
+				]
+				
+				val indexChunk = new ResourceDescriptionsData(emptyList)
+				val fileMappings = new Source2GeneratedMapping
+				state = new IndexState(indexChunk, fileMappings)
+	
+				resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
+					attachProjectConfig(gradleRequest)
+					attachPreferences(gradleRequest)
+					attachProjectDescription(containerHandle, #[], it)
+					val contextualIndex = index.createShallowCopyWith(it)
+					contextualIndex.setContainer(containerHandle, indexChunk)
+				]
+			]
+			
+			val result = try {
+				incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
+			} finally {
+				cleanup(gradleRequest, request)
+			}
+			val resultingIndex = result.indexState
+			index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
+		]
+	}
+	
+	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
 		val parent = if (gradleRequest.bootClasspath === null) {
 			ClassLoader.systemClassLoader
 		} else {
@@ -136,10 +177,10 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		ProjectConfigAdapter.install(resourceSet, new GradleProjectConfig(gradleRequest))
 	}
 	
-	private def attachProjectDescription(String containerHandle, XtextResourceSet resourceSet) {
+	private def attachProjectDescription(String containerHandle, List<String> dependencies, XtextResourceSet resourceSet) {
 		new ProjectDescription => [
 			name = containerHandle
-			//TODO dependencies
+			it.dependencies = dependencies
 			attachToEmfObject(resourceSet)
 		]
 	}

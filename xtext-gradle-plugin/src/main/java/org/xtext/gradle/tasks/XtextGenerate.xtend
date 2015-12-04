@@ -40,6 +40,8 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @Input String encoding = "UTF-8"
 	
+	@Accessors @Input boolean incremental = false
+	
 	@Accessors @Input @Optional File classesDir
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
@@ -61,15 +63,12 @@ class XtextGenerate extends DefaultTask {
 		generatedFiles = newHashSet
 		val builderUpToDate = isBuilderUpToDate
 
-		val removedFiles = newArrayList
-		val outOfDateFiles = newArrayList
-		if (inputs.incremental && builderUpToDate) {
-			inputs.outOfDate[outOfDateFiles += file]
-			inputs.removed[removedFiles += file]
-		} else {
-			outOfDateFiles += getSources
-		}
+		val removedFiles = newLinkedHashSet
+		val outOfDateFiles = newLinkedHashSet
+		inputs.outOfDate[outOfDateFiles += file]
+		inputs.removed[removedFiles += file]
 		
+		//TODO should be replaced by incremental jar indexing
 		val outOfDateClasspathEntries = newHashSet
 		outOfDateClasspathEntries.addAll(outOfDateFiles)
 		outOfDateClasspathEntries.retainAll(classpath?.files ?: #{})
