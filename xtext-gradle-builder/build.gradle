@@ -1,13 +1,13 @@
 description 'A small wrapper for Xtext to make it easier to use from Gradle'
 
 dependencies {
-	compile ("org.eclipse.xtext:org.eclipse.xtext:2.9.0-SNAPSHOT") {
+	compile ("org.eclipse.xtext:org.eclipse.xtext:2.9.0") {
 		exclude group:'asm', module:'asm'
 	}
-	compile ("org.eclipse.xtext:org.eclipse.xtext.java:2.9.0-SNAPSHOT") {
+	compile ("org.eclipse.xtext:org.eclipse.xtext.java:2.9.0") {
 		exclude group:'asm', module:'asm'
 	}
-	compile ("org.eclipse.xtext:org.eclipse.xtext.xbase:2.9.0-SNAPSHOT") {
+	compile ("org.eclipse.xtext:org.eclipse.xtext.xbase:2.9.0") {
 		exclude group:'asm', module:'asm'
 	}
 	compile project(':xtext-gradle-protocol')

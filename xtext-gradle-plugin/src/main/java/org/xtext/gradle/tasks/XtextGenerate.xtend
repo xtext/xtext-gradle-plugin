@@ -1,7 +1,6 @@
 package org.xtext.gradle.tasks;
 
 import java.io.File
-import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 import java.util.Collection
 import java.util.Set
@@ -18,15 +17,16 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.xtext.gradle.protocol.GradleBuildRequest
-import org.xtext.gradle.protocol.GradleBuildResponse
 import org.xtext.gradle.protocol.GradleGeneratorConfig
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig
 import org.xtext.gradle.protocol.GradleOutputConfig
+import org.xtext.gradle.protocol.IncrementalXtextBuilder
+import org.xtext.gradle.protocol.IncrementalXtextBuilderFactory
 
 class XtextGenerate extends DefaultTask {
 	
-	static Object builder
+	static IncrementalXtextBuilder builder
 
 	@Accessors XtextSourceDirectorySet sources
 
@@ -121,12 +121,8 @@ class XtextGenerate extends DefaultTask {
 			]
 			it.logger = this.logger
 		]
-		try {
-			val response = builder.class.getMethod("build", GradleBuildRequest).invoke(builder, request) as GradleBuildResponse
-			generatedFiles = response.generatedFiles
-		} catch (InvocationTargetException e) {
-			throw e.cause
-		}
+		val response = builder.build(request)
+		generatedFiles = response.generatedFiles
 	}
 	
 	def installDebugInfo() {
@@ -143,24 +139,14 @@ class XtextGenerate extends DefaultTask {
 				]
 			]
 		]
-		try {
-			builder.class.getMethod("installDebugInfo", GradleInstallDebugInfoRequest).invoke(builder, request)
-		} catch (InvocationTargetException e) {
-			throw e.cause
-		}
+		builder.installDebugInfo(request)
 	}
 	
 	private def initializeBuilder() {
 		if (builder !== null) {
 			(builder.class.classLoader as URLClassLoader).close
 		}
-		val builderClass = builderClassLoader.loadClass("org.xtext.gradle.builder.XtextGradleBuilder")
-		val builderConstructor = builderClass.getConstructor(String, Set, String)
-		try {
-			builder = builderConstructor.newInstance(project.rootDir.path, languageSetups, encoding)
-		} catch (InvocationTargetException e) {
-			throw e.cause
-		}
+		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, encoding, builderClassLoader)
 	}
 	
 	private def isBuilderUpToDate() {
@@ -172,16 +158,13 @@ class XtextGenerate extends DefaultTask {
 		if (oldClasspath != newClasspath) {
 			return false
 		}
-		val builderSetups = builder.class.getMethod("getLanguageSetups").invoke(builder)
-		if (builderSetups != languageSetups) {
+		if (builder.languageSetups != languageSetups) {
 			return false
 		}
-		val builderEncoding = builder.class.getMethod("getEncoding").invoke(builder)
-		if (builderEncoding != encoding) {
+		if (builder.encoding != encoding) {
 			return false
 		}
-		val builderOwner= builder.class.getMethod("getOwner").invoke(builder)
-		if (builderOwner != project.rootDir.path) {
+		if (builder.owner != project.rootDir.path) {
 			return false
 		}
 		return true

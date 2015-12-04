@@ -35,8 +35,9 @@ import org.xtext.gradle.protocol.GradleBuildResponse
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
+import org.xtext.gradle.protocol.IncrementalXtextBuilder
 
-class XtextGradleBuilder {
+class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val index = new ChunkedResourceDescriptions
 	val generatedMappings = new ConcurrentHashMap<String, Source2GeneratedMapping>
 	val sharedInjector = Guice.createInjector
@@ -63,7 +64,7 @@ class XtextGradleBuilder {
 		this.encoding = encoding
 	}
 
-	def GradleBuildResponse build(GradleBuildRequest gradleRequest) {
+	override GradleBuildResponse build(GradleBuildRequest gradleRequest) {
 		val containerHandle = gradleRequest.containerHandle
 		val jvmTypesLoader = gradleRequest.jvmTypesLoader
 		val validator = new GradleValidatonCallback(gradleRequest.logger)
@@ -181,7 +182,7 @@ class XtextGradleBuilder {
 		]
 	}
 	
-	def void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
+	override void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
 		val request = new InstallDebugInfoRequest => [
 			classesDir = gradleRequest.classesDir
 			outputDir =gradleRequest.classesDir
