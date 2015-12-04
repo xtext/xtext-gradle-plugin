@@ -115,7 +115,7 @@ class GeneratorConfig {
 		ConfigureUtil.configure(configureClosure, outlets)
 	}
 	
-	def outlet() {
+	def getOutlet() {
 		outlets.maybeCreate(Outlet.DEFAULT_OUTLET)
 	}
 	

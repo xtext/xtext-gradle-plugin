@@ -68,10 +68,15 @@ class XtextGenerate extends DefaultTask {
 		inputs.outOfDate[outOfDateFiles += file]
 		inputs.removed[removedFiles += file]
 		
+		if (!builderUpToDate) {
+			outOfDateFiles += getSources
+			outOfDateFiles += getClasspath
+		}
+		
 		//TODO should be replaced by incremental jar indexing
 		val outOfDateClasspathEntries = newHashSet
 		outOfDateClasspathEntries.addAll(outOfDateFiles)
-		outOfDateClasspathEntries.retainAll(classpath?.files ?: #{})
+		outOfDateClasspathEntries.retainAll(getClasspath?.files ?: #{})
 		if (!outOfDateClasspathEntries.isEmpty) {
 			outOfDateFiles += getSources
 		}
@@ -80,13 +85,13 @@ class XtextGenerate extends DefaultTask {
 			return
 		}
 		
-		if (!builderUpToDate) {
-			initializeBuilder
-		}
 		build(outOfDateFiles, removedFiles)
 	}
 	
 	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
+		if (!builderUpToDate) {
+			initializeBuilder
+		}
 		val request = new GradleBuildRequest => [
 			projectName = project.name
 			projectDir = project.projectDir

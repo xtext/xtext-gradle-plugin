@@ -3,6 +3,7 @@ package org.xtext.gradle.builder
 import com.google.inject.Guice
 import java.io.File
 import java.net.URLClassLoader
+import java.util.List
 import java.util.Set
 import java.util.concurrent.ConcurrentHashMap
 import org.eclipse.emf.common.util.URI
@@ -14,6 +15,7 @@ import org.eclipse.xtext.build.IndexState
 import org.eclipse.xtext.build.Source2GeneratedMapping
 import org.eclipse.xtext.generator.OutputConfiguration
 import org.eclipse.xtext.generator.OutputConfigurationAdapter
+import org.eclipse.xtext.mwe.PathTraverser
 import org.eclipse.xtext.parser.IEncodingProvider
 import org.eclipse.xtext.preferences.MapBasedPreferenceValues
 import org.eclipse.xtext.preferences.PreferenceValuesByLanguage
@@ -33,11 +35,9 @@ import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig
 import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleBuildResponse
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
+import org.xtext.gradle.protocol.IncrementalXtextBuilder
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
-import org.xtext.gradle.protocol.IncrementalXtextBuilder
-import org.eclipse.xtext.mwe.PathTraverser
-import java.util.List
 
 class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val index = new ChunkedResourceDescriptions
@@ -77,8 +77,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		
 		val request = new BuildRequest => [
 			baseDir = createFolderURI(gradleRequest.projectDir)
-			dirtyFiles = gradleRequest.dirtyFiles.map[URI.createFileURI(absolutePath)].toList
-			deletedFiles = gradleRequest.deletedFiles.map[URI.createFileURI(absolutePath)].toList
+			dirtyFiles = gradleRequest.dirtyFiles.filter[!isClassPathEntry(gradleRequest)].map[URI.createFileURI(absolutePath)].toList
+			deletedFiles = gradleRequest.deletedFiles.filter[!isClassPathEntry(gradleRequest)].map[URI.createFileURI(absolutePath)].toList
 			
 			val indexChunk = index.getContainer(containerHandle)?.copy ?: new ResourceDescriptionsData(emptyList)
 			val fileMappings = generatedMappings.get(containerHandle)?.copy ?: new Source2GeneratedMapping
@@ -115,11 +115,16 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		return response
 	}
 	
+	private def isClassPathEntry(File it, GradleBuildRequest gradleRequest) {
+		gradleRequest.classpath.contains(it)
+	}
+	
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
-		gradleRequest.dirtyFiles.filter[gradleRequest.classpath.contains(it)].forEach[dirtyClasspathEntry|
+		gradleRequest.dirtyFiles.filter[isClassPathEntry(gradleRequest)].forEach[dirtyClasspathEntry|
 			val registry = IResourceServiceProvider.Registry.INSTANCE
 			val containerHandle = dirtyClasspathEntry.path
 			val request = new BuildRequest => [
+				indexOnly = true
 				/*
 				 * TODO incremental jar indexing
 				 * Only mark files as dirty that have changed in the jar,
