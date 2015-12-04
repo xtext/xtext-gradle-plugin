@@ -8,6 +8,7 @@ dependencies {
 integrationTest {
 	dependsOn(':xtext-gradle-builder:install', ':xtext-gradle-protocol:install')
 	testLogging {
+		exceptionFormat = 'full'
 		showStandardStreams = true
-	]
+	}
 }
