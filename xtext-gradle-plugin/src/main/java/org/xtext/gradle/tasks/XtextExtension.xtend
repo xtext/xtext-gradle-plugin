@@ -1,5 +1,6 @@
 package org.xtext.gradle.tasks;
 
+import com.google.common.base.CaseFormat
 import groovy.lang.Closure
 import java.util.Map
 import java.util.regex.Pattern
@@ -8,6 +9,7 @@ import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.Input
@@ -17,7 +19,6 @@ import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
-import org.gradle.api.artifacts.Configuration
 
 class XtextExtension {
 	@Accessors String version
@@ -181,4 +182,12 @@ class Outlet implements Named {
 	val Language language
 	@Input val String name
 	@Input boolean producesJava = false
+	
+	def getFolderFragment() {
+		if (name == Outlet.DEFAULT_OUTLET) {
+			""
+		} else {
+			CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name)
+		}
+	}
 }

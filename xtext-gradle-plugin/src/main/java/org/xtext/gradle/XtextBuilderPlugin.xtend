@@ -1,6 +1,5 @@
 package org.xtext.gradle;
 
-import com.google.common.base.CaseFormat
 import javax.inject.Inject
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.gradle.api.GradleException
@@ -14,13 +13,12 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
-import org.xtext.gradle.tasks.Outlet
 import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
-import org.xtext.gradle.tasks.internal.DefaultXtextSourceSetOutputs
 
 import static extension org.xtext.gradle.GradleExtensions.*
+import org.xtext.gradle.tasks.Outlet
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -73,7 +71,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			]
 			val xtextTooling = project.configurations.detachedConfiguration(dependencies)
 			xtext.ensureXtextCompatibility(xtextTooling, version)
-			generatorTask.xtextClasspath = (xtextTooling).plus(builderClasspathBefore)
+			generatorTask.xtextClasspath = xtextTooling.plus(builderClasspathBefore)
 		]
 	}
 	
@@ -86,14 +84,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			language.generator.outlets.create(Outlet.DEFAULT_OUTLET)
 			language.generator.outlets.all [ outlet |
 				xtext.sourceSets.all [ sourceSet |
-					val outletFragment = if (outlet.name == Outlet.DEFAULT_OUTLET) {
-							""
-						} else {
-							CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, outlet.name)
-						}
-					val output = sourceSet.output as DefaultXtextSourceSetOutputs
-					output.dir(outlet, '''«project.buildDir»/«language.name»«outletFragment»/«sourceSet.name»''')
-					output.registerOutletPropertyName(language.name + outletFragment + "Dir", outlet)
+					val output = sourceSet.output
+					output.dir(outlet, '''«project.buildDir»/«language.name»«outlet.folderFragment»/«sourceSet.name»''')
 				]
 			]
 		]
