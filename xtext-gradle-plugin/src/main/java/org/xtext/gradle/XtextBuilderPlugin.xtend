@@ -37,6 +37,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		project.plugins.<BasePlugin>apply(BasePlugin)
 		xtext = project.extensions.create("xtext", XtextExtension, project, fileResolver);
 		xtextLanguages = project.configurations.create("xtextLanguages")
+		xtext.makeXtextCompatible(xtextLanguages)
 		createGeneratorTasks
 		configureOutletDefaults
 		addSourceSetIncludes
@@ -65,12 +66,10 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			if (version === null) {
 				throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
 			}
-			val dependencies = #[
-				project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext:«version»'''),
-				project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''')
-			]
-			val xtextTooling = project.configurations.detachedConfiguration(dependencies)
-			xtext.ensureXtextCompatibility(xtextTooling, version)
+			val xtextBuilder =  project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''')
+			val xtextTooling = project.configurations.detachedConfiguration(xtextBuilder)
+			xtext.makeXtextCompatible(xtextTooling)
+			xtext.forceXtextVersion(xtextTooling, version)
 			generatorTask.xtextClasspath = xtextTooling.plus(builderClasspathBefore)
 		]
 	}

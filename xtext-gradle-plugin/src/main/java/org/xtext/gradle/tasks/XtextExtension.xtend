@@ -40,9 +40,9 @@ class XtextExtension {
 	def languages(Action<? super NamedDomainObjectContainer<Language>> configureAction) {
 		configureAction.execute(languages)
 	}
-	
+
 	static val LIB_PATTERN = Pattern.compile("org\\.eclipse\\.xtext\\..*-(\\d.*?).jar")
-	
+
 	def String getXtextVersion(FileCollection classpath) {
 		if (version !== null)
 			return version
@@ -54,16 +54,20 @@ class XtextExtension {
 		}
 		return null
 	}
-	
-	def Configuration ensureXtextCompatibility(Configuration dependencies, String xtextVersion) {
-		dependencies.exclude(#{'group' -> 'asm'})
-		dependencies.resolutionStrategy.eachDependency[
-			if (requested.group == "com.google.inject" && requested.name == "guice")
-				useVersion("4.0")
+
+	def void forceXtextVersion(Configuration dependencies, String xtextVersion) {
+		dependencies.resolutionStrategy.eachDependency [
 			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend")
 				useVersion(xtextVersion)
 		]
-		dependencies
+	}
+
+	def void makeXtextCompatible(Configuration dependencies) {
+		dependencies.exclude(#{'group' -> 'asm'})
+		dependencies.resolutionStrategy.eachDependency [
+			if (requested.group == "com.google.inject" && requested.name == "guice")
+				useVersion("4.0")
+		]
 	}
 }
 
@@ -77,7 +81,7 @@ class Language implements Named {
 	@Nested val debugger = new DebuggerConfig
 	@Nested val validator = new ValidatorConfig
 	@Input Map<String, Object> preferences = newHashMap
-	
+
 	@Accessors(NONE) val Project project
 
 	new(String name, Project project) {
@@ -90,20 +94,20 @@ class Language implements Named {
 	def getQualifiedName() {
 		qualifiedName ?: setup.replace("StandaloneSetup", "")
 	}
-	
+
 	@Input
 	def getFileExtension() {
 		fileExtension ?: name
 	}
-	
+
 	def generator(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, generator)
 	}
-	
+
 	def debugger(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, debugger)
 	}
-	
+
 	def validator(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, validator)
 	}
@@ -119,24 +123,24 @@ class GeneratorConfig {
 	@Input String javaSourceLevel = '1.6'
 	@Nested val GeneratedAnnotationOptions generatedAnnotation = new GeneratedAnnotationOptions
 	@Nested val NamedDomainObjectContainer<Outlet> outlets
-	
-	new (Project project,Language language) {
-		this.outlets = project.container(Outlet)[outlet| new Outlet(language, outlet)]
+
+	new(Project project, Language language) {
+		this.outlets = project.container(Outlet)[outlet|new Outlet(language, outlet)]
 	}
 
 	def outlets(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, outlets)
 	}
-	
+
 	def getOutlet() {
 		outlets.maybeCreate(Outlet.DEFAULT_OUTLET)
 	}
-	
+
 	def outlet(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, outlet)
 	}
-	
-	def generatedAnnotation (Closure<?> configureClosure) {
+
+	def generatedAnnotation(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, generatedAnnotation)
 	}
 }
@@ -157,19 +161,19 @@ class DebuggerConfig {
 @Accessors
 class ValidatorConfig {
 	@Input Map<String, IssueSeverity> severities = newHashMap
-	
+
 	def void error(String code) {
 		severities.put(code, IssueSeverity.ERROR)
 	}
-	
+
 	def void warning(String code) {
 		severities.put(code, IssueSeverity.WARNING)
 	}
-	
+
 	def void info(String code) {
 		severities.put(code, IssueSeverity.INFO)
 	}
-	
+
 	def void ignore(String code) {
 		severities.put(code, IssueSeverity.IGNORE)
 	}
@@ -182,7 +186,7 @@ class Outlet implements Named {
 	val Language language
 	@Input val String name
 	@Input boolean producesJava = false
-	
+
 	def getFolderFragment() {
 		if (name == Outlet.DEFAULT_OUTLET) {
 			""

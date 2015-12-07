@@ -44,7 +44,8 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 			}
 			val xtendCore = project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version)
 			val xtendTooling = project.configurations.detachedConfiguration(xtendCore)
-			xtext.ensureXtextCompatibility(xtendTooling, version)
+			xtext.makeXtextCompatible(xtendTooling)
+			xtext.forceXtextVersion(xtendTooling, version)
 			generatorTask.xtextClasspath = xtendTooling.plus(builderClasspathBefore)
 		]
 	}
