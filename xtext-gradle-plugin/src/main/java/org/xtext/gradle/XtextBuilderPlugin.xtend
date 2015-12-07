@@ -28,7 +28,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	Project project
 	XtextExtension xtext
-	Configuration xtextTooling
+	Configuration xtextLanguages
 
 	@Inject @FinalFieldsConstructor new() {
 	}
@@ -38,9 +38,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 		project.plugins.<BasePlugin>apply(BasePlugin)
 		xtext = project.extensions.create("xtext", XtextExtension, project, fileResolver);
-		xtextTooling = project.configurations.create("xtextTooling") [
-			exclude(#{'group' -> 'asm'})
-		]
+		xtextLanguages = project.configurations.create("xtextLanguages")
 		createGeneratorTasks
 		configureOutletDefaults
 		addSourceSetIncludes
@@ -55,7 +53,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
-				xtextClasspath = xtextTooling
+				xtextClasspath = xtextLanguages
 				enhanceBuilderDependencies
 			]
 		]
@@ -70,19 +68,12 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
 			}
 			val dependencies = #[
-				project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext:«version»''') [
-					force = true
-					exclude(#{'group' -> 'asm'})
-				],
-				project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''') [
-					force = true
-					exclude(#{'group' -> 'asm'})
-				],
-				project.dependencies.externalModule('com.google.inject:guice:4.0')[
-					force = true
-				]
+				project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext:«version»'''),
+				project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''')
 			]
-			generatorTask.xtextClasspath = project.configurations.detachedConfiguration(dependencies).plus(builderClasspathBefore)
+			val xtextTooling = project.configurations.detachedConfiguration(dependencies)
+			xtext.ensureXtextCompatibility(xtextTooling, version)
+			generatorTask.xtextClasspath = (xtextTooling).plus(builderClasspathBefore)
 		]
 	}
 	

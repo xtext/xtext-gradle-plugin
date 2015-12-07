@@ -18,7 +18,7 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 				
 				dependencies {
 					add('default', 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0')
-					xtextTooling 'org.eclipse.xtend:org.eclipse.xtend.core:2.9.0'
+					xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:2.9.0'
 				}
 				
 				xtext {

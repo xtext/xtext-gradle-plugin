@@ -13,6 +13,10 @@ class GradleExtensions {
 		config.apply(dependency as ExternalModuleDependency)
 		dependency
 	}
+	
+	static def externalModule(DependencyHandler dependencyHandler, String coordinates) {
+		dependencyHandler.externalModule(coordinates)[]
+	}
 
 	static def beforeExecute(Task task, (Task) => void action) {
 		task.project.gradle.taskGraph.addTaskExecutionListener(new TaskExecutionAdapter() {

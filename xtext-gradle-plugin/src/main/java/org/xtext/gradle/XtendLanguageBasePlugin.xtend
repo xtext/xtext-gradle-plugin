@@ -42,17 +42,10 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 			if (version === null) {
 				throw new GradleException('''Could not infer Xtend classpath, because xtext.version was not set and no Xtend libraries were found on the «classpath» classpath''')
 			}
-			val dependencies = #[
-				project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version)[
-					exclude(#{'group' -> 'asm'})
-					force = true
-				],
-				project.dependencies.externalModule('com.google.inject:guice:4.0')[
-					force = true
-				]
-			]
-			generatorTask.xtextClasspath = project.configurations.detachedConfiguration(dependencies).plus(builderClasspathBefore)
-		
+			val xtendCore = project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version)
+			val xtendTooling = project.configurations.detachedConfiguration(xtendCore)
+			xtext.ensureXtextCompatibility(xtendTooling, version)
+			generatorTask.xtextClasspath = (xtendTooling).plus(builderClasspathBefore)
 		]
 	}
 }

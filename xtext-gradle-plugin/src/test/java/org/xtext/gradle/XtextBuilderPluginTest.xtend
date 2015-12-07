@@ -24,12 +24,12 @@ class XtextBuilderPluginTest extends AbstractPluginTest {
 	}
 
 	@Test
-	def void xtextToolingConfigurationIsAdded() {
+	def void xtextLanguagesConfigurationIsAdded() {
 		// when
 		project.apply(pluginClass)
 
 		// then
-		assertNotNull(project.configurations.getByName('xtextTooling'))
+		assertNotNull(project.configurations.getByName('xtextLanguages'))
 	}
 
 	@Test

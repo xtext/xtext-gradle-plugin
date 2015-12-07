@@ -17,6 +17,7 @@ import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
+import org.gradle.api.artifacts.Configuration
 
 class XtextExtension {
 	@Accessors String version
@@ -51,6 +52,17 @@ class XtextExtension {
 			}
 		}
 		return null
+	}
+	
+	def Configuration ensureXtextCompatibility(Configuration dependencies, String xtextVersion) {
+		dependencies.exclude(#{'group' -> 'asm'})
+		dependencies.resolutionStrategy.eachDependency[
+			if (requested.group == "com.google.inject" && requested.name == "guice")
+				useVersion("4.0")
+			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend")
+				useVersion(xtextVersion)
+		]
+		dependencies
 	}
 }
 
