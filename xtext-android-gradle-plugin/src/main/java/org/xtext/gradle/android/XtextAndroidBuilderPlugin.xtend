@@ -6,14 +6,13 @@ import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.BaseVariant
-import com.google.common.base.CaseFormat
+import com.android.build.gradle.internal.api.TestedVariant
 import java.io.File
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.xtext.gradle.XtextBuilderPlugin
-import org.xtext.gradle.tasks.Outlet
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
@@ -48,30 +47,37 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 
 	private def configureSourceSetDefaults() {
 		variants.all [ variant |
-			xtext.sourceSets.maybeCreate(variant.name) => [ sourceSet |
-				val generatorTask = project.tasks.getByName(sourceSet.generatorTaskName) as XtextGenerate
-				generatorTask.dependsOn(
-					variant.aidlCompile,
-					variant.renderscriptCompile,
-					variant.generateBuildConfig
-				)
-				generatorTask.dependsOn(variant.outputs.map[processResources])
-				variant.javaCompiler.doLast[generatorTask.installDebugInfo]
-				val sourceDirs = newArrayList
-				val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
-				sourceDirs += javaDirs
-				sourceDirs += #[
-					variant.aidlCompile.sourceOutputDir,
-					variant.generateBuildConfig.sourceOutputDir,
-					variant.renderscriptCompile.sourceOutputDir
-				]
-				sourceDirs += variant.outputs.map[processResources.sourceOutputDir]					
-				sourceSet.srcDirs(sourceDirs)
-				generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
-				generatorTask.classpath = variant.javaCompiler.classpath.plus(project.files(android.bootClasspath))
-				generatorTask.classesDir = variant.javaCompiler.destinationDir
-				variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
+			configureSourceSetForVariant(variant)
+			if (variant instanceof TestedVariant) {
+				configureSourceSetForVariant(variant.testVariant)
+			}
+		]
+	}
+	
+	private def configureSourceSetForVariant(BaseVariant variant) {
+		xtext.sourceSets.maybeCreate(variant.name) => [ sourceSet |
+			val generatorTask = project.tasks.getByName(sourceSet.generatorTaskName) as XtextGenerate
+			generatorTask.dependsOn(
+				variant.aidlCompile,
+				variant.renderscriptCompile,
+				variant.generateBuildConfig
+			)
+			generatorTask.dependsOn(variant.outputs.map[processResources])
+			variant.javaCompiler.doLast[generatorTask.installDebugInfo]
+			val sourceDirs = newArrayList
+			val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
+			sourceDirs += javaDirs
+			sourceDirs += #[
+				variant.aidlCompile.sourceOutputDir,
+				variant.generateBuildConfig.sourceOutputDir,
+				variant.renderscriptCompile.sourceOutputDir
 			]
+			sourceDirs += variant.outputs.map[processResources.sourceOutputDir]					
+			sourceSet.srcDirs(sourceDirs)
+			generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
+			generatorTask.classpath = variant.javaCompiler.classpath.plus(project.files(android.bootClasspath))
+			generatorTask.classesDir = variant.javaCompiler.destinationDir
+			variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
 		]
 	}
 
@@ -85,13 +91,8 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 		xtext.languages.all [ language |
 			language.generator.outlets.all [ outlet |
 				xtext.sourceSets.all [ sourceSet |
-					val outletFragment = if (outlet.name == Outlet.DEFAULT_OUTLET) {
-							""
-						} else {
-							CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, outlet.name)
-						}
 					val output = sourceSet.output
-					output.dir(outlet, '''«project.buildDir»/generated/source/«language.name»«outletFragment»/«sourceSet.name»''')
+					output.dir(outlet, '''«project.buildDir»/generated/source/«language.name»«outlet.folderFragment»/«sourceSet.name»''')
 				]
 			]
 		]
