@@ -40,8 +40,6 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @Input String encoding = "UTF-8"
 	
-	@Accessors @Input boolean incremental = false
-	
 	@Accessors @Input @Optional File classesDir
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
@@ -95,7 +93,7 @@ class XtextGenerate extends DefaultTask {
 		val request = new GradleBuildRequest => [
 			projectName = project.name
 			projectDir = project.projectDir
-			containerHandle = project.path + ":" + sources.name
+			containerHandle = project.path
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
 			it.classpath = classpath?.files ?: emptyList
