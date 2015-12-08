@@ -120,6 +120,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 	
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
+		val jvmTypesLoader = gradleRequest.jvmTypesLoader
 		gradleRequest.dirtyFiles.filter[isClassPathEntry(gradleRequest)].forEach[dirtyClasspathEntry|
 			val registry = IResourceServiceProvider.Registry.INSTANCE
 			val containerHandle = dirtyClasspathEntry.path
@@ -139,6 +140,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 				state = new IndexState(indexChunk, fileMappings)
 	
 				resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
+					classpathURIContext = jvmTypesLoader
 					attachProjectConfig(gradleRequest)
 					attachPreferences(gradleRequest)
 					attachProjectDescription(containerHandle, #[], it)

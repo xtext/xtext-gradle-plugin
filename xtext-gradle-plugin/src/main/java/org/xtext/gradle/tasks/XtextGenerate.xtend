@@ -23,6 +23,7 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInsta
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.protocol.IncrementalXtextBuilderFactory
+import org.xtext.gradle.tasks.internal.FilteringClassLoader
 
 class XtextGenerate extends DefaultTask {
 	
@@ -177,7 +178,8 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	private def getBuilderClassLoader() {
-		//TODO parent filtering, we don't want asm etc.
-		new URLClassLoader(xtextClasspath.map[toURI.toURL], class.classLoader)
+		val parent = class.classLoader
+		val filtered = new FilteringClassLoader(parent, #["org.gradle", "org.apache.log4j", "org.slf4j", "org.xtext.gradle"])
+		new URLClassLoader(xtextClasspath.map[toURI.toURL], filtered)
 	}
 }

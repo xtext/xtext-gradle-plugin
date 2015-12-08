@@ -75,7 +75,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	}
 	
 	private def String getPluginVersion() {
-		this.class.package.implementationVersion
+		XtextBuilderPlugin.package.implementationVersion
 	}
 
 	private def configureOutletDefaults() {
