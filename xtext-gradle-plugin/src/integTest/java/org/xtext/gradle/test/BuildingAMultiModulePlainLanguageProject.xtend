@@ -26,9 +26,6 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 					languages {
 						xtend {
 							setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
-							validator {
-								ignore 'org.eclipse.xtext.xbase.validation.IssueCodes.duplicate_type'
-							}
 						}
 					}
 					sourceSets {

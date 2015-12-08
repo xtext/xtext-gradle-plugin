@@ -40,7 +40,7 @@ import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
 
 class XtextGradleBuilder implements IncrementalXtextBuilder {
-	val index = new ChunkedResourceDescriptions
+	val index = new GradleResourceDescriptions
 	val generatedMappings = new ConcurrentHashMap<String, Source2GeneratedMapping>
 	val sharedInjector = Guice.createInjector
 	val incrementalbuilder = sharedInjector.getInstance(IncrementalBuilder)
