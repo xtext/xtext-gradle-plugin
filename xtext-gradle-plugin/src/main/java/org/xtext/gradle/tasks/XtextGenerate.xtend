@@ -35,7 +35,7 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @InputFiles FileCollection xtextClasspath
 
-	@Accessors FileCollection classpath
+	@Accessors @InputFiles @Optional FileCollection classpath
 
 	@Accessors @Input @Optional String bootClasspath
 
@@ -52,8 +52,7 @@ class XtextGenerate extends DefaultTask {
 		sources.files
 	}
 	
-	@InputFiles
-	def getClasspath() {
+	def getNullSafeClasspath() {
 		classpath ?: project.files
 	}
 	
@@ -70,7 +69,7 @@ class XtextGenerate extends DefaultTask {
 		val removedFiles = newLinkedHashSet
 		val outOfDateFiles = newLinkedHashSet
 		inputs.outOfDate[
-			if (getSources.contains(file) || getClasspath.contains(file))
+			if (getSources.contains(file) || getNullSafeClasspath.contains(file))
 				outOfDateFiles += file
 		]
 		inputs.removed[
@@ -80,13 +79,13 @@ class XtextGenerate extends DefaultTask {
 		
 		if (!builderUpToDate) {
 			outOfDateFiles += getSources
-			outOfDateFiles += getClasspath
+			outOfDateFiles += getNullSafeClasspath
 		}
 		
 		//TODO should be replaced by incremental jar indexing
 		val outOfDateClasspathEntries = newHashSet
 		outOfDateClasspathEntries.addAll(outOfDateFiles)
-		outOfDateClasspathEntries.retainAll(getClasspath.files)
+		outOfDateClasspathEntries.retainAll(getNullSafeClasspath.files)
 		if (!outOfDateClasspathEntries.isEmpty) {
 			outOfDateFiles += getSources
 		}
@@ -108,7 +107,7 @@ class XtextGenerate extends DefaultTask {
 			containerHandle = project.path + ':' + sources.name
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
-			classpath = this.getClasspath.files
+			classpath = this.getNullSafeClasspath.files
 			it.bootClasspath = bootClasspath
 			sourceFolders = sources.srcDirs
 			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
