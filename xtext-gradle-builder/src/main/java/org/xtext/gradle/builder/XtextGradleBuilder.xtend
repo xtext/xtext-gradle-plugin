@@ -67,9 +67,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	override GradleBuildResponse build(GradleBuildRequest gradleRequest) {
-		val registry = IResourceServiceProvider.Registry.INSTANCE
 		val containerHandle = gradleRequest.containerHandle
-		val jvmTypesLoader = gradleRequest.jvmTypesLoader
 		val validator = new GradleValidatonCallback(gradleRequest.logger)
 		val response = new GradleBuildResponse
 		
@@ -87,23 +85,10 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			afterValidate = validator
 			afterGenerateFile = [source, target| response.generatedFiles.add(new File(target.toFileString))]
 			
-			resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
-				classpathURIContext = jvmTypesLoader
-				attachProjectConfig(gradleRequest)
-				attachGeneratorConfig(gradleRequest)
-				attachOutputConfig(gradleRequest)
-				attachPreferences(gradleRequest)
-				attachProjectDescription(containerHandle, gradleRequest.classpath.map[path].toList, it)
-				val contextualIndex = index.createShallowCopyWith(it)
-				contextualIndex.setContainer(containerHandle, indexChunk)
-			]
+			preparResourceSet(containerHandle, indexChunk, gradleRequest)
 		]
 		
-		val result = try {
-			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
-		} finally {
-			cleanup(gradleRequest, request)
-		}
+		val result = doBuild(request, gradleRequest)
 		
 		if (!validator.isErrorFree) {
 			throw new GradleException("Xtext validation failed, see build log for details.")
@@ -115,14 +100,9 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		return response
 	}
 	
-	private def isClassPathEntry(File it, GradleBuildRequest gradleRequest) {
-		gradleRequest.classpath.contains(it)
-	}
-	
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
-		val jvmTypesLoader = gradleRequest.jvmTypesLoader
+		val registry = IResourceServiceProvider.Registry.INSTANCE
 		gradleRequest.dirtyFiles.filter[isClassPathEntry(gradleRequest)].forEach[dirtyClasspathEntry|
-			val registry = IResourceServiceProvider.Registry.INSTANCE
 			val containerHandle = dirtyClasspathEntry.path
 			val request = new BuildRequest => [
 				indexOnly = true
@@ -134,30 +114,46 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 				dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [uri|
 					registry.getResourceServiceProvider(uri) !== null
 				]
+				afterValidate = [false]
 				
 				val indexChunk = new ResourceDescriptionsData(emptyList)
 				val fileMappings = new Source2GeneratedMapping
 				state = new IndexState(indexChunk, fileMappings)
-	
-				resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
-					classpathURIContext = jvmTypesLoader
-					attachProjectConfig(gradleRequest)
-					attachPreferences(gradleRequest)
-					attachProjectDescription(containerHandle, #[], it)
-					val contextualIndex = index.createShallowCopyWith(it)
-					contextualIndex.setContainer(containerHandle, indexChunk)
-				]
+				preparResourceSet(containerHandle, indexChunk, gradleRequest)
 			]
 			
-			val result = try {
-				incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
-			} finally {
-				cleanup(gradleRequest, request)
-			}
+			val result = doBuild(request, gradleRequest)
 			val resultingIndex = result.indexState
 			index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
 		]
 	}
+	
+	private def preparResourceSet(BuildRequest it, String containerHandle, ResourceDescriptionsData indexChunk, GradleBuildRequest gradleRequest) {
+		resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
+			classpathURIContext = gradleRequest.jvmTypesLoader
+			attachProjectConfig(gradleRequest)
+			attachGeneratorConfig(gradleRequest)
+			attachOutputConfig(gradleRequest)
+			attachPreferences(gradleRequest)
+			attachProjectDescription(containerHandle, gradleRequest.classpath.map[path].toList, it)
+			val contextualIndex = index.createShallowCopyWith(it)
+			contextualIndex.setContainer(containerHandle, indexChunk)
+		]
+	}
+	
+	private def isClassPathEntry(File it, GradleBuildRequest gradleRequest) {
+		gradleRequest.classpath.contains(it)
+	}
+	
+	private def doBuild(BuildRequest request, GradleBuildRequest gradleRequest) {
+		try {
+			val registry = IResourceServiceProvider.Registry.INSTANCE
+			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
+		} finally {
+			cleanup(gradleRequest, request)
+		}
+	}
+	
 	
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
 		val parent = if (gradleRequest.bootClasspath === null) {
