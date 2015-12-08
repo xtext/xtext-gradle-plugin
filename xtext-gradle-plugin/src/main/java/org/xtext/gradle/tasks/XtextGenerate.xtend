@@ -94,7 +94,7 @@ class XtextGenerate extends DefaultTask {
 		val request = new GradleBuildRequest => [
 			projectName = project.name
 			projectDir = project.projectDir
-			containerHandle = project.path
+			containerHandle = project.path + ':' + sources.name
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
 			it.classpath = classpath?.files ?: emptyList
