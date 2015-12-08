@@ -49,7 +49,8 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 		variants.all [ variant |
 			configureSourceSetForVariant(variant)
 			if (variant instanceof TestedVariant) {
-				configureSourceSetForVariant(variant.testVariant)
+				if (variant.testVariant != null)
+					configureSourceSetForVariant(variant.testVariant)
 			}
 		]
 	}
