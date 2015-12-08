@@ -9,6 +9,29 @@ buildscript {
   }
 }
 
+allprojects {
+  apply plugin: 'com.github.oehme.sobula.plugin-release'
+
+  group = "org.xtext"
+  bintray.pkg.name = "$rootProject.group:$rootProject.name"
+
+  contacts {
+    "xtext@itemis.com" {
+      moniker "The Xtext team"
+      roles "owner"
+      github "xtext"
+    }
+  }
+
+  //TODO create bintray and central users
+  bintray.user = "oehme"
+  bintray.pkg.version.mavenCentralSync.user = "oehme"
+
+  repositories {
+    jcenter()
+  }
+}
+
 subprojects {
   apply plugin: 'eclipse'
   apply plugin: 'java'
@@ -50,28 +73,5 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   integrationTest {
     dependsOn("install")
     systemProperty 'gradle.project.version', version
-  }
-}
-
-allprojects {
-  apply plugin: 'com.github.oehme.sobula.plugin-release'
-
-  group = "org.xtext"
-  bintray.pkg.name = "$rootProject.group:$rootProject.name"
-
-  contacts {
-    "xtext@itemis.com" {
-      moniker "The Xtext team"
-      roles "owner"
-      github "xtext"
-    }
-  }
-
-  //TODO create bintray and central users
-  bintray.user = "oehme"
-  bintray.pkg.version.mavenCentralSync.user = "oehme"
-
-  repositories {
-    jcenter()
   }
 }
