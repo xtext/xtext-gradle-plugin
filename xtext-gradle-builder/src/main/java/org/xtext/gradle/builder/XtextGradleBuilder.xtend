@@ -114,7 +114,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 				dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [uri|
 					registry.getResourceServiceProvider(uri) !== null
 				]
-				afterValidate = [false]
+				
+				afterValidate = [false] //workaround for indexOnly not working in Xtext 2.9.0
 				
 				val indexChunk = new ResourceDescriptionsData(emptyList)
 				val fileMappings = new Source2GeneratedMapping
