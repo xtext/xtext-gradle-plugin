@@ -1,6 +1,6 @@
 ---
 layout: default
-title: IntelliJ builder
+title: IntelliJ Builder
 ---
 
 Info about the IntelliJ IDEA plugin build

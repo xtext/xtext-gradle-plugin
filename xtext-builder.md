@@ -6,9 +6,9 @@ title: Xtext Builder
 Xtext Builder Plugin
 ====================
 
-A Gradle Plugin for using Xtext-based code generators.
+A Gradle Plugin for using [Xtext](xtext.org)-based code generators. Get the latest version from [JCenter](http://plugins.gradle.org/plugin/org.xtext.builder).
 
-Get the latest version from [JCenter](http://plugins.gradle.org/plugin/org.xtext.builder).
+The plugin allows any number of Xtext languages to cross-link against each other. The Generator works incrementally, only indexing, validating and generating for files that were affected by a change. It integrates well with other Gradle plugins like the Java plugin, Eclipse plugin and the Android build tools.
 
 Minimal Example
 ---------------
@@ -130,7 +130,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
     languages {
       //a language configuration can be very simple, everything has good defaults
       myDsl {//the language's name
-        //the Setup class to use when creating our language's compiler infrastructure
+        //the Setup class to use when creating the language's compiler infrastructure
         setup = org.example.mydsl.MyDslStandaloneSetup
       }
 
@@ -142,11 +142,13 @@ Below is a more elaborate example with two hypothetical languages that makes use
         * by removing 'StandaloneSetup' from the class listed under 'setup'
         */
         qualifiedName = 'org.example.herolang.HeroLanguage'
-        //the file extension for your language. Equal to the language's name by default
+        //the file extension for your language.
+        //Equal to the language's name by default
         fileExtension = 'hero'
         generator {
           //whether to generate @SuppressWarnings("all"), enabled by default
           suppressWarningsAnnotation = false
+          //what level of Java source code to generate
           //taken from the Java/Android configuration automatically
           javaSourceLevel = '1.7'
           //whether to generate the @Generated annotation, disabled by default
@@ -155,7 +157,8 @@ Below is a more elaborate example with two hypothetical languages that makes use
             comment = "Copyright My Cool Company"
             includeDate = true
           }
-          //the outlet configurations, as defined in your languages OutputConfigurationProvider
+          //the outlet configurations,
+          //as defined in your languages OutputConfigurationProvider
           //the default outlet is available using the shortand 'outlet'
           outlets {
             HEROES {              
@@ -175,7 +178,8 @@ Below is a more elaborate example with two hypothetical languages that makes use
           hideSyntheticVariables = true
         }
         validator {
-          //adjust severities of issues (take the issue codes from the language's validator class)
+          //adjust severities of issues
+          //take the issue codes from the language's validator class
           error 'something.you.consider.really.Bad'
           warning 'something.Phishy'
           ignore 'some.warning.you.dont.care.About'
