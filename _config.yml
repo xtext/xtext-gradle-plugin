@@ -11,7 +11,4 @@ twitter_username: xtext
 github_username:  xtext
 
 # Build settings
-markdown: kramdown
-
-kramdown:
-  input: GFM
+markdown: redcarpet
