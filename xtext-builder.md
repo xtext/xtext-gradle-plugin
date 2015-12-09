@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Xtext Builder
+weight: 10
 ---
 
 Xtext Builder Plugin
