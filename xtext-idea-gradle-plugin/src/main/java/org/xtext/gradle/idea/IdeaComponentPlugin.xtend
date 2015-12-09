@@ -92,6 +92,8 @@ class IdeaComponentPlugin implements Plugin<Project> {
 				dependsOn(assembleSandboxTask)
 				systemProperty("idea.home.path", idea.ideaHome)
 				systemProperty("idea.plugins.path", idea.sandboxDir)
+				systemProperty('idea.system.path', project.buildDir + "/idea-test-system")
+				systemProperty('idea.config.path', project.buildDir + "/idea-test-config")
 			]
 		]
 		
