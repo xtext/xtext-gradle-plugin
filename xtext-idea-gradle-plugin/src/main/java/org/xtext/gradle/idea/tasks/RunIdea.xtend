@@ -13,31 +13,11 @@ class RunIdea extends JavaExec {
 	@Input File sandboxDir
 	@Input File ideaHome
 	@Input boolean debugBuilder
-	File systemPath
-	File configPath
 
 	new() {
 		main = "com.intellij.idea.Main"
 		maxHeapSize = "2G"
 		jvmArgs("-XX:MaxPermSize=512m")
-	}
-	
-	@Input
-	def getSystemPath() {
-		if (systemPath == null) {
-			project.buildDir / "idea-system"
-		} else {
-			systemPath
-		}
-	}
-	
-	@Input
-	def getConfigPath() {
-		if (configPath == null) {
-			project.buildDir / "idea-config"
-		} else {
-			configPath
-		}
 	}
 
 	override getJvmArgs() {
