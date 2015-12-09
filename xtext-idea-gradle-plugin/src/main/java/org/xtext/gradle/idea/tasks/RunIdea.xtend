@@ -45,8 +45,6 @@ class RunIdea extends JavaExec {
 		args += '''-ea'''
 		args += '''-Didea.home.path=«ideaHome»'''
 		args += '''-Didea.plugins.path=«sandboxDir»'''
-		args += '''-Didea.system.path=«getSystemPath»'''
-		args += '''-Didea.config.path=«getConfigPath»'''
 		if (debugBuilder) {
 			args += '''-Dcompiler.process.debug.port=5005'''
 		}
