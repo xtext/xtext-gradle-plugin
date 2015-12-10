@@ -9,8 +9,10 @@ import org.xtext.gradle.tasks.XtextExtension
 class XtendAndroidBuilderPlugin implements Plugin<Project> {
 
 	override apply(Project project) {
-		project.apply[plugin(XtextAndroidBuilderPlugin)]
-		project.apply[plugin(XtendLanguageBasePlugin)]
+		project.apply[
+			plugin(XtextAndroidBuilderPlugin)
+			plugin(XtendLanguageBasePlugin)
+		]
 
 		val xtext = project.extensions.getByType(XtextExtension)
 		xtext.languages.getAt("xtend") => [

@@ -102,6 +102,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def integrateWithJavaPlugin() {
 		project.plugins.withType(JavaBasePlugin) [
+			project.apply[plugin(XtextJavaLanguagePlugin)]
 			val java = project.convention.findPlugin(JavaPluginConvention)
 			java.sourceSets.all [ javaSourceSet |
 				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile

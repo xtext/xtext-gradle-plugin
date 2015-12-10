@@ -20,9 +20,10 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 
 	override apply(Project project) {
 		this.project = project
-		project.apply[plugin(JavaBasePlugin)]
-		project.apply[plugin(XtextBuilderPlugin)]
-		project.apply[plugin(XtextJavaLanguagePlugin)]
+		project.apply[
+			plugin(JavaBasePlugin)
+			plugin(XtextBuilderPlugin)
+		]
 		xtext = project.extensions.getByType(XtextExtension)
 		val xtend = xtext.languages.create("xtend") [
 			fileExtension = "xtend"

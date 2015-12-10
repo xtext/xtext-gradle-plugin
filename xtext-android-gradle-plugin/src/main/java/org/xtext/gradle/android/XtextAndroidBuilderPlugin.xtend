@@ -13,6 +13,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.xtext.gradle.XtextBuilderPlugin
+import org.xtext.gradle.XtextJavaLanguagePlugin
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
@@ -25,7 +26,10 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 
 	override apply(Project project) {
 		this.project = project
-		project.plugins.<XtextBuilderPlugin>apply(XtextBuilderPlugin)
+		project.apply[
+			plugin(XtextBuilderPlugin)
+			plugin(XtextJavaLanguagePlugin)
+		]
 		xtext = project.extensions.getByType(XtextExtension)
 		project.plugins.withType(AppPlugin)[configureAndroid]
 		project.plugins.withType(LibraryPlugin)[configureAndroid]
