@@ -78,6 +78,7 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
 			generatorTask.classpath = variant.javaCompiler.classpath.plus(project.files(android.bootClasspath))
 			generatorTask.classesDir = variant.javaCompiler.destinationDir
+			generatorTask.encoding = android.compileOptions.encoding
 			variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
 		]
 	}

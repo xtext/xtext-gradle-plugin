@@ -24,6 +24,7 @@ import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.protocol.IncrementalXtextBuilderFactory
 import org.xtext.gradle.tasks.internal.FilteringClassLoader
+import com.google.common.base.Charsets
 
 class XtextGenerate extends DefaultTask {
 	
@@ -39,7 +40,7 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @Input @Optional String bootClasspath
 
-	@Accessors @Input String encoding = "UTF-8"
+	@Accessors @Input @Optional String encoding
 	
 	@Accessors @Input @Optional File classesDir
 
@@ -54,6 +55,10 @@ class XtextGenerate extends DefaultTask {
 	
 	def getNullSafeClasspath() {
 		classpath ?: project.files
+	}
+	
+	def getNullSafeEncoding() {
+		encoding ?: Charsets.UTF_8 //TODO probably should be default charset
 	}
 	
 	@OutputDirectories
