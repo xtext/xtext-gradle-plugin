@@ -37,14 +37,33 @@ Features
 Options
 --------
 
-Xtend uses the Xtext Builder plugin under the hood. It is available for configuration using
+The Xtend plugin comes with good default settings that will suit most projets. But it is
 
 ```groovy
-xtext {
-  languages {
-    xtend {
-      //customizations here
+xtend {
+  generator {
+    //whether to generate @SuppressWarnings("all"), enabled by default
+    suppressWarningsAnnotation = false
+    //whether to generate the @Generated annotation, disabled by default
+    generatedAnnotation {
+      enabled = true
+      comment = "Copyright My Cool Company"
+      includeDate = true
     }
+  }
+  debugger {
+    //how to install debug info into generated Java code
+    //SMAP adds Xtend debug info on top of Java
+    //PRIMARY makes Xtend the only debug info (throws away Java line numbers)
+    //default is SMAP for Java projects and PRIMARY for Android
+    sourceInstaller = 'SMAP' //or 'PRIMARY' or 'NONE'
+    //whether to hide synthetic variables in the debugger
+    hideSyntheticVariables = true
+  }
+  validator {
+    //adjust severity of issues
+    //available levels are error, warning, info and ignore
+    error 'org.eclipse.xtend.core.validation.IssueCodes.unused_private_member'
   }
 }
 ```

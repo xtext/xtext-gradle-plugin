@@ -173,7 +173,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
         debugger {
           //how to install debug info into generated Java code
           //SMAP is recommended in most cases (but Android does not support it)
-          //PRIMARY makes Xtend the only debug info (throws away Java line numbers)
+          //PRIMARY makes Xtext the only debug info (throws away Java line numbers)
           sourceInstaller = 'SMAP' //or 'PRIMARY' or 'NONE'
           //whether to hide synthetic variables in the debugger
           hideSyntheticVariables = true
