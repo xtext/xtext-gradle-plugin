@@ -37,7 +37,7 @@ Features
 Options
 --------
 
-The Xtend plugin comes with good default settings that will suit most projets. But it is
+The Xtend plugin comes with good default settings that will suit most projets. But you can customize every aspect:
 
 ```groovy
 xtend {
