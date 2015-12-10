@@ -14,7 +14,6 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 			apply plugin: 'java'
 			apply plugin: 'eclipse'
 			apply plugin: 'org.xtext.builder'
-			apply plugin: 'org.xtext.java'
 			
 			xtext {
 				version = '2.9.0'
