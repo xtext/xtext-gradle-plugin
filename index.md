@@ -2,8 +2,8 @@
 layout: default
 ---
 
-Learn about:
+The [Xtext](xtext.org) [Gradle](gradle.org) Plugins help you with developing and using Xtext languages.
 
- - [Xtext](xtext-builder.html)
- - [Xtend](xtend.html)
- - [IntelliJ IDEA](intellij.html)
+ - [Xtend Compiler Plugin](xtend.html)
+ - [Xtext Builder Plugin](xtext-builder.html)
+ - [IntelliJ IDEA Builder Plugin](intellij.html)
