@@ -153,6 +153,25 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		file('build/classes/main/com/example/HelloWorld.class').shouldExist
 	}
+	
+	@Test
+	def void theOutputFolderCanBeConfigured() {
+		buildFile << '''
+			sourceSets.main.xtendOutputDir = "build/xtend-gen"
+		'''
+		// given
+		file('src/main/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+
+		// when
+		build('build')
+
+		// then
+		file('build/xtend-gen/com/example/HelloWorld.java').shouldExist
+		file('build/classes/main/com/example/HelloWorld.class').shouldExist
+	}
 
 }
 

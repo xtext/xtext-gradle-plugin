@@ -9,19 +9,22 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
 import static extension org.xtext.gradle.GradleExtensions.*
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.internal.plugins.DslObject
+import org.xtext.gradle.tasks.internal.XtendSourceSet
 
 class XtendLanguageBasePlugin implements Plugin<Project> {
-	
+
 	Project project
 	XtextExtension xtext
-	
+
 	override apply(Project project) {
 		this.project = project
 		project.apply[plugin(JavaBasePlugin)]
 		project.apply[plugin(XtextBuilderPlugin)]
 		project.apply[plugin(XtextJavaLanguagePlugin)]
 		xtext = project.extensions.getByType(XtextExtension)
-		val xtend = xtext.languages.create("xtend")[
+		val xtend = xtext.languages.create("xtend") [
 			fileExtension = "xtend"
 			setup = "org.eclipse.xtend.core.XtendStandaloneSetup"
 			generator.outlet.producesJava = true
@@ -29,14 +32,22 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 				sourceInstaller = SourceInstaller.SMAP
 			]
 		]
+		project.tasks.withType(XtextGenerate).all [
+			automaticallyInferXtendComilerClasspath
+		]
 		project.extensions.add("xtend", xtend)
-		project.tasks.withType(XtextGenerate).all[
-			enhanceBuilderDependencies
+		val java = project.convention.getPlugin(JavaPluginConvention)
+		java.sourceSets.all [ sourceSet |
+			val xtendSourceSet = new XtendSourceSet(
+				xtext.sourceSets.getAt(sourceSet.name),
+				xtend.generator.outlet
+			)
+			new DslObject(sourceSet).convention.plugins.put("xtend", xtendSourceSet)
 		]
 	}
-	
-	def void enhanceBuilderDependencies(XtextGenerate generatorTask) {
-		generatorTask.beforeExecute[
+
+	def void automaticallyInferXtendComilerClasspath(XtextGenerate generatorTask) {
+		generatorTask.beforeExecute [
 			val builderClasspathBefore = generatorTask.xtextClasspath
 			val classpath = generatorTask.classpath
 			val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
