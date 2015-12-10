@@ -51,8 +51,6 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			if (variant instanceof TestedVariant) {
 				if (variant.testVariant != null)
 					configureSourceSetForVariant(variant.testVariant)
-				if (variant.unitTestVariant != null)
-					configureSourceSetForVariant(variant.unitTestVariant)
 			}
 		]
 	}
@@ -60,16 +58,21 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 	private def configureSourceSetForVariant(BaseVariant variant) {
 		xtext.sourceSets.maybeCreate(variant.name) => [ sourceSet |
 			val generatorTask = project.tasks.getByName(sourceSet.generatorTaskName) as XtextGenerate
-			generatorTask.dependsOn(variant.javaGeneratingTasks)
+			generatorTask.dependsOn(
+				variant.aidlCompile,
+				variant.renderscriptCompile,
+				variant.generateBuildConfig
+			)
+			generatorTask.dependsOn(variant.outputs.map[processResources])
 			variant.javaCompiler.doLast[generatorTask.installDebugInfo]
 			val sourceDirs = newArrayList
 			val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
 			sourceDirs += javaDirs
 			sourceDirs += #[
-				variant.aidlCompile?.sourceOutputDir,
-				variant.generateBuildConfig?.sourceOutputDir,
-				variant.renderscriptCompile?.sourceOutputDir
-			].filterNull
+				variant.aidlCompile.sourceOutputDir,
+				variant.generateBuildConfig.sourceOutputDir,
+				variant.renderscriptCompile.sourceOutputDir
+			]
 			sourceDirs += variant.outputs.map[processResources.sourceOutputDir]					
 			sourceSet.srcDirs(sourceDirs)
 			generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
@@ -78,16 +81,6 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			generatorTask.encoding = android.compileOptions.encoding
 			variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
 		]
-	}
-	
-	private def getJavaGeneratingTasks(BaseVariant variant) {
-		val tasks = newHashSet(
-			variant.aidlCompile,
-			variant.renderscriptCompile,
-			variant.generateBuildConfig
-		)
-		tasks += variant.outputs.map[processResources]
-		return tasks.filterNull
 	}
 
 	private def configureGeneratorDefaults() {
