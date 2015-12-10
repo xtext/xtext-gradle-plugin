@@ -7,7 +7,7 @@ weight: 10
 Xtext Builder Plugin
 ====================
 
-A Gradle Plugin for using [Xtext](xtext.org)-based code generators. Get the latest version from [JCenter](http://plugins.gradle.org/plugin/org.xtext.builder).
+A Gradle Plugin for using [Xtext](xtext.org)-based code generators. Get the latest version from the [Plugin Portal](http://plugins.gradle.org/plugin/org.xtext.builder)
 
 The plugin allows any number of Xtext languages to cross-link against each other. The Generator works incrementally, only indexing, validating and generating for files that were affected by a change. It integrates well with other Gradle plugins like the Java plugin, Eclipse plugin and the Android build tools.
 
@@ -46,12 +46,11 @@ Below is the minimal configuration for a language that does not integrate with J
 Java Integration
 ----------------
 
-If you apply the Java plugin, an Xtext Generator task is created for every Java SourceSet. The Java compiler task is set to depend on this Generator task. The compile dependencies of the SourceSet are also available to the DSL files. If your languages produce Java code, their debug information is automatically installed into the class files after Java compilation. If you want your languages to link against Java, you can apply the `org.xtext.java` plugin.
+If you apply the Java plugin, an Xtext Generator task is created for every Java SourceSet. The Java compiler task is set to depend on this Generator task. The compile dependencies of the SourceSet are also available to the DSL files. If your languages produce Java code, their debug information is automatically installed into the class files after Java compilation.
 
 ```groovy
   plugins {
     id 'org.xtext.builder' version '1.0.0'
-    id 'org.xtext.java' version '1.0.0'
     id 'java'
   }
 
@@ -75,15 +74,14 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 Android Integration
 -------------------
-For Android integration, use the `org.xtext.android` plugin.
+For Android integration, use the [org.xtext.android](http://plugins.gradle.org/plugin/org.xtext.android) plugin.
 
-An Xtext Generator task is created for every Variant as well as for the tests. The Java compiler task is set to depend on this Generator task. The compile dependencies of the Variant are also available to the DSL files. If your languages produce Java code, their debug information is automatically installed into the class files after Java compilation. If you want your languages to link against Java, you can apply the `org.xtext.java` plugin.
+An Xtext Generator task is created for every Variant as well as for the tests. The Java compiler task is set to depend on this Generator task. The compile dependencies of the Variant are also available to the DSL files. If your languages produce Java code, their debug information is automatically installed into the class files after Java compilation.
 
 ```groovy
   plugins {
     id 'com.android.application' version '1.5.0'
     id 'org.xtext.android' version '1.0.0'
-    id 'org.xtext.java' version '1.0.0'
   }
 
   //repositories, dependencies and xtext configuration same as above
@@ -111,7 +109,6 @@ Below is a more elaborate example with two hypothetical languages that makes use
 ```groovy
   plugins {
     id 'org.xtext.builder' version '1.0.0'
-    id 'org.xtext.java' version '1.0.0'
     id 'java'
   }
 
@@ -185,7 +182,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
           warning 'something.Phishy'
           ignore 'some.warning.you.dont.care.About'
         }
-        //you can add arbitray key-value pairs to the preferences
+        //you can add arbitrary key-value pairs to the preferences
         preferences my_special_preference_key: true
       }
     }
