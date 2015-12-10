@@ -37,7 +37,6 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 		buildFile << '''
 			apply plugin: 'java'
 			apply plugin: 'org.xtext.builder'
-			apply plugin: 'org.xtext.java'
 			
 			dependencies {
 				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
