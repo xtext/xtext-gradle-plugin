@@ -7,7 +7,6 @@ import java.util.List
 import java.util.Set
 import java.util.concurrent.ConcurrentHashMap
 import org.eclipse.emf.common.util.URI
-import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtext.ISetup
 import org.eclipse.xtext.build.BuildRequest
 import org.eclipse.xtext.build.IncrementalBuilder
@@ -46,11 +45,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val incrementalbuilder = sharedInjector.getInstance(IncrementalBuilder)
 	val debugInfoInstaller = sharedInjector.getInstance(DebugInfoInstaller)
 	
-	@Accessors
 	val String owner
-	@Accessors
 	val Set<String> languageSetups
-	@Accessors
 	val String encoding
 
 	new(String owner, Set<String> setupNames, String encoding) throws Exception {
@@ -64,6 +60,16 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		this.owner = owner
 		this.languageSetups = setupNames
 		this.encoding = encoding
+	}
+	
+	override isCompatible(String owner, Set<String> languageSetups, String encoding) {
+		return owner == this.owner
+			&& languageSetups == this.languageSetups
+			&& encoding == this.encoding
+	}
+	
+	override needsCleanBuild(String containerHandle) {
+		index.getContainer(containerHandle) == null
 	}
 
 	override GradleBuildResponse build(GradleBuildRequest gradleRequest) {

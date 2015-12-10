@@ -69,7 +69,6 @@ class XtextGenerate extends DefaultTask {
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
 		generatedFiles = newHashSet
-		val builderUpToDate = isBuilderUpToDate
 
 		val removedFiles = newLinkedHashSet
 		val outOfDateFiles = newLinkedHashSet
@@ -82,7 +81,7 @@ class XtextGenerate extends DefaultTask {
 				removedFiles += file
 		]
 		
-		if (!builderUpToDate) {
+		if (needsCleanBuild) {
 			outOfDateFiles += getSources
 			outOfDateFiles += getNullSafeClasspath
 		}
@@ -103,13 +102,13 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
-		if (!builderUpToDate) {
+		if (!isBuilderCompatible) {
 			initializeBuilder
 		}
 		val request = new GradleBuildRequest => [
 			projectName = project.name
 			projectDir = project.projectDir
-			containerHandle = project.path + ':' + sources.name
+			containerHandle = this.containerHandle
 			dirtyFiles = outOfDateFiles
 			deletedFiles = removedFiles
 			classpath = this.getNullSafeClasspath.files
@@ -143,8 +142,12 @@ class XtextGenerate extends DefaultTask {
 		generatedFiles = response.generatedFiles
 	}
 	
+	private def getContainerHandle() {
+		project.path + ':' + sources.name
+	}
+	
 	def installDebugInfo() {
-		if (!builderUpToDate) {
+		if (!isBuilderCompatible) {
 			initializeBuilder
 		}
 		val request = new GradleInstallDebugInfoRequest => [
@@ -167,7 +170,7 @@ class XtextGenerate extends DefaultTask {
 		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, encoding, builderClassLoader)
 	}
 	
-	private def isBuilderUpToDate() {
+	private def isBuilderCompatible() {
 		if (builder === null) {
 			return false
 		}
@@ -176,16 +179,11 @@ class XtextGenerate extends DefaultTask {
 		if (oldClasspath != newClasspath) {
 			return false
 		}
-		if (builder.languageSetups != languageSetups) {
-			return false
-		}
-		if (builder.encoding != encoding) {
-			return false
-		}
-		if (builder.owner != project.rootDir.path) {
-			return false
-		}
-		return true
+		return builder.isCompatible(project.rootDir.path, languageSetups, encoding)
+	}
+	
+	private def needsCleanBuild() {
+		! isBuilderCompatible || builder.needsCleanBuild(containerHandle)
 	}
 	
 	private def getLanguageSetups() {
