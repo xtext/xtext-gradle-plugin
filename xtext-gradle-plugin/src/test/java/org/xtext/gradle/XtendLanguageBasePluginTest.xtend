@@ -5,6 +5,7 @@ import org.junit.Test
 import org.xtext.gradle.tasks.XtextExtension
 
 import static org.junit.Assert.*
+import org.xtext.gradle.tasks.Language
 
 class XtendLanguageBasePluginTest extends AbstractPluginTest {
 
@@ -32,6 +33,16 @@ class XtendLanguageBasePluginTest extends AbstractPluginTest {
 		val ext = project.extensions.getByType(XtextExtension)
 		val languageNames = ext.languages.names
 		assertTrue(languageNames.contains('xtend'))
+	}
+	
+	@Test
+	def void xtendExtensionIsAvailable() {
+		// when
+		project.apply(pluginClass)
+
+		// then
+		val language = project.extensions.getByName("xtend") as Language
+		assertTrue(language.name == "xtend")
 	}
 
 }

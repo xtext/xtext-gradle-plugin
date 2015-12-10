@@ -21,7 +21,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 		project.apply[plugin(XtextBuilderPlugin)]
 		project.apply[plugin(XtextJavaLanguagePlugin)]
 		xtext = project.extensions.getByType(XtextExtension)
-		xtext.languages.create("xtend")[
+		val xtend = xtext.languages.create("xtend")[
 			fileExtension = "xtend"
 			setup = "org.eclipse.xtend.core.XtendStandaloneSetup"
 			generator.outlet.producesJava = true
@@ -29,6 +29,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 				sourceInstaller = SourceInstaller.SMAP
 			]
 		]
+		project.extensions.add("xtend", xtend)
 		project.tasks.withType(XtextGenerate).all[
 			enhanceBuilderDependencies
 		]
