@@ -36,7 +36,7 @@ The following snippet explains the syntax elements of the plugin.
 
 ```groovy
 plugins {
-	id 'org.xtext.idea-plugin' version '0.3.27'
+	id 'org.xtext.idea-plugin' version '1.0.0'
 }
 
 ideaDevelopment {
@@ -60,7 +60,7 @@ Advanced use cases
 ------------------
 
 ### I want to test against an existing IntelliJ installation
-Leave out the ideaVersion and specify a path instead
+Leave out the ideaVersion and specify a path instead.
 
 ```groovy
 ideaDevelopment {
@@ -69,12 +69,30 @@ ideaDevelopment {
 ```
 
 ###I want to build several IDEA plugins in one build
-Apply the `org.xtext.idea-aggregator` plugin to the parent project. This adds an aggregated `runIdea` task that starts IntelliJ with all your plugins installed.
-
-###I want to publish an IntelliJ Enterprise Repository
-Apply the `org.xtext.idea-repository` plugin. This adds the `ideaRepository` task. It collects all `ideaZip`s from this project and all subprojects and creates an [updatePlugins.xml](http://blog.jetbrains.com/idea/2008/03/enterprise-plugin-repository/) descriptor.
-Be sure to supply a root URL for the repository
+You can have a (parent) project that is not a plugin itself, but references other plugins.
 
 ```groovy
+plugins {
+	id 'org.xtext.idea-development' version '1.0.0'
+}
+
+ideaDevelopment {
+	pluginDependencies {
+		//projects to be included when you call 'runIdea'
+		project 'project1'
+		project 'project2'
+	}
+}
+```
+
+###I want to publish an IntelliJ Enterprise Repository
+
+```groovy
+plugins {
+	id 'org.xtext.idea-repository' version '1.0.0'
+}
+
 ideaRepository.rootUrl = '<the URL to which you will upload the ideaRepository folder>'
 ```
+
+This adds the `ideaRepository` task. It collects all `ideaZip`s from this project and all refrenced plugin projects and creates an [updatePlugins.xml](http://blog.jetbrains.com/idea/2008/03/enterprise-plugin-repository/) descriptor.
