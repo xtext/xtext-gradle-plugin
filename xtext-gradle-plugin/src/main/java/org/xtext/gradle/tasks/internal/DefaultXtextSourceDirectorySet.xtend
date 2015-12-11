@@ -12,6 +12,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
+import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
 
@@ -22,10 +23,10 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	Project project
 	List<Object> source = newArrayList
 
-	new(String name, Project project) {
+	new(String name, Project project, XtextExtension xtext) {
 		this.name = name
 		this.project = project
-		output = new DefaultXtextSourceSetOutputs(project)
+		output = new DefaultXtextSourceSetOutputs(project, xtext)
 	}
 
 	override XtextSourceDirectorySet srcDir(Object srcDir) {

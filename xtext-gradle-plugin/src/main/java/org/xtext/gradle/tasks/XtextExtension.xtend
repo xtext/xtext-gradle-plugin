@@ -29,7 +29,7 @@ class XtextExtension {
 
 	new(Project project, FileResolver fileResolver) {
 		this.project = project
-		sourceSets = project.container(XtextSourceDirectorySet)[name|new DefaultXtextSourceDirectorySet(name, project)]
+		sourceSets = project.container(XtextSourceDirectorySet)[name|new DefaultXtextSourceDirectorySet(name, project, this)]
 		languages = project.container(Language)[name|new Language(name, project)]
 	}
 
