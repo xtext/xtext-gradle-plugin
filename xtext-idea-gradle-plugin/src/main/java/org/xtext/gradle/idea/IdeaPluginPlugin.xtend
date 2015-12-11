@@ -11,10 +11,13 @@ class IdeaPluginPlugin implements Plugin<Project> {
 	public static val IDEA_ZIP_TASK_NAME = "ideaZip"
 
 	override apply(Project project) {
-		project.plugins.<IdeaComponentPlugin>apply(IdeaComponentPlugin)
-		val providedDependencies = project.configurations.getAt(IdeaComponentPlugin.IDEA_PROVIDED_CONFIGURATION_NAME)
+		project.apply[
+			plugin(IdeaDevelopmentPlugin)
+			plugin(JavaPlugin)
+		]
+		val providedDependencies = project.configurations.getAt(IdeaDevelopmentPlugin.IDEA_PROVIDED_CONFIGURATION_NAME)
 		val runtimeDependencies = project.configurations.getAt(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
-		val assembleSandbox = project.tasks.getAt(IdeaComponentPlugin.ASSEMBLE_SANDBOX_TASK_NAME) as AssembleSandbox
+		val assembleSandbox = project.tasks.getAt(IdeaDevelopmentPlugin.ASSEMBLE_SANDBOX_TASK_NAME) as AssembleSandbox
 
 		val jar = project.tasks.getAt(JavaPlugin.JAR_TASK_NAME)
 		assembleSandbox => [

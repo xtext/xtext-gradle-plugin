@@ -1,12 +1,12 @@
 package org.xtend.gradle.idea
 
+import org.gradle.api.GradleException
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
-import org.xtext.gradle.idea.IdeaComponentPlugin
+import org.xtext.gradle.idea.IdeaDevelopmentPlugin
 
 import static org.junit.Assert.*
-import org.gradle.api.GradleException
 
 class IdeaPluginTest {
 	
@@ -24,7 +24,7 @@ class IdeaPluginTest {
 		
 		project.plugins.apply("eclipse")
 		
-		val ideaProvided = project.configurations.getAt(IdeaComponentPlugin.IDEA_PROVIDED_CONFIGURATION_NAME)
+		val ideaProvided = project.configurations.getAt(IdeaDevelopmentPlugin.IDEA_PROVIDED_CONFIGURATION_NAME)
 		val eclipseConfigurations = project.convention.getByType(EclipseModel).classpath.plusConfigurations
 		assertTrue(eclipseConfigurations.contains(ideaProvided))
 	}
