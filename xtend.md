@@ -7,7 +7,7 @@ weight: 20
 Xtend Compiler
 ===================
 
-A Gradle plugin for compiling [Xtend](xtend-lang.org) source code.
+A Gradle plugin for compiling [Xtend](http://xtend-lang.org) source code.
 
 Getting Started
 ------

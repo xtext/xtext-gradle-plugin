@@ -7,7 +7,7 @@ weight: 30
 The Xtext IDEA build system
 ===========================
 
-This plugin builds [IntelliJ IDEA](https://www.jetbrains.com/idea/) plugins for [Xtext](xtext.org) languages. It is automatically added to your build if you choose 'IntelliJ support' in the Xtext wizard.
+This plugin builds [IntelliJ IDEA](https://www.jetbrains.com/idea/) plugins for [Xtext](http://xtext.org) languages. It is automatically added to your build if you choose 'IntelliJ support' in the Xtext wizard.
 
 Usage
 -----
