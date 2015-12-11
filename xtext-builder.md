@@ -32,6 +32,7 @@ Below is the minimal configuration for a language that does not integrate with J
   xtext {
     languages {
       herolang {
+        fileExtension = 'hero' // required, unless fileExtension == language name (here "herolang")
         setup = 'org.example.herolang.HerolangStandaloneSetup'
       }
     }
