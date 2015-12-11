@@ -7,7 +7,7 @@ weight: 10
 Xtext Builder Plugin
 ====================
 
-A Gradle Plugin for using [Xtext](xtext.org)-based code generators. Get the latest version from the [Plugin Portal](http://plugins.gradle.org/plugin/org.xtext.builder)
+A Gradle Plugin for using [Xtext](http://xtext.org)-based code generators. Get the latest version from the [Plugin Portal](http://plugins.gradle.org/plugin/org.xtext.builder)
 
 The plugin allows any number of Xtext languages to cross-link against each other. The Generator works incrementally, only indexing, validating and generating for files that were affected by a change. It integrates well with other Gradle plugins like the Java plugin, Eclipse plugin and the Android build tools.
 

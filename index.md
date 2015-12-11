@@ -2,7 +2,7 @@
 layout: default
 ---
 
-The [Xtext](xtext.org) [Gradle](gradle.org) Plugins help you with developing and using Xtext languages.
+The [Xtext](http://xtext.org) [Gradle](http://gradle.org) Plugins help you with developing and using Xtext languages.
 
  - [Xtend Compiler Plugin](xtend.html)
  - [Xtext Builder Plugin](xtext-builder.html)
