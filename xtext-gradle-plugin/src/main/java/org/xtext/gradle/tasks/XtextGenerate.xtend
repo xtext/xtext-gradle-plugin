@@ -39,12 +39,12 @@ class XtextGenerate extends DefaultTask {
 	@Accessors @InputFiles @Optional FileCollection classpath
 
 	@Accessors @Input @Optional String bootClasspath
-
-	@Accessors @Input @Optional String encoding
 	
 	@Accessors @Input @Optional File classesDir
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
+	
+	@Accessors @Nested val XtextBuilderOptions options = new XtextBuilderOptions
 	
 	Collection<File> generatedFiles
 	
@@ -58,7 +58,7 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	def getNullSafeEncoding() {
-		encoding ?: Charsets.UTF_8 //TODO probably should be default charset
+		options.encoding ?: Charsets.UTF_8.name //TODO probably should be default charset
 	}
 	
 	@OutputDirectories
@@ -167,7 +167,7 @@ class XtextGenerate extends DefaultTask {
 		if (builder !== null) {
 			(builder.class.classLoader as URLClassLoader).close
 		}
-		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, encoding, builderClassLoader)
+		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, nullSafeEncoding, builderClassLoader)
 	}
 	
 	private def isBuilderCompatible() {
@@ -179,11 +179,11 @@ class XtextGenerate extends DefaultTask {
 		if (oldClasspath != newClasspath) {
 			return false
 		}
-		return builder.isCompatible(project.rootDir.path, languageSetups, encoding)
+		return builder.isCompatible(project.rootDir.path, languageSetups, nullSafeEncoding)
 	}
 	
 	private def needsCleanBuild() {
-		! isBuilderCompatible || builder.needsCleanBuild(containerHandle)
+		!options.incremental || ! isBuilderCompatible || builder.needsCleanBuild(containerHandle)
 	}
 	
 	private def getLanguageSetups() {

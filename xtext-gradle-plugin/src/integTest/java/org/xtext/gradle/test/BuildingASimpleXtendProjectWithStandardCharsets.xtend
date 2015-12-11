@@ -9,7 +9,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
-import org.xtext.gradle.tasks.XtextGenerate
 
 import static java.nio.charset.StandardCharsets.*
 import static org.junit.Assert.*
@@ -48,9 +47,6 @@ class BuildingASimpleXtendProjectWithStandardCharsets extends AbstractXtendInteg
 		// given
 		buildFile << '''
 			«xtendPluginSnippet»
-			tasks.withType(«XtextGenerate.name») {
-				encoding = "«charset.name»"
-			}
 			tasks.withType(«JavaCompile.name») {
 				options.encoding = "«charset.name»"
 			}

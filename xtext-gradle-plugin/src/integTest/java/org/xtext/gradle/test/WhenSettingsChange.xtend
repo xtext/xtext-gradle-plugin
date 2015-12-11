@@ -3,7 +3,6 @@ package org.xtext.gradle.test
 import org.gradle.api.tasks.compile.JavaCompile
 import org.junit.Ignore
 import org.junit.Test
-import org.xtext.gradle.tasks.XtextGenerate
 
 class WhenSettingsChange extends AbstractXtendIntegrationTest {
 
@@ -12,9 +11,6 @@ class WhenSettingsChange extends AbstractXtendIntegrationTest {
 		buildFile << '''
 			xtext {
 				languages.xtend.generator.javaSourceLevel = "1.7"
-			}
-			tasks.withType(«XtextGenerate.name») {
-				encoding = "UTF-8"
 			}
 			tasks.withType(«JavaCompile.name») {
 				options.encoding = "UTF-8"

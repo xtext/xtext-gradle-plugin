@@ -128,7 +128,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 								generatorTask.installDebugInfo
 							]
 						}
-						generatorTask.encoding = generatorTask.encoding ?: javaCompile.options.encoding
+						generatorTask.options.encoding = generatorTask.options.encoding ?: javaCompile.options.encoding
 						generatorTask.classpath = generatorTask.classpath ?: javaSourceSet.compileClasspath
 						generatorTask.bootClasspath = generatorTask.bootClasspath ?: javaCompile.options.bootClasspath
 						generatorTask.classesDir = generatorTask.classesDir ?: javaSourceSet.output.classesDir
