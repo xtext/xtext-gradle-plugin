@@ -23,6 +23,7 @@ import org.xtext.gradle.idea.tasks.IdeaExtension
 import org.xtext.gradle.idea.tasks.RunIdea
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
+import org.gradle.api.plugins.JavaBasePlugin
 
 class IdeaDevelopmentPlugin implements Plugin<Project> {
 	public static val IDEA_DEVELOPMENT_EXTENSION_NAME = "ideaDevelopment"
@@ -125,13 +126,15 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 	}
 	
 	private def integrateWithJavaPlugin(Project project) {
-		project.plugins.withType(JavaPlugin) [
+		project.plugins.withType(JavaBasePlugin) [
 			java = project.convention.getPlugin(JavaPluginConvention)
-			filterKnownIdeaJarsFromCompileClasspath(project)
-			addIdeaProvidedDependencies(project)
-			adjustTestEnvironment(project)
-			addIdeaDependenciesToEclipseClasspath(project)
-			addIdeaDependenciesToIntelliJClasspath(project)
+			project.plugins.withType(JavaPlugin) [
+				addIdeaProvidedDependencies(project)
+				addIdeaDependenciesToEclipseClasspath(project)
+				addIdeaDependenciesToIntelliJClasspath(project)
+				adjustTestEnvironment(project)
+				filterKnownIdeaJarsFromCompileClasspath(project)
+			]
 		]
 	}
 	
@@ -150,12 +153,12 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 			idea.ideaLibs.forEach[
 				project.dependencies.add(ideaProvided.name, it)
 			]
+			java.sourceSets.all [
+				compileClasspath = compileClasspath.plus(ideaProvided)
+				runtimeClasspath = runtimeClasspath.plus(idea.ideaRunClasspath)
+			]
 		]
 		
-		java.sourceSets.all [
-			compileClasspath = compileClasspath.plus(ideaProvided)
-			runtimeClasspath = runtimeClasspath.plus(ideaProvided).plus(idea.toolsJar)
-		]
 	}
 	
 	private def adjustTestEnvironment(Project project) {
@@ -175,7 +178,7 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 			eclipseClasspath.dependsOn(idea.downloadIdea, idea.downloadPlugins)
 			project.extensions.getByType(EclipseModel).classpath => [
 				plusConfigurations.add(ideaProvided)
-		
+
 				val fileReferenceFactory = new FileReferenceFactory
 				file.whenMerged.add [ Classpath it |
 					entries.filter(Library).filter[idea.ideaCoreLibs.contains(library.file)].forEach [
