@@ -154,6 +154,7 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 	private def adjustTestEnvironment(Project project) {
 		project.afterEvaluate[
 			project.tasks.withType(Test).all [
+				dependsOn(assembleSandbox)
 				systemProperty("idea.home.path", idea.ideaHome)
 				systemProperty("idea.plugins.path", idea.sandboxDir)
 				systemProperty('idea.system.path', project.buildDir + "/idea-test-system")
