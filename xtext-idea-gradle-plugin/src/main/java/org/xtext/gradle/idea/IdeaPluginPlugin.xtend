@@ -26,7 +26,7 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		assembleSandbox => [
 			libraries.from(jar)
 			libraries.from(runtimeDependencies.filter [ candidate |
-				!providedDependencies.exists[hasSameArtifactId(candidate, it)]
+				!providedDependencies.exists[hasSameArtifactIdAs(candidate)]
 			])
 			metaInf.from("META-INF")
 		]
@@ -43,7 +43,7 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		file1.artifactId == file2.artifactId
 	}
 	
-	private def getArtifactId(File file) {
+	private def getArtifactIdAs(File file) {
 		val matcher = ARTIFACT_ID.matcher(file.name)
 		if (matcher.matches) matcher.group(1) else null
 	}
