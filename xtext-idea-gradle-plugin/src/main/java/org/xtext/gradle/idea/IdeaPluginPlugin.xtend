@@ -39,11 +39,11 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		project.tasks.getAt(BasePlugin.ASSEMBLE_TASK_NAME).dependsOn(ideaZip)
 	}
 	
-	private def hasSameArtifactId(File file1, File file2) {
+	private def hasSameArtifactIdAs(File file1, File file2) {
 		file1.artifactId == file2.artifactId
 	}
 	
-	private def getArtifactIdAs(File file) {
+	private def getArtifactId(File file) {
 		val matcher = ARTIFACT_ID.matcher(file.name)
 		if (matcher.matches) matcher.group(1) else null
 	}
