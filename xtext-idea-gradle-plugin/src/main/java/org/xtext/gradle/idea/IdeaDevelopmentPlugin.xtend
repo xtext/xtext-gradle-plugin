@@ -133,17 +133,7 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 				addIdeaDependenciesToEclipseClasspath(project)
 				addIdeaDependenciesToIntelliJClasspath(project)
 				adjustTestEnvironment(project)
-				filterKnownIdeaJarsFromCompileClasspath(project)
 			]
-		]
-	}
-	
-	private def filterKnownIdeaJarsFromCompileClasspath(Project project) {
-		project.configurations.getAt(JavaPlugin.COMPILE_CONFIGURATION_NAME) => [
-			exclude(#{"module" -> "guava"})
-			exclude(#{"module" -> "log4j"})
-			exclude(#{"group" -> "org.ow2.asm"})
-			exclude(#{"group" -> "asm"})
 		]
 	}
 	
