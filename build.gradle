@@ -3,8 +3,8 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.xtend:xtend-gradle-plugin:0.4.7'
-    classpath 'com.github.oehme.sobula:sobula:0.6.5'
+    classpath 'org.xtend:xtend-gradle-plugin:0.4.14'
+    classpath 'com.github.oehme.sobula:sobula:0.6.6'
     classpath "com.netflix.nebula:nebula-project-plugin:2.2.1"
   }
 }
@@ -16,7 +16,7 @@ allprojects {
   bintray.pkg.name = "$rootProject.group:$rootProject.name"
 
   contacts {
-    "xtext@itemis.com" {
+    "xtext.team@gmail.com" {
       moniker "The Xtext team"
       roles "owner"
       github "xtext"
