@@ -3,39 +3,20 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.xtend:xtend-gradle-plugin:0.4.5'
-    classpath 'com.github.oehme.sobula:sobula:0.5.0'
+    classpath 'org.xtend:xtend-gradle-plugin:0.4.14'
+    classpath 'com.github.oehme.sobula:sobula:0.6.6'
+    classpath "com.netflix.nebula:nebula-project-plugin:2.2.1"
   }
-}
-
-/*
- * TODO this weird order is a workaround for a bug in the nebula publishing plugin
- * If they don't fix it soon, sobula should be rewritten to work without it.
- */
-configure(subprojects.findAll{p-> p.name.contains('plugin')}){
-  apply plugin: 'org.xtend.xtend'
-  apply plugin: 'java-gradle-plugin'
-  
-  dependencies {
-    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.8.0'
-  }
-}
-
-subprojects {
-  apply plugin: 'eclipse'
-  apply plugin: 'java'
-  
-  sourceCompatibility = 1.6
 }
 
 allprojects {
   apply plugin: 'com.github.oehme.sobula.plugin-release'
-  
+
   group = "org.xtext"
   bintray.pkg.name = "$rootProject.group:$rootProject.name"
-  
+
   contacts {
-    "xtext@itemis.com" {
+    "xtext.team@gmail.com" {
       moniker "The Xtext team"
       roles "owner"
       github "xtext"
@@ -45,9 +26,52 @@ allprojects {
   //TODO create bintray and central users
   bintray.user = "oehme"
   bintray.pkg.version.mavenCentralSync.user = "oehme"
+
   repositories {
     jcenter()
   }
 }
 
-bintray.publications = [] // don't publish a POM for the root project
+subprojects {
+  apply plugin: 'eclipse'
+  apply plugin: 'java'
+
+  sourceCompatibility = 1.6
+
+  tasks.withType(JavaCompile) {
+      options.encoding = 'UTF-8'
+  }
+
+  dependencies {
+    compile gradleApi()
+    compile 'com.google.guava:guava:18.0'
+  }
+}
+
+configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
+  apply plugin: 'org.xtend.xtend'
+
+  dependencies {
+    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+  }
+}
+
+configure(subprojects.findAll{p-> p.name.contains('plugin')}){
+  apply plugin: 'java-gradle-plugin'
+  apply plugin: "nebula.nebula-integtest"
+
+  jar {
+    manifest {
+      attributes("Implementation-Version": project.version)
+    }
+  }
+
+  dependencies {
+    integTestCompile gradleTestKit()
+  }
+
+  integrationTest {
+    dependsOn("install")
+    systemProperty 'gradle.project.version', version
+  }
+}

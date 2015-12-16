@@ -2,10 +2,9 @@ description 'A plugin for invoking Xtext base Code generators'
 
 dependencies {
 	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
+	compile project(':xtext-gradle-protocol')
 }
 
-jar {
-  manifest {
-    attributes("Implementation-Version": project.version)
-  }
+integrationTest {
+	dependsOn(':xtext-gradle-builder:install', ':xtext-gradle-protocol:install')
 }

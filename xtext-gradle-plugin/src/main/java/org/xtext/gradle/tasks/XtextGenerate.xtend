@@ -2,102 +2,197 @@ package org.xtext.gradle.tasks;
 
 import java.io.File
 import java.net.URLClassLoader
-import java.util.List
+import java.util.Collection
+import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
+import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.xtext.gradle.protocol.GradleBuildRequest
+import org.xtext.gradle.protocol.GradleGeneratorConfig
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
+import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig
+import org.xtext.gradle.protocol.GradleOutputConfig
+import org.xtext.gradle.protocol.IncrementalXtextBuilder
+import org.xtext.gradle.protocol.IncrementalXtextBuilderFactory
+import org.xtext.gradle.tasks.internal.FilteringClassLoader
+import com.google.common.base.Charsets
 
 class XtextGenerate extends DefaultTask {
+	
+	static IncrementalXtextBuilder builder
 
-	private XtextExtension xtext
+	@Accessors XtextSourceDirectorySet sources
+
+	@Accessors @Nested Set<Language> languages
 
 	@Accessors @InputFiles FileCollection xtextClasspath
 
-	@Accessors @InputFiles FileCollection classpath
+	@Accessors @InputFiles @Optional FileCollection classpath
 
-	def configure(XtextExtension xtext) {
-		this.xtext = xtext
-		xtext.languages.forEach [ Language lang |
-			lang.outputs.forEach [ OutputConfiguration output |
-				outputs.dir(output.dir)
-			]
-		]
-		inputs.source(xtext.sources)
+	@Accessors @Input @Optional String bootClasspath
+	
+	@Accessors @Input @Optional File classesDir
+
+	@Accessors XtextSourceSetOutputs sourceSetOutputs
+	
+	@Accessors @Nested val XtextBuilderOptions options = new XtextBuilderOptions
+	
+	Collection<File> generatedFiles
+	
+	@InputFiles @SkipWhenEmpty
+	def getSources() {
+		sources.files
+	}
+	
+	def getNullSafeClasspath() {
+		classpath ?: project.files
+	}
+	
+	def getNullSafeEncoding() {
+		options.encoding ?: Charsets.UTF_8.name //TODO probably should be default charset
+	}
+	
+	@OutputDirectories
+	def getOutputDirectories() {
+		sourceSetOutputs.dirs
 	}
 
 	@TaskAction
-	def generate() {
-		val args = newArrayList(
-			"-encoding",
-			xtext.getEncoding(),
-			"-cwd",
-			project.getProjectDir().absolutePath,
-			"-classpath",
-			getClasspath().asPath,
-			"-tempdir",
-			new File(project.buildDir, "xtext-temp").absolutePath
-		)
+	def generate(IncrementalTaskInputs inputs) {
+		generatedFiles = newHashSet
 
-		xtext.languages.forEach [ Language language |
-			args += #[
-				'''-L«language.name».setup=«language.setup»''',
-				'''-L«language.name».javaSupport=«language.consumesJava»'''
+		val removedFiles = newLinkedHashSet
+		val outOfDateFiles = newLinkedHashSet
+		inputs.outOfDate[
+			if (getSources.contains(file) || getNullSafeClasspath.contains(file))
+				outOfDateFiles += file
+		]
+		inputs.removed[
+			if (getSources.contains(file))
+				removedFiles += file
+		]
+		
+		if (needsCleanBuild) {
+			outOfDateFiles += getSources
+			outOfDateFiles += getNullSafeClasspath
+		}
+		
+		//TODO should be replaced by incremental jar indexing
+		val outOfDateClasspathEntries = newHashSet
+		outOfDateClasspathEntries.addAll(outOfDateFiles)
+		outOfDateClasspathEntries.retainAll(getNullSafeClasspath.files)
+		if (!outOfDateClasspathEntries.isEmpty) {
+			outOfDateFiles += getSources
+		}
+		
+		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {
+			return
+		}
+		
+		build(outOfDateFiles, removedFiles)
+	}
+	
+	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
+		if (!isBuilderCompatible) {
+			initializeBuilder
+		}
+		val request = new GradleBuildRequest => [
+			projectName = project.name
+			projectDir = project.projectDir
+			containerHandle = this.containerHandle
+			dirtyFiles = outOfDateFiles
+			deletedFiles = removedFiles
+			classpath = this.getNullSafeClasspath.files
+			it.bootClasspath = bootClasspath
+			sourceFolders = sources.srcDirs
+			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
+				val config = generator
+				new GradleGeneratorConfig => [
+					generateSyntheticSuppressWarnings = config.suppressWarningsAnnotation
+					generateGeneratedAnnotation = config.generatedAnnotation.active
+					includeDateInGeneratedAnnotation = config.generatedAnnotation.includeDate
+					generatedAnnotationComment = config.generatedAnnotation.comment
+					javaSourceLevel = JavaVersion.toVersion(config.javaSourceLevel)
+					outputConfigs = config.outlets.map[outlet|
+						new GradleOutputConfig => [
+							outletName = outlet.name
+							target = sourceSetOutputs.getDir(outlet)
+						]
+					].toSet
+				]
 			]
-			language.outputs.forEach [ OutputConfiguration output |
-				args += #[
-					'''-L«language.name».«output.name».dir=«output.dir»''',
-					'''-L«language.name».«output.name».createDir=true'''
+			preferencesByLanguage = languages.toMap[qualifiedName].mapValues[
+				val allPreferences = newHashMap
+				allPreferences.putAll(preferences.mapValues[toString])
+				allPreferences.putAll(validator.severities.mapValues[toString])
+				allPreferences
+			]
+			it.logger = this.logger
+		]
+		val response = builder.build(request)
+		generatedFiles = response.generatedFiles
+	}
+	
+	private def getContainerHandle() {
+		project.path + ':' + sources.name
+	}
+	
+	def installDebugInfo() {
+		if (!isBuilderCompatible) {
+			initializeBuilder
+		}
+		val request = new GradleInstallDebugInfoRequest => [
+			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
+			it.classesDir = classesDir
+			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
+				new GradleSourceInstallerConfig() => [
+					sourceInstaller = lang.debugger.sourceInstaller
+					hideSyntheticVariables = lang.debugger.hideSyntheticVariables
 				]
 			]
 		]
-		args += xtext.sources.srcDirs.map[absolutePath]
-		generate(args)
+		builder.installDebugInfo(request)
 	}
-
-	def generate(List<String> arguments) {
-		System.setProperty("org.eclipse.emf.common.util.ReferenceClearingQueue", "false")
-		val contextClassLoader = Thread.currentThread.contextClassLoader
-		val classLoader = getCompilerClassLoader(getXtextClasspath)
-		try {
-			Thread.currentThread.contextClassLoader = classLoader
-			val main = classLoader.loadClass("org.xtext.builder.standalone.Main")
-			val method = main.getMethod("generate", typeof(String[]))
-			val success = method.invoke(null, #[arguments as String[]]) as Boolean
-			if (!success) {
-				throw new GradleException('''Xtext generation failed''');
-			}
-		} finally {
-			Thread.currentThread.contextClassLoader = contextClassLoader
+	
+	private def initializeBuilder() {
+		if (builder !== null) {
+			(builder.class.classLoader as URLClassLoader).close
 		}
+		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, nullSafeEncoding, builderClassLoader)
 	}
-
-	static val currentCompilerClassLoader = new ThreadLocal<URLClassLoader>() {
-		override protected initialValue() {
-			null
+	
+	private def isBuilderCompatible() {
+		if (builder === null) {
+			return false
 		}
-	}
-
-	private def getCompilerClassLoader(FileCollection classpath) {
-		val classPathWithoutLog4j = classpath.filter[!name.contains("log4j")]
-		val urls = classPathWithoutLog4j.map[absoluteFile.toURI.toURL].toList
-		val currentClassLoader = currentCompilerClassLoader.get
-		if (currentClassLoader !== null && currentClassLoader.URLs.toList == urls) {
-			return currentClassLoader
-		} else {
-			val newClassLoader = new URLClassLoader(urls, loggingBridgeClassLoader)
-			currentCompilerClassLoader.set(newClassLoader)
-			return newClassLoader
+		val oldClasspath = (builder.class.classLoader as URLClassLoader).URLs.toList
+		val newClasspath = builderClassLoader.URLs.toList
+		if (oldClasspath != newClasspath) {
+			return false
 		}
+		return builder.isCompatible(project.rootDir.path, languageSetups, nullSafeEncoding)
 	}
-
-	private def loggingBridgeClassLoader() {
-		new FilteringClassLoader(XtextGenerate.classLoader) => [
-			allowPackage("org.slf4j")
-			allowPackage("org.apache.log4j")
-		]
+	
+	private def needsCleanBuild() {
+		!options.incremental || ! isBuilderCompatible || builder.needsCleanBuild(containerHandle)
+	}
+	
+	private def getLanguageSetups() {
+		languages.map[setup].toSet
+	}
+	
+	private def getBuilderClassLoader() {
+		val parent = class.classLoader
+		val filtered = new FilteringClassLoader(parent, #["org.gradle", "org.apache.log4j", "org.slf4j", "org.xtext.gradle"])
+		new URLClassLoader(xtextClasspath.map[toURI.toURL], filtered)
 	}
 }
