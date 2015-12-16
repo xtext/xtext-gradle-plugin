@@ -145,7 +145,7 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 			]
 			java.sourceSets.all [
 				compileClasspath = compileClasspath.plus(ideaProvided)
-				runtimeClasspath = runtimeClasspath.plus(idea.ideaRunClasspath)
+				runtimeClasspath = runtimeClasspath.plus(ideaProvided).plus(idea.toolsJar)
 			]
 		]
 		
