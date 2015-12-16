@@ -23,9 +23,8 @@ allprojects {
     }
   }
 
-  //TODO create bintray and central users
-  bintray.user = "oehme"
-  bintray.pkg.version.mavenCentralSync.user = "oehme"
+  bintray.user = "xtext-team"
+  bintray.pkg.version.mavenCentralSync.user = "xtext.team"
 
   repositories {
     jcenter()
