@@ -139,16 +139,15 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 	
 	private def addIdeaProvidedDependencies(Project project) {
 		ideaProvided = project.configurations.create(IDEA_PROVIDED_CONFIGURATION_NAME)
+		java.sourceSets.all [
+			compileClasspath = compileClasspath.plus(ideaProvided)
+			runtimeClasspath = runtimeClasspath.plus(ideaProvided).plus(idea.toolsJar)
+		]
 		project.afterEvaluate [
 			idea.ideaLibs.forEach[
 				project.dependencies.add(ideaProvided.name, it)
 			]
-			java.sourceSets.all [
-				compileClasspath = compileClasspath.plus(ideaProvided)
-				runtimeClasspath = runtimeClasspath.plus(ideaProvided).plus(idea.toolsJar)
-			]
 		]
-		
 	}
 	
 	private def adjustTestEnvironment(Project project) {
