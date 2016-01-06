@@ -151,13 +151,13 @@ class XtextGenerate extends DefaultTask {
 			initializeBuilder
 		}
 		val request = new GradleInstallDebugInfoRequest => [
-			//Issue #37 Fix
-			if(generatedFiles.isNullOrEmpty){
-				val javaFiles = <File>newLinkedList
-				getSourceSetOutputs.dirs.forEach[
-					javaFiles += it.listFiles.filter[File f | f.name.endsWith(".java")]
+			if (generatedFiles.isNullOrEmpty) {
+				generatedFiles = newHashSet
+				getSourceSetOutputs.dirs.forEach [
+					generatedFiles += project.fileTree(it).files.filter[File f|
+						f.name.endsWith(".java")
+					]
 				]
-				generatedFiles = javaFiles
 			}
 			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
 			it.classesDir = classesDir
