@@ -151,6 +151,14 @@ class XtextGenerate extends DefaultTask {
 			initializeBuilder
 		}
 		val request = new GradleInstallDebugInfoRequest => [
+			if (generatedFiles.isNullOrEmpty) {
+				generatedFiles = newHashSet
+				getSourceSetOutputs.dirs.forEach [
+					generatedFiles += project.fileTree(it).files.filter[File f|
+						f.name.endsWith(".java")
+					]
+				]
+			}
 			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
 			it.classesDir = classesDir
 			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
