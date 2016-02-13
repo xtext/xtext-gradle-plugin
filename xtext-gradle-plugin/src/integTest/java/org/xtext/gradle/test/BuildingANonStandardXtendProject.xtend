@@ -67,7 +67,7 @@ class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 		val result = buildAndFail('build')
 
 		// then
-		assertTrue(result.standardError.contains('Constant condition is always true'))
+		assertTrue(result.output.contains('Constant condition is always true'))
 	}
 
 }

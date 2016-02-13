@@ -14,6 +14,6 @@ class XtextBuilderAssertions {
 	}
 	
 	private def containsGeneratorRunFor(BuildResult buildResult, File file) {
-		buildResult.standardOutput.contains("Starting validation for input: '" + file.name + "'")
+		buildResult.output.contains("Starting validation for input: '" + file.name + "'")
 	}
 }
