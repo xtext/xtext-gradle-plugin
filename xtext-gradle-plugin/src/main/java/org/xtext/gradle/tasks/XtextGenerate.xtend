@@ -1,5 +1,6 @@
 package org.xtext.gradle.tasks;
 
+import com.google.common.base.Charsets
 import java.io.File
 import java.net.URLClassLoader
 import java.util.Collection
@@ -24,7 +25,6 @@ import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.protocol.IncrementalXtextBuilderFactory
 import org.xtext.gradle.tasks.internal.FilteringClassLoader
-import com.google.common.base.Charsets
 
 class XtextGenerate extends DefaultTask {
 	
@@ -73,12 +73,18 @@ class XtextGenerate extends DefaultTask {
 		val removedFiles = newLinkedHashSet
 		val outOfDateFiles = newLinkedHashSet
 		inputs.outOfDate[
-			if (getSources.contains(file) || getNullSafeClasspath.contains(file))
+			if (getSources.contains(file) || getNullSafeClasspath.contains(file)) {
 				outOfDateFiles += file
+			} else if (getXtextClasspath.contains(file)) {
+				closeBuilder
+			}
 		]
 		inputs.removed[
-			if (getSources.contains(file))
+			if (getSources.contains(file)) {
 				removedFiles += file
+			} else if (getXtextClasspath.contains(file)) {
+				closeBuilder
+			}
 		]
 		
 		if (needsCleanBuild) {
@@ -172,10 +178,15 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	private def initializeBuilder() {
+		closeBuilder
+		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, nullSafeEncoding, builderClassLoader)
+	}
+	
+	private def closeBuilder() {
 		if (builder !== null) {
 			(builder.class.classLoader as URLClassLoader).close
+			builder = null
 		}
-		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, nullSafeEncoding, builderClassLoader)
 	}
 	
 	private def isBuilderCompatible() {
