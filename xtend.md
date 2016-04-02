@@ -64,6 +64,8 @@ xtend {
     //adjust severity of issues
     //available levels are error, warning, info and ignore
     error 'org.eclipse.xtend.core.validation.IssueCodes.unused_private_member'
+    // These issue IDs can be found in your Eclipse project's .settings/org.eclipse.xtend.core.Xtend.prefs
+    // after enabling Project > Properties > Xtend > Errors/Warnings: [X] Enable project specific settings
   }
 }
 ```
