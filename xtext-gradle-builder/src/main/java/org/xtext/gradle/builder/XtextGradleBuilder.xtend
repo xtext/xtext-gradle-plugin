@@ -37,6 +37,7 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
+import java.io.Closeable
 
 class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val index = new GradleResourceDescriptions
@@ -174,10 +175,12 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {
 		val resourceSet = request.resourceSet
 		val jvmTypesLoader = resourceSet.classpathURIContext as URLClassLoader
-		try {
-			jvmTypesLoader.close
-		} catch (Exception e) {
-			gradleRequest.logger.debug("Couldn't close jvm types classloader", e)
+		if (jvmTypesLoader instanceof Closeable) { // URLClassLoader has no close method in Java 6
+			try {
+				jvmTypesLoader.close
+			} catch (Exception e) {
+				gradleRequest.logger.debug("Couldn't close jvm types classloader", e)
+			}
 		}
 		resourceSet.resources.clear
 		resourceSet.eAdapters.clear
