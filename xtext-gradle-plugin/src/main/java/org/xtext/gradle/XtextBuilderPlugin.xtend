@@ -104,6 +104,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		project.plugins.withType(JavaBasePlugin) [
 			project.apply[plugin(XtextJavaLanguagePlugin)]
 			val java = project.convention.findPlugin(JavaPluginConvention)
+			xtext.languages.all [
+				project.afterEvaluate [p |
+					generator.javaSourceLevel = generator.javaSourceLevel ?: java.sourceCompatibility.majorVersion
+				]
+			]
 			java.sourceSets.all [ javaSourceSet |
 				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |

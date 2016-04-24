@@ -15,6 +15,8 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 			apply plugin: 'eclipse'
 			apply plugin: 'org.xtext.builder'
 			
+			sourceCompatibility = '1.6'
+			
 			xtext {
 				version = '2.9.0'
 				languages {
@@ -24,7 +26,6 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 							outlet {
 								producesJava = true
 							}
-							javaSourceLevel = '1.6'
 						}
 						validator {
 							error 'org.eclipse.xtend.some.some.issue'

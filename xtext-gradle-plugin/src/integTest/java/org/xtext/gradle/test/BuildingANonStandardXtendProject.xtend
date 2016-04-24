@@ -15,7 +15,7 @@ class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 		// given 
 		createHelloWorld
 		buildFile << '''
-			xtext.languages.xtend.generator.javaSourceLevel = "1.8"
+			sourceCompatibility = "1.8"
 		'''
 
 		// when
@@ -32,7 +32,7 @@ class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 		// given 
 		createHelloWorld
 		buildFile << '''
-			xtext.languages.xtend.generator.javaSourceLevel = "1.7"
+			sourceCompatibility = "1.7"
 		'''
 
 		// when

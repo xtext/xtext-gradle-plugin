@@ -127,7 +127,7 @@ class XtextGenerate extends DefaultTask {
 					generateGeneratedAnnotation = config.generatedAnnotation.active
 					includeDateInGeneratedAnnotation = config.generatedAnnotation.includeDate
 					generatedAnnotationComment = config.generatedAnnotation.comment
-					javaSourceLevel = JavaVersion.toVersion(config.javaSourceLevel)
+					javaSourceLevel = JavaVersion.toVersion(config.javaSourceLevel ?: JavaVersion.current.majorVersion)
 					outputConfigs = config.outlets.map[outlet|
 						new GradleOutputConfig => [
 							outletName = outlet.name
