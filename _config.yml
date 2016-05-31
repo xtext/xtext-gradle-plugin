@@ -1,7 +1,7 @@
 # Site settings
 title: Xtext Gradle Plugins
 author: The Xtext Team
-email: xtext@itemis.de
+email: xtext@typefox.io
 description: >
   Xtext is a framework for development of programming languages and domain-specific languages.
 baseurl: "/xtext-gradle-plugin"
