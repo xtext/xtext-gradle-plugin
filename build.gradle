@@ -28,7 +28,10 @@ allprojects {
 
   repositories {
     jcenter()
+    mavenLocal()
   }
+  
+  ext.xtextVersion = '2.11.0-SNAPSHOT'
 }
 
 subprojects {
@@ -52,11 +55,11 @@ configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
   apply plugin: 'org.xtend.xtend'
 
   dependencies {
-    compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+    compile "org.eclipse.xtend:org.eclipse.xtend.lib:$xtextVersion"
   }
 }
 
-configure(subprojects.findAll{p-> p.name.contains('plugin')}){
+configure(subprojects.findAll{p-> p.name.contains('plugin')}) {
   apply plugin: 'java-gradle-plugin'
   apply plugin: "nebula.nebula-integtest"
 

@@ -22,6 +22,8 @@ public class GradleBuildRequest {
 	private Map<String, GradleGeneratorConfig> generatorConfigsByLanguage = Maps.newHashMap();
 	private Map<String, Map<String, String>> preferencesByLanguage = Maps.newHashMap();
 	private File classesDir;
+	private String javaSourceLevel;
+	private String javaTargetLevel;
 	
 	public Collection<File> getClasspath() {
 		return classpath;
@@ -117,5 +119,21 @@ public class GradleBuildRequest {
 
 	public void setPreferencesByLanguage(Map<String, Map<String, String>> preferencesByLanguage) {
 		this.preferencesByLanguage = preferencesByLanguage;
+	}
+	
+	public void setJavaSourceLevel(String javaSourceLevel) {
+		this.javaSourceLevel = javaSourceLevel;
+	}
+	
+	public String getJavaSourceLevel() {
+		return javaSourceLevel;
+	}
+	
+	public void setJavaTargetLevel(String javaTargetLevel) {
+		this.javaTargetLevel = javaTargetLevel;
+	}
+	
+	public String getJavaTargetLevel() {
+		return javaTargetLevel;
 	}
 }
