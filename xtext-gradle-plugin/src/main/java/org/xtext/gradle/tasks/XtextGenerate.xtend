@@ -25,6 +25,7 @@ import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.protocol.IncrementalXtextBuilderFactory
 import org.xtext.gradle.tasks.internal.FilteringClassLoader
+import java.io.Closeable
 
 class XtextGenerate extends DefaultTask {
 	
@@ -184,7 +185,7 @@ class XtextGenerate extends DefaultTask {
 	
 	private def closeBuilder() {
 		if (builder !== null) {
-			(builder.class.classLoader as URLClassLoader).close
+			(builder.class.classLoader as Closeable).close
 			builder = null
 		}
 	}
