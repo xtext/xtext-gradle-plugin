@@ -137,8 +137,6 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						generatorTask.classpath = generatorTask.classpath ?: javaSourceSet.compileClasspath
 						generatorTask.bootClasspath = generatorTask.bootClasspath ?: javaCompile.options.bootClasspath
 						generatorTask.classesDir = generatorTask.classesDir ?: javaSourceSet.output.classesDir
-						generatorTask.javaSourceLevel = java.sourceCompatibility
-						generatorTask.javaTargetLevel = java.targetCompatibility
 					]
 				]
 			]

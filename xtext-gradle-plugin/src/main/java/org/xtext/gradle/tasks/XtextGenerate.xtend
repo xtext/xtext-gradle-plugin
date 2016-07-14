@@ -46,10 +46,6 @@ class XtextGenerate extends DefaultTask {
 	
 	@Accessors @Nested val XtextBuilderOptions options = new XtextBuilderOptions
 	
-    @Accessors @Input @Optional JavaVersion javaSourceLevel
-
-    @Accessors @Input @Optional JavaVersion javaTargetLevel
-	
 	Collection<File> generatedFiles
 	
 	@InputFiles @SkipWhenEmpty
@@ -147,8 +143,6 @@ class XtextGenerate extends DefaultTask {
 				allPreferences
 			]
 			it.logger = this.logger
-			it.javaSourceLevel = this.javaSourceLevel?.toString
-			it.javaTargetLevel = this.javaTargetLevel?.toString
 		]
 		val response = builder.build(request)
 		generatedFiles = response.generatedFiles

@@ -1,7 +1,6 @@
 package org.xtext.gradle.builder
 
 import com.google.inject.Guice
-import java.io.Closeable
 import java.io.File
 import java.net.URLClassLoader
 import java.util.List
@@ -15,7 +14,6 @@ import org.eclipse.xtext.build.IndexState
 import org.eclipse.xtext.build.Source2GeneratedMapping
 import org.eclipse.xtext.generator.OutputConfiguration
 import org.eclipse.xtext.generator.OutputConfigurationAdapter
-import org.eclipse.xtext.java.resource.JavaConfig
 import org.eclipse.xtext.mwe.PathTraverser
 import org.eclipse.xtext.parser.IEncodingProvider
 import org.eclipse.xtext.preferences.MapBasedPreferenceValues
@@ -39,6 +37,7 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
+import java.io.Closeable
 
 class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val index = new GradleResourceDescriptions
@@ -144,7 +143,6 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			attachGeneratorConfig(gradleRequest)
 			attachOutputConfig(gradleRequest)
 			attachPreferences(gradleRequest)
-			attachJavaConfig(gradleRequest)
 			attachProjectDescription(containerHandle, gradleRequest.classpath.map[path].toList, it)
 			val contextualIndex = index.createShallowCopyWith(it)
 			contextualIndex.setContainer(containerHandle, indexChunk)
@@ -198,14 +196,6 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			it.dependencies = dependencies
 			attachToEmfObject(resourceSet)
 		]
-	}
-	
-	private def JavaConfig attachJavaConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
-	    val javaConfig = new JavaConfig
-	    javaConfig.attachToEmfObject(resourceSet)
-	    javaConfig.javaSourceLevel = JavaVersion.fromQualifier(gradleRequest.javaSourceLevel)
-	    javaConfig.javaTargetLevel = JavaVersion.fromQualifier(gradleRequest.javaTargetLevel)
-	    return javaConfig
 	}
 	
 	private def attachGeneratorConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
