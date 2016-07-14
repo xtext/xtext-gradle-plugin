@@ -38,9 +38,13 @@ import org.xtext.gradle.protocol.IncrementalXtextBuilder
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
 import java.io.Closeable
+import com.google.common.io.Files
+import com.google.common.hash.Hashing
+import com.google.common.hash.HashCode
 
 class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val index = new GradleResourceDescriptions
+	val dependencyHashes = new ConcurrentHashMap<File, HashCode>
 	val generatedMappings = new ConcurrentHashMap<String, Source2GeneratedMapping>
 	val sharedInjector = Guice.createInjector
 	val incrementalbuilder = sharedInjector.getInstance(IncrementalBuilder)
@@ -110,29 +114,33 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
 		val registry = IResourceServiceProvider.Registry.INSTANCE
 		gradleRequest.dirtyFiles.filter[isClassPathEntry(gradleRequest)].forEach[dirtyClasspathEntry|
-			val containerHandle = dirtyClasspathEntry.path
-			val request = new BuildRequest => [
-				indexOnly = true
-				/*
-				 * TODO incremental jar indexing
-				 * Only mark files as dirty that have changed in the jar,
-				 * detect the deleted ones and reuse the existing index chunk for unchanged ones.
-				 */
-				dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [uri|
-					registry.getResourceServiceProvider(uri) !== null
+			val hash = Files.hash(dirtyClasspathEntry, Hashing.md5)
+			if (dependencyHashes.get(dirtyClasspathEntry) != hash) {
+				val containerHandle = dirtyClasspathEntry.path
+				val request = new BuildRequest => [
+					indexOnly = true
+					/*
+					 * TODO incremental jar indexing
+					 * Only mark files as dirty that have changed in the jar,
+					 * detect the deleted ones and reuse the existing index chunk for unchanged ones.
+					 */
+					dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [uri|
+						registry.getResourceServiceProvider(uri) !== null
+					]
+					
+					afterValidate = [false] //workaround for indexOnly not working in Xtext 2.9.0
+					
+					val indexChunk = new ResourceDescriptionsData(emptyList)
+					val fileMappings = new Source2GeneratedMapping
+					state = new IndexState(indexChunk, fileMappings)
+					preparResourceSet(containerHandle, indexChunk, gradleRequest)
 				]
 				
-				afterValidate = [false] //workaround for indexOnly not working in Xtext 2.9.0
-				
-				val indexChunk = new ResourceDescriptionsData(emptyList)
-				val fileMappings = new Source2GeneratedMapping
-				state = new IndexState(indexChunk, fileMappings)
-				preparResourceSet(containerHandle, indexChunk, gradleRequest)
-			]
-			
-			val result = doBuild(request, gradleRequest)
-			val resultingIndex = result.indexState
-			index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
+				val result = doBuild(request, gradleRequest)
+				val resultingIndex = result.indexState
+				index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
+				dependencyHashes.put(dirtyClasspathEntry, hash)
+			}
 		]
 	}
 	
