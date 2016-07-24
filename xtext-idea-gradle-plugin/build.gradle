@@ -3,3 +3,5 @@ description 'A plugin for for building IntelliJ IDEA Xtext plugins'
 dependencies {
   compile 'com.google.guava:guava:18.0'
 }
+
+sourceCompatibility = 1.7
