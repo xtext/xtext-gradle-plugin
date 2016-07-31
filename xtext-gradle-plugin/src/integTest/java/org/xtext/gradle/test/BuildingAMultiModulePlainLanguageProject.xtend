@@ -2,7 +2,7 @@ package org.xtext.gradle.test
 
 import org.junit.Test
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
-
+import static org.junit.Assert.*
 //TODO use a different language than Xtend
 class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 
@@ -60,6 +60,15 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 		upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
 		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
 		build("generateXtext")
+	}
+	
+	@Test
+	def void generatorOnlyRunsForLocalModels() {
+		upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
+		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
+		build("generateXtext")
+		val outputs = downStreamProject.file("build/xtend/main").listFiles
+		assertTrue(!outputs.exists[name.equals("A.java")])
 	}
 
 	@Test

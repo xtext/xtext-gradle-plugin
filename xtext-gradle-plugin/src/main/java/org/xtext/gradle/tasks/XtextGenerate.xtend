@@ -52,14 +52,6 @@ class XtextGenerate extends DefaultTask {
 		sources.files
 	}
 	
-	def getNullSafeClasspath() {
-		classpath ?: project.files
-	}
-	
-	def getNullSafeEncoding() {
-		options.encoding ?: Charsets.UTF_8.name //TODO probably should be default charset
-	}
-	
 	@OutputDirectories
 	def getOutputDirectories() {
 		sourceSetOutputs.dirs
@@ -70,30 +62,13 @@ class XtextGenerate extends DefaultTask {
 		generatedFiles = newHashSet
 		initializeBuilder
 
-		val request = createRequest
-		
-		request.incremental = options.incremental && inputs.incremental
-		
-		inputs.outOfDate[
-			if (getSources.contains(file)) {
-				request.dirtyFiles += file
-			}
-			if (getNullSafeClasspath.contains(file)) {
-				request.dirtyClasspathEntries += file
-			}
-		]
-		
-		inputs.removed[
-			if (getSources.contains(file)) {
-				request.deletedFiles += file
-			}
-		]
-		
+		val request = createBuildRequest
+		addIncrementalInputs(request, inputs)
 		val response = builder.build(request)
 		generatedFiles = response.generatedFiles
 	}
 	
-	private def createRequest() {
+	private def createBuildRequest() {
 		new GradleBuildRequest => [
 			projectName = project.name
 			projectDir = project.projectDir
@@ -129,21 +104,33 @@ class XtextGenerate extends DefaultTask {
 		]
 	}
 	
-	private def getContainerHandle() {
-		project.projectDir + ':' + sources.name
+	private def addIncrementalInputs(GradleBuildRequest request, IncrementalTaskInputs inputs) {
+		request.incremental = options.incremental && inputs.incremental
+		
+		inputs.outOfDate[
+			if (getSources.contains(file)) {
+				request.dirtyFiles += file
+			}
+			if (getNullSafeClasspath.contains(file)) {
+				request.dirtyClasspathEntries += file
+			}
+		]
+		
+		inputs.removed[
+			if (getSources.contains(file)) {
+				request.deletedFiles += file
+			}
+		]
 	}
 	
 	def installDebugInfo() {
 		initializeBuilder
+		if (generatedFiles.isNullOrEmpty) {
+			generatedFiles = getSourceSetOutputs.dirs.map [dir |
+				project.fileTree(dir)
+			].flatten.toList
+		}
 		val request = new GradleInstallDebugInfoRequest => [
-			if (generatedFiles.isNullOrEmpty) {
-				generatedFiles = newHashSet
-				getSourceSetOutputs.dirs.forEach [
-					generatedFiles += project.fileTree(it).files.filter[File f|
-						f.name.endsWith(".java")
-					]
-				]
-			}
 			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
 			it.classesDir = classesDir
 			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
@@ -158,6 +145,18 @@ class XtextGenerate extends DefaultTask {
 	
 	private def initializeBuilder() {
 		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, xtextClasspath.files)
+	}
+	
+	private def getContainerHandle() {
+		project.projectDir + ':' + sources.name
+	}
+	
+	private def getNullSafeClasspath() {
+		classpath ?: project.files
+	}
+	
+	private def getNullSafeEncoding() {
+		options.encoding ?: Charsets.UTF_8.name //TODO probably should be default charset
 	}
 	
 	private def getLanguageSetups() {

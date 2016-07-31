@@ -188,8 +188,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	
 	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {
 		val resourceSet = request.resourceSet
-		val jvmTypesLoader = resourceSet.classpathURIContext as URLClassLoader
-		if (jvmTypesLoader instanceof Closeable) { // URLClassLoader has no close method in Java 6
+		val jvmTypesLoader = resourceSet.classpathURIContext
+		if (jvmTypesLoader instanceof Closeable) {
 			try {
 				jvmTypesLoader.close
 			} catch (Exception e) {
