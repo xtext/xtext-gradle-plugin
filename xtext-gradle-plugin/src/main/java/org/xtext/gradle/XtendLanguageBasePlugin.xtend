@@ -28,7 +28,10 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 		val xtend = xtext.languages.create("xtend") [
 			fileExtension = "xtend"
 			setup = "org.eclipse.xtend.core.XtendStandaloneSetup"
-			generator.outlet.producesJava = true
+			generator.outlet => [
+				producesJava = true
+				cleanAutomatically = true
+			]
 			debugger => [
 				sourceInstaller = SourceInstaller.SMAP
 			]

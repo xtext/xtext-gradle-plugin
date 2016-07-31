@@ -86,4 +86,44 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 		secondResult.hasRunGeneratorFor(downStream)
 		secondResult.hasNotRunGeneratorFor(unrelated)
 	}
+	
+	@Test
+	def void generateOnceFoldersAreNotCleanedByCleanBuilds() {
+		buildFile << '''xtext.languages.xtend.generator.outlet.cleanAutomatically = false'''
+		file('src/main/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+		val staleFile = file('build/xtend/main/com/example/Foo.java')
+		staleFile.content = '''
+			package com.example;
+			public class Foo {}
+		'''
+
+		// when
+		build('generateXtext')
+
+		// then
+		staleFile.shouldExist
+	}
+	
+	@Test
+	def void generateOnceFoldersAreNotCleanedByGradleClean() {
+		buildFile << '''xtext.languages.xtend.generator.outlet.cleanAutomatically = false'''
+		file('src/main/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+		val staleFile = file('build/xtend/main/com/example/Foo.java')
+		staleFile.content = '''
+			package com.example;
+			public class Foo {}
+		'''
+
+		// when
+		build('cleanGenerateXtext')
+
+		// then
+		staleFile.shouldExist
+	}
 }

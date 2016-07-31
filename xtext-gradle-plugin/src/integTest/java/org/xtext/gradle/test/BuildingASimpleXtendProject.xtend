@@ -1,6 +1,7 @@
 package org.xtext.gradle.test
 
 import org.junit.Test
+import org.junit.Ignore
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
@@ -204,6 +205,56 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		file('build/xtend-gen/com/example/HelloWorld.java').shouldExist
 		file('build/classes/main/com/example/HelloWorld.class').shouldExist
+	}
+	
+		@Test
+	def void theOutputIsCleanedOnAFullBuild() {
+		file('src/main/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+		val staleFile = file('build/xtend/main/com/example/Foo.java')
+		staleFile.content = '''
+			package com.example;
+			public class Foo {}
+		'''
+
+		// when
+		build('build')
+
+		// then
+		staleFile.shouldNotExist
+	}
+	
+	@Test
+	def void theOutputIsCleanedWhenCallingGradleClean() {
+		val staleFile = file('build/xtend/main/com/example/Foo.java')
+		staleFile.content = '''
+			package com.example;
+			public class Foo {}
+		'''
+
+		// when
+		build('cleanGenerateXtext')
+
+		// then
+		staleFile.shouldNotExist
+	}
+	
+	@Ignore("Doesn't work if we want to keep @SkipWhenEmpty on the XtextGenerate sources")
+	@Test
+	def void theOutputIsCleanedWhenTheLastXtendFileIsRemoved() {
+		val staleFile = file('build/xtend/main/com/example/Foo.java')
+		staleFile.content = '''
+			package com.example;
+			public class Foo {}
+		'''
+
+		// when
+		build('cleanGenerateXtext')
+
+		// then
+		staleFile.shouldNotExist
 	}
 
 }

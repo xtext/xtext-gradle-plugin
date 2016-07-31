@@ -75,9 +75,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			baseDir = createFolderURI(gradleRequest.projectDir)
 			dirtyFiles = gradleRequest.dirtyFiles.filter[!isClassPathEntry(gradleRequest)].map[URI.createFileURI(absolutePath)].toList
 			deletedFiles = gradleRequest.deletedFiles.filter[!isClassPathEntry(gradleRequest)].map[URI.createFileURI(absolutePath)].toList
-			
-			val indexChunk = index.getContainer(containerHandle)?.copy ?: new ResourceDescriptionsData(emptyList)
-			val fileMappings = generatedMappings.get(containerHandle)?.copy ?: new Source2GeneratedMapping
+			val indexChunk = (if (needsCleanBuild(containerHandle)) null else index.getContainer(containerHandle)?.copy) ?: new ResourceDescriptionsData(emptyList)
+			val fileMappings = (if (needsCleanBuild(containerHandle)) null else generatedMappings.get(containerHandle)?.copy) ?: new Source2GeneratedMapping
 			state = new IndexState(indexChunk, fileMappings)
 
 			afterValidate = validator
@@ -151,10 +150,30 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	private def doBuild(BuildRequest request, GradleBuildRequest gradleRequest) {
 		try {
 			val registry = IResourceServiceProvider.Registry.INSTANCE
+			if (needsCleanBuild(gradleRequest.containerHandle)) {
+				doClean(gradleRequest)
+			}
 			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
 		} finally {
 			cleanup(gradleRequest, request)
 		}
+	}
+	
+	private def doClean(GradleBuildRequest request) {
+		request.generatorConfigsByLanguage.values
+			.map[outputConfigs].flatten
+			.filter[cleanAutomatically]
+			.map[target]
+			.forEach[
+				deleteRecursive
+			]
+	}
+	
+	private def void deleteRecursive(File file) {
+		if (file.isDirectory) {
+			file.listFiles.forEach[deleteRecursive]
+		}
+		file.delete
 	}
 	
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {

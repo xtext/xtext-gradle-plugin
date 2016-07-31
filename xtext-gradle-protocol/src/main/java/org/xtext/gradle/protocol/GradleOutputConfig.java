@@ -5,6 +5,7 @@ import java.io.File;
 public class GradleOutputConfig {
 	private String outletName;
 	private File target;
+	private boolean cleanAutomatically;
 
 	public String getOutletName() {
 		return outletName;
@@ -20,5 +21,13 @@ public class GradleOutputConfig {
 
 	public void setTarget(File target) {
 		this.target = target;
+	}
+	
+	public boolean isCleanAutomatically() {
+		return cleanAutomatically;
+	}
+	
+	public void setCleanAutomatically(boolean cleanAutomatically) {
+		this.cleanAutomatically = cleanAutomatically;
 	}
 }

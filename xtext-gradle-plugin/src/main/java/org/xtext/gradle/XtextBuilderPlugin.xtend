@@ -19,6 +19,10 @@ import org.xtext.gradle.tasks.XtextGenerate
 
 import static extension org.xtext.gradle.GradleExtensions.*
 import org.xtext.gradle.tasks.Outlet
+import org.gradle.api.tasks.Delete
+import java.util.concurrent.Callable
+import java.util.Set
+import java.io.File
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -54,6 +58,15 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				languages = xtext.languages
 				xtextClasspath = xtextLanguages
 				enhanceBuilderDependencies
+			]
+			project.tasks.create('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
+				delete( [
+					xtext.languages
+						.map[generator.outlets].flatten
+						.filter[cleanAutomatically]
+						.map[sourceSet.output.getDir(it)]
+						.toSet
+				] as Callable<Set<File>>)
 			]
 		]
 	}

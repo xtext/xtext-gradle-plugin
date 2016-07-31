@@ -125,6 +125,7 @@ class XtextGenerate extends DefaultTask {
 						new GradleOutputConfig => [
 							outletName = outlet.name
 							target = sourceSetOutputs.getDir(outlet)
+							cleanAutomatically = outlet.cleanAutomatically
 						]
 					].toSet
 				]
