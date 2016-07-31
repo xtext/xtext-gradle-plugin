@@ -14,21 +14,48 @@ public class GradleBuildRequest {
 	private String containerHandle;
 	private File projectDir;
 	private String projectName;
+	private boolean incremental;
+	private Collection<File> allFiles = Lists.newArrayList();
 	private Collection<File> dirtyFiles = Lists.newArrayList();
 	private Collection<File> deletedFiles = Lists.newArrayList();
-	private Collection<File> classpath;
+	private Collection<File> allClasspathEntries = Lists.newArrayList();
+	private Collection<File> dirtyClasspathEntries = Lists.newArrayList();
 	private String bootClasspath;
 	private Collection<File> sourceFolders = Lists.newArrayList();
 	private Map<String, GradleGeneratorConfig> generatorConfigsByLanguage = Maps.newHashMap();
 	private Map<String, Map<String, String>> preferencesByLanguage = Maps.newHashMap();
 	private File classesDir;
 	
-	public Collection<File> getClasspath() {
-		return classpath;
+	public boolean isIncremental() {
+		return incremental;
 	}
 	
-	public void setClasspath(Collection<File> classPath) {
-		this.classpath = classPath;
+	public void setIncremental(boolean incremental) {
+		this.incremental = incremental;
+	}
+	
+	public Collection<File> getAllFiles() {
+		return allFiles;
+	}
+	
+	public void setAllFiles(Collection<File> allFiles) {
+		this.allFiles = allFiles;
+	}
+	
+	public Collection<File> getAllClasspathEntries() {
+		return allClasspathEntries;
+	}
+	
+	public void setAllClasspathEntries(Collection<File> allClasspathEntries) {
+		this.allClasspathEntries = allClasspathEntries;
+	}
+	
+	public Collection<File> getDirtyClasspathEntries() {
+		return dirtyClasspathEntries;
+	}
+	
+	public void setDirtyClasspathEntries(Collection<File> dirtyClasspathEntries) {
+		this.dirtyClasspathEntries = dirtyClasspathEntries;
 	}
 	
 	public String getBootClasspath() {

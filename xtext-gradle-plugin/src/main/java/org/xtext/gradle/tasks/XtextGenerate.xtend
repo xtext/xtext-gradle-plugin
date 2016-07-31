@@ -67,50 +67,39 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
-		initializeBuilder
 		generatedFiles = newHashSet
+		initializeBuilder
 
-		val removedFiles = newLinkedHashSet
-		val outOfDateFiles = newLinkedHashSet
+		val request = createRequest
+		
+		request.incremental = options.incremental && inputs.incremental
+		
 		inputs.outOfDate[
-			if (getSources.contains(file) || getNullSafeClasspath.contains(file)) {
-				outOfDateFiles += file
+			if (getSources.contains(file)) {
+				request.dirtyFiles += file
+			}
+			if (getNullSafeClasspath.contains(file)) {
+				request.dirtyClasspathEntries += file
 			}
 		]
+		
 		inputs.removed[
 			if (getSources.contains(file)) {
-				removedFiles += file
+				request.deletedFiles += file
 			}
 		]
 		
-		if (needsCleanBuild) {
-			outOfDateFiles += getSources
-			outOfDateFiles += getNullSafeClasspath
-		}
-		
-		//TODO should be replaced by incremental jar indexing
-		val outOfDateClasspathEntries = newHashSet
-		outOfDateClasspathEntries.addAll(outOfDateFiles)
-		outOfDateClasspathEntries.retainAll(getNullSafeClasspath.files)
-		if (!outOfDateClasspathEntries.isEmpty) {
-			outOfDateFiles += getSources
-		}
-		
-		if (outOfDateFiles.isEmpty && removedFiles.isEmpty) {
-			return
-		}
-		
-		build(outOfDateFiles, removedFiles)
+		val response = builder.build(request)
+		generatedFiles = response.generatedFiles
 	}
 	
-	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
-		val request = new GradleBuildRequest => [
+	private def createRequest() {
+		new GradleBuildRequest => [
 			projectName = project.name
 			projectDir = project.projectDir
 			containerHandle = this.containerHandle
-			dirtyFiles = outOfDateFiles
-			deletedFiles = removedFiles
-			classpath = this.getNullSafeClasspath.files
+			allFiles = getSources.files
+			allClasspathEntries = this.getNullSafeClasspath.files
 			it.bootClasspath = bootClasspath
 			sourceFolders = sources.srcDirs
 			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
@@ -138,8 +127,6 @@ class XtextGenerate extends DefaultTask {
 			]
 			it.logger = this.logger
 		]
-		val response = builder.build(request)
-		generatedFiles = response.generatedFiles
 	}
 	
 	private def getContainerHandle() {
@@ -171,10 +158,6 @@ class XtextGenerate extends DefaultTask {
 	
 	private def initializeBuilder() {
 		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, xtextClasspath.files)
-	}
-	
-	private def needsCleanBuild() {
-		!options.incremental || builder.needsCleanBuild(containerHandle)
 	}
 	
 	private def getLanguageSetups() {

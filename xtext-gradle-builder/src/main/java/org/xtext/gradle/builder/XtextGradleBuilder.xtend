@@ -59,10 +59,6 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			injector.getInstance(IEncodingProvider.Runtime).setDefaultEncoding(encoding)
 		}
 	}
-	
-	override needsCleanBuild(String containerHandle) {
-		index.getContainer(containerHandle) == null
-	}
 
 	override GradleBuildResponse build(GradleBuildRequest gradleRequest) {
 		val containerHandle = gradleRequest.containerHandle
@@ -73,16 +69,21 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		
 		val request = new BuildRequest => [
 			baseDir = createFolderURI(gradleRequest.projectDir)
-			dirtyFiles = gradleRequest.dirtyFiles.filter[!isClassPathEntry(gradleRequest)].map[URI.createFileURI(absolutePath)].toList
-			deletedFiles = gradleRequest.deletedFiles.filter[!isClassPathEntry(gradleRequest)].map[URI.createFileURI(absolutePath)].toList
-			val indexChunk = (if (needsCleanBuild(containerHandle)) null else index.getContainer(containerHandle)?.copy) ?: new ResourceDescriptionsData(emptyList)
-			val fileMappings = (if (needsCleanBuild(containerHandle)) null else generatedMappings.get(containerHandle)?.copy) ?: new Source2GeneratedMapping
-			state = new IndexState(indexChunk, fileMappings)
+			if (needsCleanBuild(gradleRequest)) {
+				dirtyFiles = gradleRequest.allFiles.map[URI.createFileURI(absolutePath)].toList
+				state = new IndexState
+			} else {
+				dirtyFiles = gradleRequest.dirtyFiles.map[URI.createFileURI(absolutePath)].toList
+				deletedFiles = gradleRequest.deletedFiles.map[URI.createFileURI(absolutePath)].toList
+				val indexChunk = index.getContainer(containerHandle)?.copy ?: new ResourceDescriptionsData(emptyList)
+				val fileMappings = generatedMappings.get(containerHandle)?.copy ?: new Source2GeneratedMapping
+				state = new IndexState(indexChunk, fileMappings)
+			}
 
 			afterValidate = validator
 			afterGenerateFile = [source, target| response.generatedFiles.add(new File(target.toFileString))]
 			
-			preparResourceSet(containerHandle, indexChunk, gradleRequest)
+			preparResourceSet(containerHandle, state.resourceDescriptions, gradleRequest)
 		]
 		
 		val result = doBuild(request, gradleRequest)
@@ -99,7 +100,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
 		val registry = IResourceServiceProvider.Registry.INSTANCE
-		gradleRequest.dirtyFiles.filter[isClassPathEntry(gradleRequest)].forEach[dirtyClasspathEntry|
+		gradleRequest.dirtyClasspathEntries.forEach[dirtyClasspathEntry|
 			val hash = Files.hash(dirtyClasspathEntry, Hashing.md5)
 			if (dependencyHashes.get(dirtyClasspathEntry) != hash) {
 				val containerHandle = dirtyClasspathEntry.path
@@ -137,20 +138,16 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			attachGeneratorConfig(gradleRequest)
 			attachOutputConfig(gradleRequest)
 			attachPreferences(gradleRequest)
-			attachProjectDescription(containerHandle, gradleRequest.classpath.map[path].toList, it)
+			attachProjectDescription(containerHandle, gradleRequest.allClasspathEntries.map[path].toList, it)
 			val contextualIndex = index.createShallowCopyWith(it)
 			contextualIndex.setContainer(containerHandle, indexChunk)
 		]
 	}
 	
-	private def isClassPathEntry(File it, GradleBuildRequest gradleRequest) {
-		gradleRequest.classpath.contains(it)
-	}
-	
 	private def doBuild(BuildRequest request, GradleBuildRequest gradleRequest) {
 		try {
 			val registry = IResourceServiceProvider.Registry.INSTANCE
-			if (needsCleanBuild(gradleRequest.containerHandle)) {
+			if (needsCleanBuild(gradleRequest)) {
 				doClean(gradleRequest)
 			}
 			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
@@ -176,13 +173,17 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		file.delete
 	}
 	
+	private def boolean needsCleanBuild(GradleBuildRequest request) {
+		!request.incremental || !request.dirtyClasspathEntries.isEmpty || index.getContainer(request.containerHandle) == null
+	}
+	
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
 		val parent = if (gradleRequest.bootClasspath === null) {
 			ClassLoader.systemClassLoader
 		} else {
 			new AlternateJdkLoader(gradleRequest.bootClasspath.split(File.pathSeparator).map[new File(it)])
 		}
-		new URLClassLoader(gradleRequest.classpath.map[toURI.toURL], parent)
+		new URLClassLoader(gradleRequest.allClasspathEntries.map[toURI.toURL], parent)
 	}
 	
 	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {
