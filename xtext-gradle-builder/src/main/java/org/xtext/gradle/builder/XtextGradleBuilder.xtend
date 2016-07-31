@@ -1,6 +1,10 @@
 package org.xtext.gradle.builder
 
+import com.google.common.hash.HashCode
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import com.google.inject.Guice
+import java.io.Closeable
 import java.io.File
 import java.net.URLClassLoader
 import java.util.List
@@ -37,10 +41,6 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 
 import static org.eclipse.xtext.util.UriUtil.createFolderURI
-import java.io.Closeable
-import com.google.common.io.Files
-import com.google.common.hash.Hashing
-import com.google.common.hash.HashCode
 
 class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val index = new GradleResourceDescriptions
@@ -50,11 +50,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val incrementalbuilder = sharedInjector.getInstance(IncrementalBuilder)
 	val debugInfoInstaller = sharedInjector.getInstance(DebugInfoInstaller)
 	
-	val String owner
-	val Set<String> languageSetups
-	val String encoding
-
-	new(String owner, Set<String> setupNames, String encoding) throws Exception {
+	new(Set<String> setupNames, String encoding) throws Exception {
 		System.setProperty("org.eclipse.emf.common.util.ReferenceClearingQueue", "false")
 		for (setupName : setupNames) {
 			val setupClass = class.classLoader.loadClass(setupName)
@@ -62,15 +58,6 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			val injector = setup.createInjectorAndDoEMFRegistration
 			injector.getInstance(IEncodingProvider.Runtime).setDefaultEncoding(encoding)
 		}
-		this.owner = owner
-		this.languageSetups = setupNames
-		this.encoding = encoding
-	}
-	
-	override isCompatible(String owner, Set<String> languageSetups, String encoding) {
-		return owner == this.owner
-			&& languageSetups == this.languageSetups
-			&& encoding == this.encoding
 	}
 	
 	override needsCleanBuild(String containerHandle) {
@@ -169,7 +156,6 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			cleanup(gradleRequest, request)
 		}
 	}
-	
 	
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
 		val parent = if (gradleRequest.bootClasspath === null) {

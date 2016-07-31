@@ -2,7 +2,6 @@ package org.xtext.gradle.tasks;
 
 import com.google.common.base.Charsets
 import java.io.File
-import java.net.URLClassLoader
 import java.util.Collection
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
@@ -23,13 +22,10 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInstallerConfig
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
-import org.xtext.gradle.protocol.IncrementalXtextBuilderFactory
-import org.xtext.gradle.tasks.internal.FilteringClassLoader
-import java.io.Closeable
+import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
 
 class XtextGenerate extends DefaultTask {
 	
-	static IncrementalXtextBuilder builder
 
 	@Accessors XtextSourceDirectorySet sources
 
@@ -46,6 +42,8 @@ class XtextGenerate extends DefaultTask {
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
 	
 	@Accessors @Nested val XtextBuilderOptions options = new XtextBuilderOptions
+	
+	IncrementalXtextBuilder builder
 	
 	Collection<File> generatedFiles
 	
@@ -69,6 +67,7 @@ class XtextGenerate extends DefaultTask {
 
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
+		initializeBuilder
 		generatedFiles = newHashSet
 
 		val removedFiles = newLinkedHashSet
@@ -76,15 +75,11 @@ class XtextGenerate extends DefaultTask {
 		inputs.outOfDate[
 			if (getSources.contains(file) || getNullSafeClasspath.contains(file)) {
 				outOfDateFiles += file
-			} else if (getXtextClasspath.contains(file)) {
-				closeBuilder
 			}
 		]
 		inputs.removed[
 			if (getSources.contains(file)) {
 				removedFiles += file
-			} else if (getXtextClasspath.contains(file)) {
-				closeBuilder
 			}
 		]
 		
@@ -109,9 +104,6 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	private def build(Collection<File> outOfDateFiles, Collection<File> removedFiles) {
-		if (!isBuilderCompatible) {
-			initializeBuilder
-		}
 		val request = new GradleBuildRequest => [
 			projectName = project.name
 			projectDir = project.projectDir
@@ -150,13 +142,11 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	private def getContainerHandle() {
-		project.path + ':' + sources.name
+		project.projectDir + ':' + sources.name
 	}
 	
 	def installDebugInfo() {
-		if (!isBuilderCompatible) {
-			initializeBuilder
-		}
+		initializeBuilder
 		val request = new GradleInstallDebugInfoRequest => [
 			if (generatedFiles.isNullOrEmpty) {
 				generatedFiles = newHashSet
@@ -179,40 +169,14 @@ class XtextGenerate extends DefaultTask {
 	}
 	
 	private def initializeBuilder() {
-		closeBuilder
-		builder = new IncrementalXtextBuilderFactory().create(project.rootDir.path, languageSetups, nullSafeEncoding, builderClassLoader)
-	}
-	
-	private def closeBuilder() {
-		if (builder !== null) {
-			(builder.class.classLoader as Closeable).close
-			builder = null
-		}
-	}
-	
-	private def isBuilderCompatible() {
-		if (builder === null) {
-			return false
-		}
-		val oldClasspath = (builder.class.classLoader as URLClassLoader).URLs.toList
-		val newClasspath = builderClassLoader.URLs.toList
-		if (oldClasspath != newClasspath) {
-			return false
-		}
-		return builder.isCompatible(project.rootDir.path, languageSetups, nullSafeEncoding)
+		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, xtextClasspath.files)
 	}
 	
 	private def needsCleanBuild() {
-		!options.incremental || ! isBuilderCompatible || builder.needsCleanBuild(containerHandle)
+		!options.incremental || builder.needsCleanBuild(containerHandle)
 	}
 	
 	private def getLanguageSetups() {
 		languages.map[setup].toSet
-	}
-	
-	private def getBuilderClassLoader() {
-		val parent = class.classLoader
-		val filtered = new FilteringClassLoader(parent, #["org.gradle", "org.apache.log4j", "org.slf4j", "org.xtext.gradle"])
-		new URLClassLoader(xtextClasspath.map[toURI.toURL], filtered)
 	}
 }
