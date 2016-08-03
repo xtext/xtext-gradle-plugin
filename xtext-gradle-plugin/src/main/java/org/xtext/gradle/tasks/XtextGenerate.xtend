@@ -29,7 +29,7 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors XtextSourceDirectorySet sources
 
-	@Accessors @Nested Set<Language> languages
+	@Accessors Set<Language> languages
 
 	@Accessors @InputFiles FileCollection xtextClasspath
 

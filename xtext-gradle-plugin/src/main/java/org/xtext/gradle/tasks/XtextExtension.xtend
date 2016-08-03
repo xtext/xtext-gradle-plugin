@@ -12,9 +12,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
@@ -73,14 +70,14 @@ class XtextExtension {
 
 @Accessors
 class Language implements Named {
-	@Input val String name
+	val String name
 	String qualifiedName
 	String fileExtension
-	@Input String setup
-	@Nested val GeneratorConfig generator
-	@Nested val debugger = new DebuggerConfig
-	@Nested val validator = new ValidatorConfig
-	@Input Map<String, Object> preferences = newHashMap
+	String setup
+	val GeneratorConfig generator
+	val debugger = new DebuggerConfig
+	val validator = new ValidatorConfig
+	Map<String, Object> preferences = newHashMap
 
 	@Accessors(NONE) val Project project
 
@@ -90,12 +87,10 @@ class Language implements Named {
 		this.generator = new GeneratorConfig(project, this)
 	}
 
-	@Input
 	def getQualifiedName() {
 		qualifiedName ?: setup.replace("StandaloneSetup", "")
 	}
 
-	@Input
 	def getFileExtension() {
 		fileExtension ?: name
 	}
@@ -119,10 +114,10 @@ class Language implements Named {
 
 @Accessors
 class GeneratorConfig {
-	@Input boolean suppressWarningsAnnotation = true
-	@Input @Optional String javaSourceLevel
-	@Nested val GeneratedAnnotationOptions generatedAnnotation = new GeneratedAnnotationOptions
-	@Nested val NamedDomainObjectContainer<Outlet> outlets
+	boolean suppressWarningsAnnotation = true
+	String javaSourceLevel
+	val GeneratedAnnotationOptions generatedAnnotation = new GeneratedAnnotationOptions
+	val NamedDomainObjectContainer<Outlet> outlets
 
 	new(Project project, Language language) {
 		this.outlets = project.container(Outlet)[outlet|new Outlet(language, outlet)]
@@ -147,20 +142,20 @@ class GeneratorConfig {
 
 @Accessors
 class GeneratedAnnotationOptions {
-	@Input boolean active
-	@Input boolean includeDate
-	@Input @Optional String comment
+	boolean active
+	boolean includeDate
+	String comment
 }
 
 @Accessors
 class DebuggerConfig {
-	@Input SourceInstaller sourceInstaller = SourceInstaller.NONE
-	@Input boolean hideSyntheticVariables = true
+	SourceInstaller sourceInstaller = SourceInstaller.NONE
+	boolean hideSyntheticVariables = true
 }
 
 @Accessors
 class ValidatorConfig {
-	@Input Map<String, IssueSeverity> severities = newHashMap
+	Map<String, IssueSeverity> severities = newHashMap
 
 	def void error(String code) {
 		severities.put(code, IssueSeverity.ERROR)
@@ -184,9 +179,9 @@ class Outlet implements Named {
 	public static val DEFAULT_OUTLET = "DEFAULT_OUTPUT"
 
 	val Language language
-	@Input val String name
-	@Input boolean producesJava = false
-	@Input boolean cleanAutomatically = false
+	val String name
+	boolean producesJava = false
+	boolean cleanAutomatically = false
 
 	def getFolderFragment() {
 		if (name == Outlet.DEFAULT_OUTLET) {
