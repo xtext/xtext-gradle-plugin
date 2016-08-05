@@ -256,6 +256,16 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		staleFile.shouldNotExist
 	}
+	
+ 	@Test
+	def void theIndexerCanHandleNonExistentClasspathEntries() {
+		file('src/test/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+
+		build("build")
+	}
 
 }
 
