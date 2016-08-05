@@ -38,6 +38,10 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 	private def configureAndroid() {
 		project.afterEvaluate[
 			android = project.extensions.getByName("android") as BaseExtension
+			android.packagingOptions [
+				exclude('META-INF/ECLIPSE_.RSA')
+				exclude('META-INF/ECLIPSE_.SF')
+			]
 			variants = switch android {
 				AppExtension: android.applicationVariants as DomainObjectSet<? extends BaseVariant>
 				LibraryExtension: android.libraryVariants
