@@ -1,6 +1,8 @@
 package org.xtext.gradle.builder
 
+import com.google.common.hash.Funnels
 import com.google.common.hash.HashCode
+import com.google.common.hash.Hasher
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
 import com.google.inject.Guice
@@ -101,7 +103,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
 		val registry = IResourceServiceProvider.Registry.INSTANCE
 		gradleRequest.dirtyClasspathEntries.filter[exists].forEach[dirtyClasspathEntry|
-			val hash = Files.hash(dirtyClasspathEntry, Hashing.md5)
+			val hash = hash(dirtyClasspathEntry)
 			if (dependencyHashes.get(dirtyClasspathEntry) != hash) {
 				val containerHandle = dirtyClasspathEntry.path
 				val request = new BuildRequest => [
@@ -129,6 +131,20 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 				dependencyHashes.put(dirtyClasspathEntry, hash)
 			}
 		]
+	}
+	
+	private def HashCode hash(File file) {
+		val hasher = Hashing.md5.newHasher
+		hash(file, hasher)
+		hasher.hash
+	}
+	
+	private def void hash(File file, Hasher hasher) {
+		if (file.isDirectory) {
+			file.listFiles.forEach[hash(hasher)]
+		} else {
+			Files.asByteSource(file).copyTo(Funnels.asOutputStream(hasher))
+		}
 	}
 	
 	private def preparResourceSet(BuildRequest it, String containerHandle, ResourceDescriptionsData indexChunk, GradleBuildRequest gradleRequest) {

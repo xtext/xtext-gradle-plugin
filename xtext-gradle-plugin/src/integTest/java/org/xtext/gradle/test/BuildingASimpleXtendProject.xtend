@@ -267,5 +267,18 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		build("build")
 	}
 
+ 	@Test
+	def void theIndexerCanHandleDirectoryClasspathEntries() {
+		file('src/main/java/com/example/Foo.xtend').content = '''
+			package com.example
+			class Foo {}
+		'''
+		file('src/test/java/com/example/HelloWorld.xtend').content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+
+		build("build")
+	}
 }
 
