@@ -1,17 +1,18 @@
 package org.xtext.gradle
 
+import org.eclipse.xtext.xbase.lib.Functions.Function0
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
+import org.xtext.gradle.tasks.internal.XtendSourceSet
 
 import static extension org.xtext.gradle.GradleExtensions.*
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.internal.plugins.DslObject
-import org.xtext.gradle.tasks.internal.XtendSourceSet
 
 class XtendLanguageBasePlugin implements Plugin<Project> {
 
@@ -46,23 +47,32 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 				xtext.sourceSets.getAt(sourceSet.name),
 				xtend.generator.outlet
 			)
+			//TODO get rid of this internal API usage
 			new DslObject(sourceSet).convention.plugins.put("xtend", xtendSourceSet)
 		]
 	}
 
 	def void automaticallyInferXtendComilerClasspath(XtextGenerate generatorTask) {
-		generatorTask.beforeExecute [
-			val builderClasspathBefore = generatorTask.xtextClasspath
-			val classpath = generatorTask.classpath
-			val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
-			if (version === null) {
-				throw new GradleException('''Could not infer Xtend compiler classpath, because xtext.version was not set and no Xtend libraries were found on the «classpath» classpath''')
+		val builderClasspathBefore = generatorTask.xtextClasspath
+		val version = new Function0<String>() {
+			String version = null
+			
+			override apply() {
+				if (version == null) {
+					val classpath = generatorTask.classpath
+					version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
+					if (version === null) {
+						throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
+					}						
+				}
+				version
 			}
-			val xtendCore = project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version)
-			val xtendTooling = project.configurations.detachedConfiguration(xtendCore)
-			xtext.makeXtextCompatible(xtendTooling)
-			xtext.forceXtextVersion(xtendTooling, version)
-			generatorTask.xtextClasspath = xtendTooling.plus(builderClasspathBefore)
+		}
+		val xtendTooling = project.configurations.detachedConfiguration().defaultDependencies[
+			add(project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version.apply))
 		]
+		xtext.makeXtextCompatible(xtendTooling)
+		xtext.forceXtextVersion(xtendTooling, version)
+		generatorTask.xtextClasspath = xtendTooling.plus(builderClasspathBefore)
 	}
 }

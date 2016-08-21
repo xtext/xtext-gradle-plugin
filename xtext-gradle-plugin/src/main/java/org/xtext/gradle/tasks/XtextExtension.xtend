@@ -11,7 +11,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
@@ -24,7 +23,7 @@ class XtextExtension {
 
 	Project project
 
-	new(Project project, FileResolver fileResolver) {
+	new(Project project) {
 		this.project = project
 		sourceSets = project.container(XtextSourceDirectorySet)[name|new DefaultXtextSourceDirectorySet(name, project, this)]
 		languages = project.container(Language)[name|new Language(name, project)]
@@ -52,10 +51,10 @@ class XtextExtension {
 		return null
 	}
 
-	def void forceXtextVersion(Configuration dependencies, String xtextVersion) {
+	def void forceXtextVersion(Configuration dependencies, ()=>String xtextVersion) {
 		dependencies.resolutionStrategy.eachDependency [
 			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend")
-				useVersion(xtextVersion)
+				useVersion(xtextVersion.apply)
 		]
 	}
 

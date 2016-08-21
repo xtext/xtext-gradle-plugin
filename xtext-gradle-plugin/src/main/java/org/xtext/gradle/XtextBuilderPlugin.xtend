@@ -1,45 +1,38 @@
 package org.xtext.gradle;
 
-import javax.inject.Inject
-import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import java.io.File
+import java.util.Set
+import java.util.concurrent.Callable
+import org.eclipse.xtext.xbase.lib.Functions.Function0
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
+import org.xtext.gradle.tasks.Outlet
 import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
 import static extension org.xtext.gradle.GradleExtensions.*
-import org.xtext.gradle.tasks.Outlet
-import org.gradle.api.tasks.Delete
-import java.util.concurrent.Callable
-import java.util.Set
-import java.io.File
 
 class XtextBuilderPlugin implements Plugin<Project> {
-
-	val FileResolver fileResolver
 
 	Project project
 	XtextExtension xtext
 	Configuration xtextLanguages
 
-	@Inject @FinalFieldsConstructor new() {
-	}
-
 	override void apply(Project project) {
 		this.project = project
 
 		project.plugins.<BasePlugin>apply(BasePlugin)
-		xtext = project.extensions.create("xtext", XtextExtension, project, fileResolver);
+		xtext = project.extensions.create("xtext", XtextExtension, project);
 		xtextLanguages = project.configurations.create("xtextLanguages")
 		xtext.makeXtextCompatible(xtextLanguages)
 		createGeneratorTasks
@@ -72,19 +65,25 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	}
 	
 	def void enhanceBuilderDependencies(XtextGenerate generatorTask) {
-		generatorTask.beforeExecute[
-			val builderClasspathBefore = generatorTask.xtextClasspath
-			val classpath = generatorTask.classpath
-			val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
-			if (version === null) {
-				throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
+		val builderClasspathBefore = generatorTask.xtextClasspath
+		val xtextBuilder =  project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''')
+		val xtextTooling = project.configurations.detachedConfiguration(xtextBuilder)
+		xtext.makeXtextCompatible(xtextTooling)
+		xtext.forceXtextVersion(xtextTooling, new Function0<String>() {
+			String version = null
+			
+			override apply() {
+				if (version == null) {
+					val classpath = generatorTask.classpath			
+					version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
+					if (version === null) {
+						throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
+					}						
+				}
+				version
 			}
-			val xtextBuilder =  project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''')
-			val xtextTooling = project.configurations.detachedConfiguration(xtextBuilder)
-			xtext.makeXtextCompatible(xtextTooling)
-			xtext.forceXtextVersion(xtextTooling, version)
-			generatorTask.xtextClasspath = xtextTooling.plus(builderClasspathBefore)
-		]
+		})
+		generatorTask.xtextClasspath = xtextTooling.plus(builderClasspathBefore)
 	}
 	
 	private def String getPluginVersion() {

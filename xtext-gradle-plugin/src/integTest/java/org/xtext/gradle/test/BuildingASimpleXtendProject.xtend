@@ -1,7 +1,7 @@
 package org.xtext.gradle.test
 
-import org.junit.Test
 import org.junit.Ignore
+import org.junit.Test
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
