@@ -8,7 +8,7 @@ import org.xtext.gradle.tasks.XtextSourceSetOutputs
 
 class DefaultXtextSourceSetOutputs implements XtextSourceSetOutputs {
 	val Project project
-	val Map<Outlet, Object> dirs = newHashMap
+	val Map<Outlet, Object> dirs = newLinkedHashMap
 	
 	new(Project project, XtextExtension xtext) {
 		this.project = project
