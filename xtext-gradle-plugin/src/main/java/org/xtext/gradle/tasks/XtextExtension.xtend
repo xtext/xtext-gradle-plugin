@@ -1,7 +1,9 @@
 package org.xtext.gradle.tasks;
 
 import com.google.common.base.CaseFormat
+import com.google.common.collect.Lists
 import groovy.lang.Closure
+import java.util.List
 import java.util.Map
 import java.util.regex.Pattern
 import org.eclipse.xtend.lib.annotations.Accessors
@@ -20,6 +22,7 @@ class XtextExtension {
 	@Accessors String version
 	@Accessors val NamedDomainObjectContainer<XtextSourceDirectorySet> sourceSets
 	@Accessors val NamedDomainObjectContainer<Language> languages;
+	@Accessors val List<XtextClasspathInferrer> classpathInferrers;
 
 	Project project
 
@@ -27,6 +30,7 @@ class XtextExtension {
 		this.project = project
 		sourceSets = project.container(XtextSourceDirectorySet)[name|new DefaultXtextSourceDirectorySet(name, project, this)]
 		languages = project.container(Language)[name|new Language(name, project)]
+		classpathInferrers = Lists.newArrayList
 	}
 
 	def sourceSets(Action<? super NamedDomainObjectContainer<XtextSourceDirectorySet>> configureAction) {

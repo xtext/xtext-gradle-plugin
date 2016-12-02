@@ -4,12 +4,13 @@ import org.eclipse.xtext.xbase.lib.Functions.Function0
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
+import org.xtext.gradle.tasks.XtextClasspathInferrer
 import org.xtext.gradle.tasks.XtextExtension
-import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.internal.XtendSourceSet
 
 import static extension org.xtext.gradle.GradleExtensions.*
@@ -37,9 +38,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 				sourceInstaller = SourceInstaller.SMAP
 			]
 		]
-		project.tasks.withType(XtextGenerate).all [
-			automaticallyInferXtendComilerClasspath
-		]
+		automaticallyInferXtendComilerClasspath
 		project.extensions.add("xtend", xtend)
 		val java = project.convention.getPlugin(JavaPluginConvention)
 		java.sourceSets.all [ sourceSet |
@@ -52,27 +51,29 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 		]
 	}
 
-	def void automaticallyInferXtendComilerClasspath(XtextGenerate generatorTask) {
-		val builderClasspathBefore = generatorTask.xtextClasspath
-		val version = new Function0<String>() {
-			String version = null
-			
-			override apply() {
-				if (version == null) {
-					val classpath = generatorTask.classpath
-					version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(builderClasspathBefore)
-					if (version === null) {
-						throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
-					}						
+	private def void automaticallyInferXtendComilerClasspath() {
+		xtext.classpathInferrers += new XtextClasspathInferrer() {
+			override inferXtextClasspath(FileCollection xtextClasspath, FileCollection classpath) {
+				val version = new Function0<String>() {
+					String version = null
+		
+					override apply() {
+						if (version == null) {
+							version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
+							if (version === null) {
+								throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
+							}
+						}
+						version
+					}
 				}
-				version
+				val xtendTooling = project.configurations.detachedConfiguration().defaultDependencies[
+					add(project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version.apply))
+				]
+				xtext.makeXtextCompatible(xtendTooling)
+				xtext.forceXtextVersion(xtendTooling, version)
+				xtendTooling.plus(xtextClasspath)
 			}
 		}
-		val xtendTooling = project.configurations.detachedConfiguration().defaultDependencies[
-			add(project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version.apply))
-		]
-		xtext.makeXtextCompatible(xtendTooling)
-		xtext.forceXtextVersion(xtendTooling, version)
-		generatorTask.xtextClasspath = xtendTooling.plus(builderClasspathBefore)
 	}
 }

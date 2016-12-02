@@ -36,12 +36,14 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 	}
 
 	private def configureAndroid() {
+		android = project.extensions.getByName("android") as BaseExtension
+
+		android.packagingOptions [
+			exclude('META-INF/ECLIPSE_.RSA')
+			exclude('META-INF/ECLIPSE_.SF')
+		]
+
 		project.afterEvaluate[
-			android = project.extensions.getByName("android") as BaseExtension
-			android.packagingOptions [
-				exclude('META-INF/ECLIPSE_.RSA')
-				exclude('META-INF/ECLIPSE_.SF')
-			]
 			variants = switch android {
 				AppExtension: android.applicationVariants as DomainObjectSet<? extends BaseVariant>
 				LibraryExtension: android.libraryVariants
@@ -62,7 +64,7 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			}
 		]
 	}
-	
+
 	private def configureSourceSetForVariant(BaseVariant variant) {
 		xtext.sourceSets.maybeCreate(variant.name) => [ sourceSet |
 			val generatorTask = project.tasks.getByName(sourceSet.generatorTaskName) as XtextGenerate
@@ -81,7 +83,7 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 				variant.generateBuildConfig.sourceOutputDir,
 				variant.renderscriptCompile.sourceOutputDir
 			]
-			sourceDirs += variant.outputs.map[processResources.sourceOutputDir]					
+			sourceDirs += variant.outputs.map[processResources.sourceOutputDir]
 			sourceSet.srcDirs(sourceDirs)
 			generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
 			generatorTask.classpath = variant.javaCompiler.classpath.plus(project.files(android.bootClasspath))
