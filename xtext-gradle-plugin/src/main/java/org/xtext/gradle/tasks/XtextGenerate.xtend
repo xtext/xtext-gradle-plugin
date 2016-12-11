@@ -26,7 +26,7 @@ import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
 import org.gradle.api.tasks.util.PatternSet
 
 class XtextGenerate extends DefaultTask {
-	
+
 
 	@Accessors XtextSourceDirectorySet sources
 
@@ -37,31 +37,31 @@ class XtextGenerate extends DefaultTask {
 	@Accessors @InputFiles @Optional FileCollection classpath
 
 	@Accessors @Input @Optional String bootClasspath
-	
+
 	@Accessors @Input @Optional File classesDir
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
-	
+
 	@Accessors @Nested val XtextBuilderOptions options = new XtextBuilderOptions
-	
+
 	IncrementalXtextBuilder builder
-	
+
 	Collection<File> generatedFiles
-	
+
 	@InputFiles
 	def getAllSources() {
 		sources.files
 	}
-	
+
 	@InputFiles @SkipWhenEmpty
 	def getMainSources() {
-		val patterns = new PatternSet().include()
+		val patterns = new PatternSet
 		languages.filter[!generator.outlets.empty].forEach [lang |
-			patterns.include("**/*." + lang.fileExtension)			
+			patterns.include("**/*." + lang.fileExtension)
 		]
 		project.files(sources.srcDirs).asFileTree.matching(patterns)
 	}
-	
+
 	@OutputDirectories
 	def getOutputDirectories() {
 		sourceSetOutputs.dirs
@@ -77,7 +77,7 @@ class XtextGenerate extends DefaultTask {
 		val response = builder.build(request)
 		generatedFiles = response.generatedFiles
 	}
-	
+
 	private def createBuildRequest() {
 		new GradleBuildRequest => [
 			projectName = project.name
@@ -113,10 +113,10 @@ class XtextGenerate extends DefaultTask {
 			it.logger = this.logger
 		]
 	}
-	
+
 	private def addIncrementalInputs(GradleBuildRequest request, IncrementalTaskInputs inputs) {
 		request.incremental = options.incremental && inputs.incremental
-		
+
 		inputs.outOfDate[
 			if (allSources.contains(file)) {
 				request.dirtyFiles += file
@@ -125,14 +125,14 @@ class XtextGenerate extends DefaultTask {
 				request.dirtyClasspathEntries += file
 			}
 		]
-		
+
 		inputs.removed[
 			if (allSources.contains(file)) {
 				request.deletedFiles += file
 			}
 		]
 	}
-	
+
 	def installDebugInfo() {
 		if (mainSources.isEmpty) {
 			return
@@ -155,23 +155,23 @@ class XtextGenerate extends DefaultTask {
 		]
 		builder.installDebugInfo(request)
 	}
-	
+
 	private def initializeBuilder() {
 		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, xtextClasspath.files)
 	}
-	
+
 	private def getContainerHandle() {
 		project.projectDir + ':' + sources.name
 	}
-	
+
 	private def getNullSafeClasspath() {
 		classpath ?: project.files
 	}
-	
+
 	private def getNullSafeEncoding() {
 		options.encoding ?: Charsets.UTF_8.name //TODO probably should be default charset
 	}
-	
+
 	private def getLanguageSetups() {
 		languages.map[setup].toSet
 	}
