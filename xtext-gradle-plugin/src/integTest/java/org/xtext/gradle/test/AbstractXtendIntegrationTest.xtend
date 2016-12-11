@@ -17,9 +17,13 @@ abstract class AbstractXtendIntegrationTest extends AbstractIntegrationTest {
 		apply plugin: 'org.xtext.xtend'
 		
 		dependencies {
-			compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+			«xtendScope» 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
 		}
 	'''
+	
+	protected def String getXtendScope() {
+		'compile'
+	}
 	
 	protected def File createHelloWorld() {
 		createFile('src/main/java/HelloWorld.xtend', '''

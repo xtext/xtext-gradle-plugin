@@ -23,6 +23,7 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInsta
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
+import org.gradle.api.tasks.util.PatternSet
 
 class XtextGenerate extends DefaultTask {
 	
@@ -47,9 +48,18 @@ class XtextGenerate extends DefaultTask {
 	
 	Collection<File> generatedFiles
 	
-	@InputFiles @SkipWhenEmpty
-	def getSources() {
+	@InputFiles
+	def getAllSources() {
 		sources.files
+	}
+	
+	@InputFiles @SkipWhenEmpty
+	def getMainSources() {
+		val patterns = new PatternSet().include()
+		languages.filter[!generator.outlets.empty].forEach [lang |
+			patterns.include("**/*." + lang.fileExtension)			
+		]
+		project.files(sources.srcDirs).asFileTree.matching(patterns)
 	}
 	
 	@OutputDirectories
@@ -73,7 +83,7 @@ class XtextGenerate extends DefaultTask {
 			projectName = project.name
 			projectDir = project.projectDir
 			containerHandle = this.containerHandle
-			allFiles = getSources.files
+			allFiles = allSources.files
 			allClasspathEntries = this.getNullSafeClasspath.files
 			it.bootClasspath = bootClasspath
 			sourceFolders = sources.srcDirs
@@ -108,7 +118,7 @@ class XtextGenerate extends DefaultTask {
 		request.incremental = options.incremental && inputs.incremental
 		
 		inputs.outOfDate[
-			if (getSources.contains(file)) {
+			if (allSources.contains(file)) {
 				request.dirtyFiles += file
 			}
 			if (getNullSafeClasspath.contains(file)) {
@@ -117,13 +127,16 @@ class XtextGenerate extends DefaultTask {
 		]
 		
 		inputs.removed[
-			if (getSources.contains(file)) {
+			if (allSources.contains(file)) {
 				request.deletedFiles += file
 			}
 		]
 	}
 	
 	def installDebugInfo() {
+		if (mainSources.isEmpty) {
+			return
+		}
 		initializeBuilder
 		if (generatedFiles.isNullOrEmpty) {
 			generatedFiles = getSourceSetOutputs.dirs.map [dir |
