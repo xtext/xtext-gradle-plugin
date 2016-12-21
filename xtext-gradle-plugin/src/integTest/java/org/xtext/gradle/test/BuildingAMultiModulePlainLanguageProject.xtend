@@ -17,8 +17,8 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 				apply plugin: 'java-base'
 				
 				dependencies {
-					add('default', 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0')
-					xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:2.9.0'
+					add('default', 'org.eclipse.xtend:org.eclipse.xtend.lib:«XTEXT_VERSION»')
+					xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«XTEXT_VERSION»'
 				}
 				
 				xtext {

@@ -14,8 +14,8 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 	def void sourcesCanBeInstalledAsSmap() {
 		testSourceInstallation(SourceInstaller.SMAP)[name, info|
 			assertEquals("HelloWorld.java", name)
-			assertTrue(info.contains("SMAP"))
-			assertTrue(info.contains("HelloWorld.xtend"))
+			assertTrue(info, info !== null && info.contains("SMAP"))
+			assertTrue(info, info !== null && info.contains("HelloWorld.xtend"))
 		]
 	}
 	
@@ -39,12 +39,12 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 			apply plugin: 'org.xtext.builder'
 			
 			dependencies {
-				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
-				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:2.9.0'
+				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:«XTEXT_VERSION»'
+				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«XTEXT_VERSION»'
 			}
 			
 			xtext {
-				version = '2.9.0'
+				version = '«XTEXT_VERSION»'
 				languages {
 					xtend {
 						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'

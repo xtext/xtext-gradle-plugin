@@ -18,7 +18,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 			sourceCompatibility = '1.6'
 			
 			xtext {
-				version = '2.9.0'
+				version = '«XTEXT_VERSION»'
 				languages {
 					xtend {
 						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
