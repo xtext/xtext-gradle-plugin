@@ -5,7 +5,7 @@ buildscript {
   dependencies {
     classpath 'org.xtend:xtend-gradle-plugin:0.4.14'
     classpath 'com.github.oehme.sobula:sobula:0.6.6'
-    classpath "com.netflix.nebula:nebula-project-plugin:2.2.1"
+    classpath 'com.netflix.nebula:nebula-project-plugin:3.3.0'
   }
 }
 
@@ -59,7 +59,7 @@ configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
 
 configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   apply plugin: 'java-gradle-plugin'
-  apply plugin: "nebula.nebula-integtest"
+  apply plugin: 'nebula.facet'
 
   jar {
     manifest {
@@ -67,6 +67,12 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
     }
   }
 
+  facets {
+    integTest {
+      parentSourceSet = 'test'
+      testTaskName = 'integrationTest'
+    }
+  }
   dependencies {
     integTestCompile gradleTestKit()
   }
