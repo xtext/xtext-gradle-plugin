@@ -22,7 +22,7 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 				}
 				
 				xtext {
-					version = '2.9.0'
+					version = '2.11.0.beta2'
 					languages {
 						xtend {
 							setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
