@@ -1,9 +1,9 @@
 description 'A small wrapper for Xtext to make it easier to use from Gradle'
 
 dependencies {
-	compile "org.eclipse.xtext:org.eclipse.xtext:2.11.0.beta2"
-	compile "org.eclipse.xtext:org.eclipse.xtext.java:2.11.0.beta2"
-	compile "org.eclipse.xtext:org.eclipse.xtext.xbase:2.11.0.beta2"
-	compile "org.eclipse.xtext:org.eclipse.xtext.smap:2.11.0.beta2"
+	compile "org.eclipse.xtext:org.eclipse.xtext:${xtextVersion}"
+	compile "org.eclipse.xtext:org.eclipse.xtext.java:${xtextVersion}"
+	compile "org.eclipse.xtext:org.eclipse.xtext.xbase:${xtextVersion}"
+	compile "org.eclipse.xtext:org.eclipse.xtext.smap:${xtextVersion}"
 	compile project(':xtext-gradle-protocol')
 }
