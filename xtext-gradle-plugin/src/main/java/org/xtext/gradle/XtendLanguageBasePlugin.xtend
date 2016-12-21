@@ -38,7 +38,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 				sourceInstaller = SourceInstaller.SMAP
 			]
 		]
-		automaticallyInferXtendComilerClasspath
+		automaticallyInferXtendCompilerClasspath
 		project.extensions.add("xtend", xtend)
 		val java = project.convention.getPlugin(JavaPluginConvention)
 		java.sourceSets.all [ sourceSet |
@@ -51,7 +51,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 		]
 	}
 
-	private def void automaticallyInferXtendComilerClasspath() {
+	private def void automaticallyInferXtendCompilerClasspath() {
 		xtext.classpathInferrers += new XtextClasspathInferrer() {
 			override inferXtextClasspath(FileCollection xtextClasspath, FileCollection classpath) {
 				val version = new Function0<String>() {
