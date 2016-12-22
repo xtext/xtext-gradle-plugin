@@ -465,6 +465,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		build("build")
 	}
 	
+	@Ignore("unignore me once 2.11.0.beta3 is out")
  	@Test
 	def void theJavaSourceAndXtend_05() {
 		file('src/main/java/org/eclipse/xtext/validation/IFoo.java').content = '''
