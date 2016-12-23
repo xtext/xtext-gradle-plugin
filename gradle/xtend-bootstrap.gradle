@@ -8,7 +8,7 @@ configurations {
 		resolutionStrategy {
 			eachDependency {
 				if (requested.group == 'org.eclipse.xtext' || requested.group == 'org.eclipse.xtend')
-					useVersion(latestXtextVersion)
+					useVersion(bootstrapXtextVersion)
 				if (requested.group == 'com.google.inject' && requested.name == 'guice')
 					useVersion('3.0')
 			}
