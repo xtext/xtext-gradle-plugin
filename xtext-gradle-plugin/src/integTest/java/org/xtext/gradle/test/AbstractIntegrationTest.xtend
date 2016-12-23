@@ -12,7 +12,7 @@ abstract class AbstractIntegrationTest {
 	protected extension ProjectUnderTest rootProject
 	protected val extension XtextBuilderAssertions = new XtextBuilderAssertions
 
-	public final static String XTEXT_VERSION = "2.11.0.beta2"
+	public final static String XTEXT_VERSION = System.getProperty("xtext.version", "2.9.0")
 
 	@Before
 	def void setup() {

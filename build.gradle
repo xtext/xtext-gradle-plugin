@@ -9,8 +9,6 @@ buildscript {
   }
 }
 
-apply from: "${rootDir}/gradle/bootstrap-setup.gradle"
-
 allprojects {
   apply plugin: 'com.github.oehme.sobula.plugin-release'
 
@@ -53,12 +51,9 @@ subprojects {
 
 configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
   apply plugin: 'org.xtext.xtend'
-  generateXtext.xtextClasspath = rootProject.configurations.getByName('xtendCompiler')
-
-  dependencies {
-    compile "org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0.beta2"
-  }
 }
+
+apply from: "${rootDir}/gradle/xtend-bootstrap.gradle"
 
 configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   apply plugin: 'java-gradle-plugin'
@@ -73,15 +68,24 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
   facets {
     integTest {
       parentSourceSet = 'test'
-      testTaskName = 'integrationTest'
+      testTaskName = 'minimumIntegrationTest'
     }
   }
-  dependencies {
-    integTestCompile gradleTestKit()
-  }
 
-  integrationTest {
+  minimumIntegrationTest {
     dependsOn("install")
     systemProperty 'gradle.project.version', version
+    systemProperty 'xtext.version', minimumXtextVersion
   }
+
+  task latestIntegrationTest(type: Test) {
+    classpath = minimumIntegrationTest.classpath
+    testClassesDir = minimumIntegrationTest.testClassesDir
+    dependsOn("install")
+    systemProperty 'gradle.project.version', version
+    systemProperty 'xtext.version', latestXtextVersion
+    enabled = JavaVersion.current().java8Compatible
+  }
+
+  check.dependsOn(latestIntegrationTest)
 }

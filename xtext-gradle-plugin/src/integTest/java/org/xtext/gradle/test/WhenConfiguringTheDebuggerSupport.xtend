@@ -7,11 +7,13 @@ import org.objectweb.asm.Opcodes
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 
 import static org.junit.Assert.*
+import org.junit.Assume
 
 class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 
 	@Test
 	def void sourcesCanBeInstalledAsSmap() {
+		Assume.assumeFalse(XTEXT_VERSION == '2.11.0.beta2') //beta 2 deactivates the smap installer
 		testSourceInstallation(SourceInstaller.SMAP)[name, info|
 			assertEquals("HelloWorld.java", name)
 			assertTrue(info, info !== null && info.contains("SMAP"))

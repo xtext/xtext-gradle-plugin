@@ -1,12 +1,6 @@
-/*
- * Root project configuration that is reused by subprojects to apply the Xtend compiler.
- */
-
 repositories {
 	jcenter()
 }
-
-def bootstrapXtendVersion = '2.11.0.beta2'
 
 configurations {
 	xtendCompiler {
@@ -14,7 +8,7 @@ configurations {
 		resolutionStrategy {
 			eachDependency {
 				if (requested.group == 'org.eclipse.xtext' || requested.group == 'org.eclipse.xtend')
-					useVersion(bootstrapXtendVersion)
+					useVersion(latestXtextVersion)
 				if (requested.group == 'com.google.inject' && requested.name == 'guice')
 					useVersion('3.0')
 			}
@@ -24,6 +18,20 @@ configurations {
 }
 
 dependencies {
-	xtendCompiler "org.eclipse.xtend:org.eclipse.xtend.core:$bootstrapXtendVersion"
+	xtendCompiler "org.eclipse.xtend:org.eclipse.xtend.core"
 	xtendCompiler "org.xtext:xtext-gradle-builder:1.0.14"
+}
+
+subprojects {
+	plugins.withId('org.xtext.xtend') {
+	  dependencies {
+	    compile "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
+	  }
+
+	  tasks.matching {it.class.simpleName.startsWith('XtextGenerate')}.all {
+			afterEvaluate {
+				xtextClasspath = rootProject.configurations.xtendCompiler
+			}
+	  }
+	}
 }

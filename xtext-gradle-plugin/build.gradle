@@ -5,6 +5,6 @@ dependencies {
 	compile project(':xtext-gradle-protocol')
 }
 
-integrationTest {
+configure([minimumIntegrationTest, latestIntegrationTest]) {
 	dependsOn(':xtext-gradle-builder:install', ':xtext-gradle-protocol:install')
 }

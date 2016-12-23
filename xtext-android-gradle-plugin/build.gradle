@@ -6,6 +6,6 @@ dependencies {
 	integTestCompile project(path : ':xtext-gradle-plugin', configuration: 'integTestCompile')
 }
 
-integrationTest {
+configure([minimumIntegrationTest, latestIntegrationTest]) {
 	dependsOn(':xtext-gradle-builder:install', ':xtext-gradle-protocol:install', ':xtext-gradle-plugin:install')
 }
