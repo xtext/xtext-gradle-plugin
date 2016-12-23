@@ -9,7 +9,6 @@ buildscript {
   }
 }
 
-ext.xtextVersion = '2.11.0.beta2'
 apply from: "${rootDir}/gradle/bootstrap-setup.gradle"
 
 allprojects {
@@ -57,7 +56,7 @@ configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
   generateXtext.xtextClasspath = rootProject.configurations.getByName('xtendCompiler')
 
   dependencies {
-    compile "org.eclipse.xtend:org.eclipse.xtend.lib:${xtextVersion}"
+    compile "org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0.beta2"
   }
 }
 
