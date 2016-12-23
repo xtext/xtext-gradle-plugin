@@ -13,7 +13,7 @@ import org.eclipse.xtext.generator.trace.SourceRelativeURI
 import org.eclipse.xtext.generator.trace.TraceAsPrimarySourceInstaller
 import org.eclipse.xtext.generator.trace.TraceFileNameProvider
 import org.eclipse.xtext.generator.trace.TraceRegionSerializer
-import org.eclipse.xtext.smap.TraceAsSmapInstaller
+import org.eclipse.xtext.generator.trace.TraceAsSmapInstaller
 import org.slf4j.LoggerFactory
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig
 
