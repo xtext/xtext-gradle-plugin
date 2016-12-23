@@ -13,7 +13,7 @@ allprojects {
   apply plugin: 'com.github.oehme.sobula.plugin-release'
 
   group = "org.xtext"
-  bintray.pkg.name = "$rootProject.group:$rootProject.name"
+  bintray.pkg.name = "$org.xtext:xtext-gradle-plugin"
 
   contacts {
     "xtext.team@gmail.com" {
