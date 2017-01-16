@@ -12,6 +12,7 @@ import org.gradle.api.DomainObjectSet
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.compile.AbstractCompile
 import org.xtext.gradle.XtextBuilderPlugin
 import org.xtext.gradle.XtextJavaLanguagePlugin
 import org.xtext.gradle.tasks.XtextExtension
@@ -86,10 +87,18 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			sourceDirs += variant.outputs.map[processResources.sourceOutputDir]
 			sourceSet.srcDirs(sourceDirs)
 			generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
-			generatorTask.classpath = variant.javaCompiler.classpath.plus(project.files(android.bootClasspath))
-			generatorTask.classesDir = variant.javaCompiler.destinationDir
-			generatorTask.options.encoding = android.compileOptions.encoding
-			variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
+			if (variant.javaCompiler instanceof AbstractCompile) {
+				val compile = variant.javaCompiler as AbstractCompile
+				generatorTask.classpath = compile.classpath.plus(
+						project.files(android.bootClasspath)
+				)
+				generatorTask.classesDir = compile.destinationDir
+				generatorTask.options.encoding = android.compileOptions.encoding
+				variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
+			} else {
+				throw new
+				GradleException('The Xtext plugin only supports using the javac compiler.')
+			}
 		]
 	}
 
