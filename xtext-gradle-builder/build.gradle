@@ -1,9 +1,12 @@
 description 'A small wrapper for Xtext to make it easier to use from Gradle'
 
 dependencies {
-	compile "org.eclipse.xtext:org.eclipse.xtext:$minimumXtextVersion"
-	compile "org.eclipse.xtext:org.eclipse.xtext.java:$minimumXtextVersion"
-	compile "org.eclipse.xtext:org.eclipse.xtext.xbase:$minimumXtextVersion"
-	compile "org.eclipse.xtext:org.eclipse.xtext.smap:$minimumXtextVersion"
 	compile project(':xtext-gradle-protocol')
+	compile "org.eclipse.xtext:org.eclipse.xtext:$minimumXtextVersion"
+	compile "org.eclipse.xtext:org.eclipse.xtext.smap:$minimumXtextVersion"
+	compile "org.eclipse.xtext:org.eclipse.xtext.xbase:$minimumXtextVersion"
+
+	runtime "org.eclipse.xtext:org.eclipse.xtext.java:$minimumXtextVersion"
+	//workaround for old Xtext versions not declaring this hard dependency
+	runtime "org.eclipse.jdt:org.eclipse.jdt.core:3.10.0"
 }
