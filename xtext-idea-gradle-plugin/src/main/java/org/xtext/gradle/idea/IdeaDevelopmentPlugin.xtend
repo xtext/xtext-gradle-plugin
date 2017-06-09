@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.testing.Test
@@ -23,7 +24,6 @@ import org.xtext.gradle.idea.tasks.IdeaExtension
 import org.xtext.gradle.idea.tasks.RunIdea
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
-import org.gradle.api.plugins.JavaBasePlugin
 
 class IdeaDevelopmentPlugin implements Plugin<Project> {
 	public static val IDEA_DEVELOPMENT_EXTENSION_NAME = "ideaDevelopment"
@@ -170,7 +170,8 @@ class IdeaDevelopmentPlugin implements Plugin<Project> {
 				plusConfigurations.add(ideaProvided)
 
 				val fileReferenceFactory = new FileReferenceFactory
-				file.whenMerged.add [ Classpath it |
+				
+				file.whenMerged [ Classpath it |
 					entries.filter(Library).filter[idea.ideaCoreLibs.contains(library.file)].forEach [
 						sourcePath = fileReferenceFactory.fromFile(idea.sourcesZip)
 					]
