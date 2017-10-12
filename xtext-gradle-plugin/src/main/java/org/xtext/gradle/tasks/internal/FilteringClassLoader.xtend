@@ -2,6 +2,9 @@ package org.xtext.gradle.tasks.internal
 
 import java.util.List
 
+/**
+ * @author Christian Dietrich - Initial contribution and API
+ */
 class FilteringClassLoader extends ClassLoader {
 	
 	static val char DOT = '.'
@@ -12,8 +15,8 @@ class FilteringClassLoader extends ClassLoader {
 
 	new(ClassLoader parent, List<String> includes) {
 		super(parent)
-		this.includes = includes
-		this.resourceIncludes = includes.map[replace(DOT,SLASH)]
+		this.includes = includes.map[it + DOT].immutableCopy
+		this.resourceIncludes = includes.map[replace(DOT,SLASH)].map[it + SLASH].immutableCopy
 	}
 
 	override loadClass(String name, boolean resolve) throws ClassNotFoundException {
@@ -45,11 +48,17 @@ class FilteringClassLoader extends ClassLoader {
 	}
 
 	private def isValidClass(String name) {
-		includes.exists[name.startsWith(it + DOT)]
+		for (it : includes) {
+			if (name.startsWith(it)) return true;
+		}
+		false
 	}
 	
 	private def isValidResource(String name) {
-		resourceIncludes.exists[name.startsWith(it + SLASH)]
+		for (it : resourceIncludes) {
+			if (name.startsWith(it)) return true;
+		}
+		false
 	}
 
 }
