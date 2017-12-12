@@ -1,13 +1,16 @@
 package org.xtext.gradle;
 
 import java.io.File
+import java.io.InputStream
 import java.util.Set
 import java.util.concurrent.Callable
+import java.util.jar.Manifest
 import org.eclipse.xtext.xbase.lib.Functions.Function0
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -16,13 +19,12 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.xtext.gradle.tasks.Outlet
+import org.xtext.gradle.tasks.XtextClasspathInferrer
 import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
 import static extension org.xtext.gradle.GradleExtensions.*
-import org.gradle.api.file.FileCollection
-import org.xtext.gradle.tasks.XtextClasspathInferrer
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -103,7 +105,23 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	}
 
 	private def String getPluginVersion() {
-		XtextBuilderPlugin.package.implementationVersion
+		var result = XtextBuilderPlugin.package.implementationVersion
+		if (result === null) {
+			var InputStream stream = null
+			try {
+				stream = XtextBuilderPlugin.getResourceAsStream("/META-INF/MANIFEST.MF");
+				if (stream !== null) {
+					val mf = new Manifest(stream)
+					result = mf.mainAttributes.getValue("Implementation-Version")
+				}
+				
+			} finally {
+				if (stream !== null) {
+					stream.close
+				}
+			}
+		}
+		result
 	}
 
 	private def configureOutletDefaults() {
