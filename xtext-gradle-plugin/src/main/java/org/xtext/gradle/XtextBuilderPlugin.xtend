@@ -1,10 +1,8 @@
 package org.xtext.gradle;
 
 import java.io.File
-import java.io.InputStream
 import java.util.Set
 import java.util.concurrent.Callable
-import java.util.jar.Manifest
 import org.eclipse.xtext.xbase.lib.Functions.Function0
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -25,6 +23,7 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 
 import static extension org.xtext.gradle.GradleExtensions.*
+import static org.xtext.gradle.XtextBuilderPluginVersion.*
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -56,7 +55,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				xtextClasspath = project.files(new Callable<FileCollection>() {
 					FileCollection inferredClasspath
 					override call() throws Exception {
-						if (inferredClasspath == null) {
+						if (inferredClasspath === null) {
 							inferredClasspath = inferXtextClasspath(classpath)
 						}
 						inferredClasspath
@@ -83,14 +82,14 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	private def automaticallyInferXtextCoreClasspath() {
 		xtext.classpathInferrers += new XtextClasspathInferrer() {
 			override inferXtextClasspath(FileCollection xtextClasspath, FileCollection classpath) {
-				val xtextBuilder =  project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«pluginVersion»''')
+				val xtextBuilder =  project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«PLUGIN_VERSION»''')
 				val xtextTooling = project.configurations.detachedConfiguration(xtextBuilder)
 				xtext.makeXtextCompatible(xtextTooling)
 				xtext.forceXtextVersion(xtextTooling, new Function0<String>() {
 					String version = null
 		
 					override apply() {
-						if (version == null) {
+						if (version === null) {
 							version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
 							if (version === null) {
 								throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
@@ -102,26 +101,6 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				return xtextTooling.plus(xtextClasspath)
 			}
 		}
-	}
-
-	private def String getPluginVersion() {
-		var result = XtextBuilderPlugin.package.implementationVersion
-		if (result === null) {
-			var InputStream stream = null
-			try {
-				stream = XtextBuilderPlugin.getResourceAsStream("/META-INF/MANIFEST.MF");
-				if (stream !== null) {
-					val mf = new Manifest(stream)
-					result = mf.mainAttributes.getValue("Implementation-Version")
-				}
-				
-			} finally {
-				if (stream !== null) {
-					stream.close
-				}
-			}
-		}
-		result
 	}
 
 	private def configureOutletDefaults() {
