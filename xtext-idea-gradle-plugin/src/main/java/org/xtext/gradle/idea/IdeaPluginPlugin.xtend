@@ -49,7 +49,11 @@ class IdeaPluginPlugin implements Plugin<Project> {
 
 	private def getArtifactId(File file) {
 		val matcher = ARTIFACT_ID.matcher(file.name)
-		if (matcher.matches) matcher.group(1) else null
+		if (matcher.matches) {
+			val g1 = matcher.group(1)
+			if (g1 != null) return g1
+		}
+		null
 	}
 
 }
