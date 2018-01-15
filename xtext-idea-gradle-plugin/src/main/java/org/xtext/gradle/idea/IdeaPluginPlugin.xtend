@@ -11,8 +11,9 @@ import java.io.File
 
 class IdeaPluginPlugin implements Plugin<Project> {
 	public static val IDEA_ZIP_TASK_NAME = "ideaZip"
-	private static val ARTIFACT_ID = Pattern.compile("(.*?)(-.*)?\\.jar")
-	
+	private static val ARTIFACT_ID = Pattern.compile("(.*?)(-[0-9].*)?\\.jar")
+
+
 	override apply(Project project) {
 		project.apply[
 			plugin(IdeaDevelopmentPlugin)
@@ -38,14 +39,17 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		]
 		project.tasks.getAt(BasePlugin.ASSEMBLE_TASK_NAME).dependsOn(ideaZip)
 	}
-	
+
 	private def hasSameArtifactIdAs(File file1, File file2) {
-		file1.artifactId == file2.artifactId
+		if (file1.artifactId != null && file2.artifactId != null) {
+			return file1.artifactId == file2.artifactId
+		}
+		false
 	}
-	
+
 	private def getArtifactId(File file) {
 		val matcher = ARTIFACT_ID.matcher(file.name)
 		if (matcher.matches) matcher.group(1) else null
 	}
-	
+
 }
