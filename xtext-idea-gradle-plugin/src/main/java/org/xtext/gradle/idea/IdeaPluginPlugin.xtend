@@ -6,13 +6,10 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.xtext.gradle.idea.tasks.AssembleSandbox
-import java.util.regex.Pattern
-import java.io.File
 
 class IdeaPluginPlugin implements Plugin<Project> {
 	public static val IDEA_ZIP_TASK_NAME = "ideaZip"
-	private static val ARTIFACT_ID = Pattern.compile("(.*?)(-.*)?\\.jar")
-	
+
 	override apply(Project project) {
 		project.apply[
 			plugin(IdeaDevelopmentPlugin)
@@ -26,7 +23,8 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		assembleSandbox => [
 			libraries.from(jar)
 			libraries.from(runtimeDependencies.filter [ candidate |
-				!providedDependencies.exists[hasSameArtifactIdAs(candidate)]
+				!providedDependencies.exists[ provided
+					| IdeaPluginPluginUtil.hasSameArtifactIdAs(provided, candidate)]
 			])
 			metaInf.from("META-INF")
 		]
@@ -38,14 +36,4 @@ class IdeaPluginPlugin implements Plugin<Project> {
 		]
 		project.tasks.getAt(BasePlugin.ASSEMBLE_TASK_NAME).dependsOn(ideaZip)
 	}
-	
-	private def hasSameArtifactIdAs(File file1, File file2) {
-		file1.artifactId == file2.artifactId
-	}
-	
-	private def getArtifactId(File file) {
-		val matcher = ARTIFACT_ID.matcher(file.name)
-		if (matcher.matches) matcher.group(1) else null
-	}
-	
 }
