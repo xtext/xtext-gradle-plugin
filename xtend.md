@@ -15,13 +15,13 @@ Apply the latest [org.xtext.xtend](http://plugins.gradle.org/plugin/org.xtext.xt
 
 ```groovy
 plugins {
-  id "org.xtext.xtend" version "1.0.0"
+  id "org.xtext.xtend" version "1.0.21"
 }
 
 repositories.jcenter()
 
 dependencies {
-  compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+  compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.13.0'
 }
 ```
 
