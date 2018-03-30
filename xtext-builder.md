@@ -160,7 +160,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
           //as defined in your languages OutputConfigurationProvider
           //the default outlet is available using the shortand 'outlet'
           outlets {
-            HEROES {              
+            HEROES {        
             }
             VILLAINS {
               //automatically adds the output folder to the Java source folders
@@ -196,7 +196,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
           //adjust output directories per sourceSet and outlet
           //the syntax for this will improve in future releases
           //default here would be 'build/herolang/heroes/main'
-          dir(xtext.languages.herolang.HEROES, 'build/someSpecialDir')
+          dir(xtext.languages.herolang.generator.outlets.HEROES, 'build/someSpecialDir')
         }
       }
     }
