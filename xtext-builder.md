@@ -152,7 +152,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
           javaSourceLevel = '1.7'
           //whether to generate the @Generated annotation, disabled by default
           generatedAnnotation {
-            enabled = true
+            active = true
             comment = "Copyright My Cool Company"
             includeDate = true
           }
