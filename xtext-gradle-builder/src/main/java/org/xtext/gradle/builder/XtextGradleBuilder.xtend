@@ -190,14 +190,14 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 	
 	private def boolean needsCleanBuild(GradleBuildRequest request) {
-		!request.incremental || !request.dirtyClasspathEntries.isEmpty || index.getContainer(request.containerHandle) == null
+		!request.incremental || !request.dirtyClasspathEntries.isEmpty || index.getContainer(request.containerHandle) === null
 	}
 	
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
-		val parent = if (gradleRequest.bootClasspath === null) {
+		val parent = if (gradleRequest.bootstrapClasspath === null || gradleRequest.bootstrapClasspath.empty) {
 			ClassLoader.systemClassLoader
 		} else {
-			new AlternateJdkLoader(gradleRequest.bootClasspath.split(File.pathSeparator).map[new File(it)])
+			new AlternateJdkLoader(gradleRequest.bootstrapClasspath)
 		}
 		new URLClassLoader(gradleRequest.allClasspathEntries.map[toURI.toURL], parent)
 	}
@@ -268,8 +268,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	
 	override void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
 		val request = new InstallDebugInfoRequest => [
-			classesDir = gradleRequest.classesDir
-			outputDir =gradleRequest.classesDir
+			classesDirs = gradleRequest.classesDirs
 			sourceInstallerByFileExtension = gradleRequest.sourceInstallerByFileExtension.mapValues[gradleConfig|
 				new SourceInstallerConfig => [
 					sourceInstaller = SourceInstaller.valueOf(gradleConfig.sourceInstaller.name)

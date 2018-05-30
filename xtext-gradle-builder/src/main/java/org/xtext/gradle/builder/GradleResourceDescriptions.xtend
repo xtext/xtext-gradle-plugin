@@ -23,7 +23,7 @@ class GradleResourceDescriptions extends ChunkedResourceDescriptions {
 	override getResourceDescription(URI uri) {
 		for (selectable : visibleResourceDescriptions) {
 			val result = selectable.getResourceDescription(uri)
-			if (result != null)
+			if (result !== null)
 				return result
 		}
 		return null

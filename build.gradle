@@ -3,9 +3,9 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.xtext:xtext-gradle-plugin:1.0.14'
-    classpath 'com.github.oehme.sobula:sobula:0.6.6'
-    classpath 'com.netflix.nebula:nebula-project-plugin:3.3.0'
+    classpath 'org.xtext:xtext-gradle-plugin:1.0.21'
+    classpath 'com.github.oehme.sobula:sobula:0.6.7'
+    classpath 'com.netflix.nebula:nebula-project-plugin:4.0.1'
   }
 }
 
@@ -35,7 +35,7 @@ subprojects {
   apply plugin: 'eclipse'
   apply plugin: 'java'
 
-  sourceCompatibility = 1.7
+  sourceCompatibility = 1.8
 
   tasks.withType(JavaCompile) {
       options.encoding = 'UTF-8'
@@ -43,9 +43,9 @@ subprojects {
 
   dependencies {
     compile gradleApi()
-    compile 'com.google.guava:guava:18.0'
+    compile 'com.google.guava:guava:21.0'
     testCompile 'junit:junit:4.12'
-    testCompile 'org.ow2.asm:asm:5.0.1'
+    testCompile 'org.ow2.asm:asm:6.1.1'
   }
 }
 

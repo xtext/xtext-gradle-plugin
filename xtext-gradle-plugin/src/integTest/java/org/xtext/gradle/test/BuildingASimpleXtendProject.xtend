@@ -170,7 +170,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		build('build')
 
 		// then
-		file('build/classes/main/HelloWorld.class').shouldExist
+		file('build/classes/java/main/HelloWorld.class').shouldExist
 	}
 	
 	@Test
@@ -185,7 +185,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		build('build')
 
 		// then
-		file('build/classes/main/com/example/HelloWorld.class').shouldExist
+		file('build/classes/java/main/com/example/HelloWorld.class').shouldExist
 	}
 	
 	@Test
@@ -204,7 +204,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 		// then
 		file('build/xtend-gen/com/example/HelloWorld.java').shouldExist
-		file('build/classes/main/com/example/HelloWorld.class').shouldExist
+		file('build/classes/java/main/com/example/HelloWorld.class').shouldExist
 	}
 	
     @Test

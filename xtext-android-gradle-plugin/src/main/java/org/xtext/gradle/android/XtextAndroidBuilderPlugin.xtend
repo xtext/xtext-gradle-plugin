@@ -7,7 +7,6 @@ import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.api.TestedVariant
-import java.io.File
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -60,7 +59,7 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 		variants.all [ variant |
 			configureSourceSetForVariant(variant)
 			if (variant instanceof TestedVariant) {
-				if (variant.testVariant != null)
+				if (variant.testVariant !== null)
 					configureSourceSetForVariant(variant.testVariant)
 			}
 		]
@@ -86,13 +85,13 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			]
 			sourceDirs += variant.outputs.map[processResources.sourceOutputDir]
 			sourceSet.srcDirs(sourceDirs)
-			generatorTask.bootClasspath = android.bootClasspath.join(File.pathSeparator)
+			generatorTask.bootstrapClasspath = project.files(android.bootClasspath)
 			if (variant.javaCompiler instanceof AbstractCompile) {
 				val compile = variant.javaCompiler as AbstractCompile
 				generatorTask.classpath = compile.classpath.plus(
 						project.files(android.bootClasspath)
 				)
-				generatorTask.classesDir = compile.destinationDir
+				generatorTask.classesDirs = project.files(compile.destinationDir)
 				generatorTask.options.encoding = android.compileOptions.encoding
 				variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
 			} else {

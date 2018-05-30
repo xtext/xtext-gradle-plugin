@@ -58,7 +58,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 					String version = null
 		
 					override apply() {
-						if (version == null) {
+						if (version === null) {
 							version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
 							if (version === null) {
 								throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')

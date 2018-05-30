@@ -16,6 +16,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.api.tasks.util.PatternSet
 import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleGeneratorConfig
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
@@ -23,7 +24,6 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInsta
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
-import org.gradle.api.tasks.util.PatternSet
 
 class XtextGenerate extends DefaultTask {
 
@@ -36,9 +36,9 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @InputFiles @Optional FileCollection classpath
 
-	@Accessors @Input @Optional String bootClasspath
+	@Accessors @Input @Optional FileCollection bootstrapClasspath
 
-	@Accessors @Input @Optional File classesDir
+	@Accessors @Input @Optional FileCollection classesDirs
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
 
@@ -64,7 +64,15 @@ class XtextGenerate extends DefaultTask {
 
 	@OutputDirectories
 	def getOutputDirectories() {
-		sourceSetOutputs.dirs
+		// filter out all output directories where the generating outlet has "cleanAutomatically == false"
+		val buildContinuousLanguages = languages.filter[generator.outlets.exists[cleanAutomatically == true]]
+		val result = newArrayList
+		for (l : buildContinuousLanguages) {
+			for (o : l.generator.outlets) {
+				result.add(sourceSetOutputs.getDir(o))
+			}
+		}
+		return result.filter[it !== null]
 	}
 
 	@TaskAction
@@ -85,7 +93,7 @@ class XtextGenerate extends DefaultTask {
 			containerHandle = this.containerHandle
 			allFiles = allSources.files
 			allClasspathEntries = this.getNullSafeClasspath.files
-			it.bootClasspath = bootClasspath
+			it.bootstrapClasspath = bootstrapClasspath
 			sourceFolders = sources.srcDirs
 			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
 				val config = generator
@@ -145,7 +153,7 @@ class XtextGenerate extends DefaultTask {
 		}
 		val request = new GradleInstallDebugInfoRequest => [
 			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
-			it.classesDir = classesDir
+			it.classesDirs = classesDirs
 			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
 				new GradleSourceInstallerConfig() => [
 					sourceInstaller = lang.debugger.sourceInstaller

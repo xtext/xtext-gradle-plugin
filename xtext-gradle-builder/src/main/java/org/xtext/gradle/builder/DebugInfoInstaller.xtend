@@ -50,17 +50,21 @@ class DebugInfoInstaller {
 
 	def private void installDebugInfo(InstallDebugInfoRequest request, File javaFile, JvmGenericType type, AbstractTraceRegion trace) throws IOException {
 		val relativePath = '''«type.qualifiedName.replace(".", File.separator)».class'''
-		val classFile = new File(request.classesDir, relativePath)
-		installDebugInfo(request, javaFile, classFile, trace)
-		for (member : type.members.filter(JvmGenericType)) {
-			installDebugInfo(request, javaFile, member, trace)
+		for (classesDir : request.classesDirs) {
+			val classFile = new File(classesDir, relativePath)
+			if (classFile.exists) {
+				installDebugInfo(request, javaFile, classFile, trace)
+				for (member : type.members.filter(JvmGenericType)) {
+					installDebugInfo(request, javaFile, member, trace)
+				}
+			}
 		}
 	}
 
 	def private void installDebugInfo(InstallDebugInfoRequest request, File javaFile, File classFile, AbstractTraceRegion trace) throws IOException {
 		val traceToBytecodeInstaller = createTraceToBytecodeInstaller(request, trace.associatedSrcRelativePath)
 		traceToBytecodeInstaller.setTrace(javaFile.name, trace)
-		val outputFile = new File(classFile.absolutePath.replace(request.classesDir.absolutePath, request.outputDir.absolutePath))
+		val outputFile = classFile
 		logger.info('''Installing Xtext debug information into «classFile» using «traceToBytecodeInstaller.class.simpleName»''')
 		outputFile.parentFile.mkdirs
 		val classContent = Files.toByteArray(classFile)

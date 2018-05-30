@@ -71,7 +71,7 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 		''')
 		
 		build("build")
-		val classFile = file("build/classes/main/HelloWorld.class")
+		val classFile = file("build/classes/java/main/HelloWorld.class")
 		
 		classFile.shouldExist
 		new ClassReader(classFile.content).accept(new ClassVisitor(Opcodes.ASM5) {

@@ -52,11 +52,12 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
+				val XtextGenerate generate = it
 				xtextClasspath = project.files(new Callable<FileCollection>() {
 					FileCollection inferredClasspath
 					override call() throws Exception {
 						if (inferredClasspath === null) {
-							inferredClasspath = inferXtextClasspath(classpath)
+							inferredClasspath = inferXtextClasspath(generate.classpath)
 						}
 						inferredClasspath
 					}
@@ -160,8 +161,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						}
 						generatorTask.options.encoding = generatorTask.options.encoding ?: javaCompile.options.encoding
 						generatorTask.classpath = generatorTask.classpath ?: javaSourceSet.compileClasspath
-						generatorTask.bootClasspath = generatorTask.bootClasspath ?: javaCompile.options.bootClasspath
-						generatorTask.classesDir = generatorTask.classesDir ?: javaSourceSet.output.classesDir
+						generatorTask.bootstrapClasspath = generatorTask.bootstrapClasspath ?: javaCompile.options.bootstrapClasspath
+						generatorTask.classesDirs = generatorTask.classesDirs ?: javaSourceSet.output.classesDirs
 					]
 				]
 			]
