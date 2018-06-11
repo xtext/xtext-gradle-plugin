@@ -4,21 +4,23 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
+import org.gradle.api.file.FileCollection;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class GradleInstallDebugInfoRequest {
 
-	private File classesDir;
+	private FileCollection classesDirs;
 	private Collection<File> generatedJavaFiles = Lists.newArrayList();
 	private Map<String, GradleSourceInstallerConfig> sourceInstallerByFileExtension = Maps.newHashMap();
 
-	public File getClassesDir() {
-		return classesDir;
+	public FileCollection getClassesDirs() {
+		return classesDirs;
 	}
 
-	public void setClassesDir(File classesDir) {
-		this.classesDir = classesDir;
+	public void setClassesDirs(FileCollection classesDirs) {
+		this.classesDirs = classesDirs;
 	}
 	
 	public Map<String, GradleSourceInstallerConfig> getSourceInstallerByFileExtension() {

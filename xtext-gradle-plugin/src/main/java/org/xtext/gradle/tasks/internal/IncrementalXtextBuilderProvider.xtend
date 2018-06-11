@@ -18,7 +18,7 @@ class IncrementalXtextBuilderProvider {
 			if (incompatibleBuilderExists(languageSetups, encoding, xtextClasspath)) {
 				closeBuilder
 			}
-			if (builder == null) {
+			if (builder === null) {
 				createBuilder(languageSetups, encoding, xtextClasspath)
 			}
 			return builder;
@@ -26,7 +26,7 @@ class IncrementalXtextBuilderProvider {
 	}
 	
 	private static def incompatibleBuilderExists(Set<String> languageSetups, String encoding, Set<File> xtextClasspath) {
-		builder != null && getCheckSum(languageSetups, encoding, xtextClasspath) != builderChecksum
+		builder !== null && getCheckSum(languageSetups, encoding, xtextClasspath) != builderChecksum
 	}
 
 	private static def closeBuilder() {
