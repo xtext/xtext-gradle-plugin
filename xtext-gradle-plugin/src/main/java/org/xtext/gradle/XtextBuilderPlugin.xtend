@@ -118,9 +118,10 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def addSourceSetIncludes() {
 		project.afterEvaluate [
-			xtext.languages.all [lang|
-				xtext.sourceSets.all[
-					filter.include("**/*." + lang.fileExtension)
+			xtext.languages.all [ lang |
+				xtext.sourceSets.all [
+					for (ext : lang.fileExtensions)
+						filter.include("**/*." + ext)
 				]
 			]
 		]

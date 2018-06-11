@@ -56,8 +56,9 @@ class XtextGenerate extends DefaultTask {
 	@InputFiles @SkipWhenEmpty
 	def getMainSources() {
 		val patterns = new PatternSet
-		languages.filter[!generator.outlets.empty].forEach [lang |
-			patterns.include("**/*." + lang.fileExtension)
+		languages.filter[!generator.outlets.empty].forEach [ lang |
+			for (ext : lang.fileExtensions)
+				patterns.include("**/*." + ext)
 		]
 		project.files(sources.srcDirs).asFileTree.matching(patterns)
 	}
@@ -154,12 +155,18 @@ class XtextGenerate extends DefaultTask {
 		val request = new GradleInstallDebugInfoRequest => [
 			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
 			it.classesDirs = classesDirs
-			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
-				new GradleSourceInstallerConfig() => [
-					sourceInstaller = lang.debugger.sourceInstaller
-					hideSyntheticVariables = lang.debugger.hideSyntheticVariables
-				]
-			]
+			sourceInstallerByFileExtension = newHashMap
+			for (lang : languages) {
+				for (ext : lang.fileExtensions) {
+					sourceInstallerByFileExtension.put(
+						ext,
+						new GradleSourceInstallerConfig() => [
+							sourceInstaller = lang.debugger.sourceInstaller
+							hideSyntheticVariables = lang.debugger.hideSyntheticVariables
+						]
+					)
+				}
+			}
 		]
 		builder.installDebugInfo(request)
 	}

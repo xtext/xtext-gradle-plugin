@@ -17,6 +17,7 @@ import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
+import java.util.Arrays
 
 class XtextExtension {
 	@Accessors String version
@@ -75,7 +76,8 @@ class XtextExtension {
 class Language implements Named {
 	val String name
 	String qualifiedName
-	String fileExtension
+	/** @deprecated use 'fileExtensions' instead */ @Deprecated String fileExtension
+	String fileExtensions
 	String setup
 	val GeneratorConfig generator
 	val debugger = new DebuggerConfig
@@ -94,8 +96,12 @@ class Language implements Named {
 		qualifiedName ?: setup.replace("StandaloneSetup", "")
 	}
 
-	def getFileExtension() {
-		fileExtension ?: name
+	def getFileExtensions() {
+		if (fileExtensions === null) {
+			Arrays.asList(fileExtension ?: name)
+		} else {
+			Arrays.asList(fileExtensions.split(','))
+		}
 	}
 
 	def generator(Closure<?> configureClosure) {
