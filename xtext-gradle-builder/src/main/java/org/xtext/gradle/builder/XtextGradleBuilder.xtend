@@ -9,6 +9,7 @@ import com.google.inject.Guice
 import java.io.Closeable
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Paths
 import java.util.List
 import java.util.Set
 import java.util.concurrent.ConcurrentHashMap
@@ -250,7 +251,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			gradleRequest.generatorConfigsByLanguage.mapValues[
 				outputConfigs.map[gradleOutputConfig|
 					new OutputConfiguration(gradleOutputConfig.outletName) => [
-						outputDirectory = gradleOutputConfig.target.absolutePath
+						outputDirectory = Paths.get(gradleRequest.projectDir.absolutePath).relativize(Paths.get(
+							gradleOutputConfig.target.absolutePath)).toString
 					]
 				].toSet
 			]
