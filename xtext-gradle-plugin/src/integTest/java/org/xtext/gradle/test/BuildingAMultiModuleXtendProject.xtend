@@ -62,4 +62,40 @@ class BuildingAMultiModuleXtendProject extends AbstractXtendIntegrationTest {
 		result.hasRunGeneratorFor(downStream)
 	}
 
+	@Test
+	def void activeAnnotationsCanGenerateFilesUsingOutputConfigurations() {
+		upStreamProject.createFile('src/main/java/com/example/Generate.xtend', '''
+			package com.example
+			import java.util.List
+			import org.eclipse.xtend.lib.macro.AbstractClassProcessor
+			import org.eclipse.xtend.lib.macro.CodeGenerationContext
+			import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
+			class GenerateProcessor extends AbstractClassProcessor {
+				override doGenerateCode(List<? extends ClassDeclaration> annotatedSourceElements, extension CodeGenerationContext context) {
+				    for (clazz : annotatedSourceElements) {
+				      val filePath = clazz.compilationUnit.filePath
+				      val folder = context.getTargetFolder(filePath)
+				      val file = folder.append("Test.info")
+				      file.contents = clazz.getSimpleName
+				    }
+				  }
+			}
+		''')
+		upStreamProject.createFile('src/main/java/com/example/GenerateProcessor.xtend', '''
+			package com.example
+			import org.eclipse.xtend.lib.macro.Active
+			@Active(GenerateProcessor)
+			annotation Generate {}
+		''')
+		downStreamProject.createFile('src/main/java/com/example/HelloWorld.xtend', '''
+			package com.example
+			@Generate
+			class HelloWorld {}
+		''')
+
+		build('build')
+
+		file('downStream/build/xtend/main/Test.info').shouldExist
+	}
+
 }
