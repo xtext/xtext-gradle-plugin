@@ -14,6 +14,7 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.internal.XtendSourceSet
 
 import static extension org.xtext.gradle.GradleExtensions.*
+import org.xtext.gradle.tasks.XtextSourceDirectorySet
 
 class XtendLanguageBasePlugin implements Plugin<Project> {
 
@@ -53,7 +54,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 
 	private def void automaticallyInferXtendCompilerClasspath() {
 		xtext.classpathInferrers += new XtextClasspathInferrer() {
-			override inferXtextClasspath(FileCollection xtextClasspath, FileCollection classpath) {
+			override inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection xtextClasspath, FileCollection classpath) {
 				val version = new Function0<String>() {
 					String version = null
 		
@@ -67,7 +68,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 						version
 					}
 				}
-				val xtendTooling = project.configurations.detachedConfiguration().defaultDependencies[
+				val xtendTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtendTooling")).defaultDependencies[
 					add(project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version.apply))
 				]
 				xtext.makeXtextCompatible(xtendTooling)

@@ -27,4 +27,8 @@ interface XtextSourceDirectorySet extends PatternFilterable {
 	def void output(Closure<?> configureClosure)
 
 	def String getGeneratorTaskName()
+
+	def String qualifyConfigurationName(String prefix) {
+		prefix + name.toFirstUpper
+	}
 }
