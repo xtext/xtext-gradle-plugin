@@ -24,6 +24,7 @@ import org.xtext.gradle.tasks.XtextGenerate
 
 import static extension org.xtext.gradle.GradleExtensions.*
 import static org.xtext.gradle.XtextBuilderPluginVersion.*
+import org.xtext.gradle.tasks.XtextSourceDirectorySet
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -57,7 +58,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 					FileCollection inferredClasspath
 					override call() throws Exception {
 						if (inferredClasspath === null) {
-							inferredClasspath = inferXtextClasspath(generate.classpath)
+							inferredClasspath = inferXtextClasspath(sourceSet, generate.classpath)
 						}
 						inferredClasspath
 					}
@@ -75,16 +76,17 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		]
 	}
 
-	private def inferXtextClasspath(FileCollection classpath) {
-		xtext.classpathInferrers.fold(xtextLanguages as FileCollection)[newXextClasspath, inferrer | inferrer.inferXtextClasspath(newXextClasspath, classpath) ]
+	private def inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection classpath) {
+		xtext.classpathInferrers.fold(xtextLanguages as FileCollection)[newXextClasspath, inferrer | inferrer.inferXtextClasspath(sourceSet, newXextClasspath, classpath) ]
 	}
 	
 	
 	private def automaticallyInferXtextCoreClasspath() {
 		xtext.classpathInferrers += new XtextClasspathInferrer() {
-			override inferXtextClasspath(FileCollection xtextClasspath, FileCollection classpath) {
+			override inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection xtextClasspath, FileCollection classpath) {
 				val xtextBuilder =  project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«PLUGIN_VERSION»''')
-				val xtextTooling = project.configurations.detachedConfiguration(xtextBuilder)
+				val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
+				xtextTooling.dependencies += xtextBuilder
 				xtext.makeXtextCompatible(xtextTooling)
 				xtext.forceXtextVersion(xtextTooling, new Function0<String>() {
 					String version = null
@@ -99,7 +101,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						version
 					}
 				})
-				return xtextTooling.plus(xtextClasspath)
+				val result = xtextTooling.plus(xtextClasspath)
+				return result
 			}
 		}
 	}

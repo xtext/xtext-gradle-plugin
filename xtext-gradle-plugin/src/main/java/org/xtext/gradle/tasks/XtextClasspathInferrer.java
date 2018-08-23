@@ -4,5 +4,5 @@ import org.gradle.api.file.FileCollection;
 
 public interface XtextClasspathInferrer {
 
-	public FileCollection inferXtextClasspath(FileCollection xtextClasspath, FileCollection classpath);
+	public FileCollection inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection xtextClasspath, FileCollection classpath);
 }
