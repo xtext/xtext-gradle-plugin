@@ -18,7 +18,7 @@ Below is the minimal configuration for a language that does not integrate with J
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '1.0.21'
+    id 'org.xtext.builder' version '2.0.1'
   }
 
   repositories {
@@ -51,7 +51,7 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '1.0.21'
+    id 'org.xtext.builder' version '2.0.1'
     id 'java'
   }
 
@@ -82,7 +82,7 @@ An Xtext Generator task is created for every Variant as well as for the tests. T
 ```groovy
   plugins {
     id 'com.android.application' version '1.5.0'
-    id 'org.xtext.android' version '1.0.21'
+    id 'org.xtext.android' version '2.0.1'
   }
 
   //repositories, dependencies and xtext configuration same as above
@@ -109,7 +109,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '1.0.21'
+    id 'org.xtext.builder' version '2.0.1'
     id 'java'
   }
 
@@ -124,7 +124,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
   xtext {
     //Xtext version, can be omitted if Xtext is found on the classpath already
-    version = '2.13.0'
+    version = '2.14.0'
     //
     languages {
       //a language configuration can be very simple, everything has good defaults
