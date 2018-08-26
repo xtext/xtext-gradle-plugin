@@ -124,7 +124,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
   xtext {
     //Xtext version, can be omitted if Xtext is found on the classpath already
-    version = '2.14.0'
+    version = '2.15.0'
     //
     languages {
       //a language configuration can be very simple, everything has good defaults
