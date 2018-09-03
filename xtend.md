@@ -21,7 +21,7 @@ plugins {
 repositories.jcenter()
 
 dependencies {
-  compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.14.0'
+  compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.15.0'
 }
 ```
 
