@@ -47,6 +47,13 @@ subprojects {
     testCompile 'junit:junit:4.12'
     testCompile 'org.ow2.asm:asm:6.1.1'
   }
+
+  tasks.withType(Test).all {
+    testLogging {
+        events "failed"
+        exceptionFormat "short"
+    }
+  }
 }
 
 configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
