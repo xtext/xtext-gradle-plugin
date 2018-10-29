@@ -7,7 +7,6 @@ import org.eclipse.xtext.util.UriUtil
 import org.eclipse.xtext.workspace.IProjectConfig
 import org.eclipse.xtext.workspace.ISourceFolder
 import org.xtext.gradle.protocol.GradleBuildRequest
-import org.eclipse.xtext.workspace.SingleProjectWorkspaceConfig
 
 @FinalFieldsConstructor
 class GradleProjectConfig implements IProjectConfig {
@@ -34,7 +33,7 @@ class GradleProjectConfig implements IProjectConfig {
 	}
 	
 	override getWorkspaceConfig() {
-		new SingleProjectWorkspaceConfig(this)
+		new GradleWorkspaceConfig(this)
 	}
 	
 }
