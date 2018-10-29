@@ -14,6 +14,7 @@ class GradleValidatonCallback implements IPostValidationCallback {
 	boolean errorFree = true
 
 	override afterValidate(URI validated, Iterable<Issue> issues) {
+		logger.info("Starting validation for input: '" + validated.lastSegment + "'")
 		for (issue : issues) {
 			switch (issue.severity) {
 				case ERROR: {
