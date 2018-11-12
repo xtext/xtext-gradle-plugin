@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.xtext:xtext-gradle-plugin:1.0.21'
+    classpath 'org.xtext:xtext-gradle-plugin:2.0.2'
     classpath 'com.github.oehme.sobula:sobula:0.6.7'
     classpath 'com.netflix.nebula:nebula-project-plugin:4.0.1'
   }
@@ -80,7 +80,7 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
 
   task latestIntegrationTest(type: Test) {
     classpath = minimumIntegrationTest.classpath
-    testClassesDir = minimumIntegrationTest.testClassesDir
+    testClassesDirs = minimumIntegrationTest.testClassesDirs
     dependsOn("install")
     systemProperty 'gradle.project.version', version
     systemProperty 'xtext.version', latestXtextVersion

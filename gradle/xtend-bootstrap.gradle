@@ -19,7 +19,7 @@ configurations {
 
 dependencies {
 	xtendCompiler "org.eclipse.xtend:org.eclipse.xtend.core"
-	xtendCompiler "org.xtext:xtext-gradle-builder:1.0.21"
+	xtendCompiler "org.xtext:xtext-gradle-builder:2.0.2"
 }
 
 subprojects {
