@@ -75,6 +75,7 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 Android Integration
 -------------------
+
 For Android integration, use the [org.xtext.android](http://plugins.gradle.org/plugin/org.xtext.android) plugin.
 
 An Xtext Generator task is created for every Variant as well as for the tests. The Java compiler task is set to depend on this Generator task. The compile dependencies of the Variant are also available to the DSL files. If your languages produce Java code, their debug information is automatically installed into the class files after Java compilation.
@@ -160,7 +161,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
           //as defined in your languages OutputConfigurationProvider
           //the default outlet is available using the shortand 'outlet'
           outlets {
-            HEROES {        
+            HEROES {
             }
             VILLAINS {
               //automatically adds the output folder to the Java source folders
@@ -227,6 +228,7 @@ class MyLangPlugin implements Plugin<Project> {
   }
 }
 ```
+
 And this is how easy it would be for your users to consume:
 
 ```groovy

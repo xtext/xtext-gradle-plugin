@@ -10,4 +10,4 @@ twitter_username: xtext
 github_username:  xtext
 
 # Build settings
-markdown: redcarpet
+markdown: kramdown
