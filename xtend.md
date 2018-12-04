@@ -11,6 +11,7 @@ A Gradle plugin for compiling [Xtend](http://xtend-lang.org) source code.
 
 Getting Started
 ------
+
 Apply the latest [org.xtext.xtend](http://plugins.gradle.org/plugin/org.xtext.xtend) or [org.xtext.android.xtend](http://plugins.gradle.org/plugin/org.xtext.android.xtend) plugin. Then add the Xtend library.
 
 ```groovy

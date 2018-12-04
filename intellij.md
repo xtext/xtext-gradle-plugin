@@ -55,11 +55,11 @@ ideaDevelopment {
 }
 ```
 
-
 Advanced use cases
 ------------------
 
 ### I want to test against an existing IntelliJ installation
+
 Leave out the ideaVersion and specify a path instead.
 
 ```groovy
@@ -68,7 +68,8 @@ ideaDevelopment {
 }
 ```
 
-###I want to build several IDEA plugins in one build
+### I want to build several IDEA plugins in one build
+
 You can have a (parent) project that is not a plugin itself, but references other plugins.
 
 ```groovy
@@ -85,7 +86,7 @@ ideaDevelopment {
 }
 ```
 
-###I want to publish an IntelliJ Enterprise Repository
+### I want to publish an IntelliJ Enterprise Repository
 
 ```groovy
 plugins {
