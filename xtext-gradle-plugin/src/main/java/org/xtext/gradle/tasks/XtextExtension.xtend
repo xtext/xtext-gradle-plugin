@@ -101,13 +101,25 @@ class Language implements Named {
 	def generator(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, generator)
 	}
+	
+	def generator(Action<GeneratorConfig> action) {
+		action.execute(generator)
+	}
 
 	def debugger(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, debugger)
 	}
+	
+	def debugger(Action<DebuggerConfig> action) {
+		action.execute(debugger)
+	}
 
 	def validator(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, validator)
+	}
+	
+	def validator(Action<ValidatorConfig> action) {
+		action.execute(validator)
 	}
 
 	def preferences(Map<String, String> preferences) {
@@ -129,6 +141,10 @@ class GeneratorConfig {
 	def outlets(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, outlets)
 	}
+	
+	def outlets(Action<NamedDomainObjectContainer<Outlet>> action) {
+		action.execute(outlets)
+	}
 
 	def getOutlet() {
 		outlets.maybeCreate(Outlet.DEFAULT_OUTLET)
@@ -137,9 +153,17 @@ class GeneratorConfig {
 	def outlet(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, outlet)
 	}
+	
+	def outlet(Action<Outlet> action) {
+		action.execute(outlet)
+	}
 
 	def generatedAnnotation(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, generatedAnnotation)
+	}
+	
+	def generatedAnnotation(Action<GeneratedAnnotationOptions> action) {
+		action.execute(generatedAnnotation)
 	}
 }
 

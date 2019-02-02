@@ -15,6 +15,7 @@ import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
+import org.gradle.api.Action
 
 class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	@Accessors val String name
@@ -117,6 +118,10 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 
 	override output(Closure<?> configureAction) {
 		ConfigureUtil.configure(configureAction, output)
+	}
+	
+	override output(Action<XtextSourceSetOutputs> action) {
+		action.execute(output)
 	}
 
 	override getGeneratorTaskName() {
