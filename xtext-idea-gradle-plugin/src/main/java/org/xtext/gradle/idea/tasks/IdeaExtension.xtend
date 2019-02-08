@@ -10,6 +10,7 @@ import org.gradle.api.file.FileCollection
 
 import static extension org.xtext.gradle.idea.tasks.GradleExtensions.*
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.gradle.api.Action
 
 @Accessors
 class IdeaExtension {
@@ -105,9 +106,17 @@ class IdeaExtension {
 	def pluginDependencies(Closure<Void> config) {
 		project.configure(pluginDependencies as Object, config)
 	}
+	
+	def pluginDependencies(Action<IdeaPluginDependencies> action) {
+		action.execute(pluginDependencies)
+	}
 
 	def pluginRepositories(Closure<Void> config) {
 		project.configure(pluginRepositories as Object, config)
+	}
+	
+	def pluginRepositories(Action<IdeaPluginRepositories> action) {
+		action.execute(pluginRepositories)
 	}
 }
 
