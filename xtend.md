@@ -16,7 +16,7 @@ Apply the latest [org.xtext.xtend](http://plugins.gradle.org/plugin/org.xtext.xt
 
 ```groovy
 plugins {
-  id "org.xtext.xtend" version "2.0.2"
+  id "org.xtext.xtend" version "2.0.3"
 }
 
 repositories.jcenter()
