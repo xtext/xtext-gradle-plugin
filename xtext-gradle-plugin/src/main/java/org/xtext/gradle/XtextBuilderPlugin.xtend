@@ -4,9 +4,11 @@ import java.io.File
 import java.util.Set
 import java.util.concurrent.Callable
 import org.eclipse.xtext.xbase.lib.Functions.Function0
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.BasePlugin
@@ -158,9 +160,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						]
 						if (!javaOutlets.isEmpty) {
 							javaCompile.dependsOn(generatorTask)
-							javaCompile.doLast[
-								generatorTask.installDebugInfo
-							]
+							javaCompile.doLast(new Action<Task>() {
+								override void execute(Task it) {
+									generatorTask.installDebugInfo()
+								}
+							})
 						}
 						generatorTask.options.encoding = generatorTask.options.encoding ?: javaCompile.options.encoding
 						generatorTask.classpath = generatorTask.classpath ?: javaSourceSet.compileClasspath
