@@ -7,10 +7,12 @@ import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.api.TestedVariant
+import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.xtext.gradle.XtextBuilderPlugin
 import org.xtext.gradle.XtextJavaLanguagePlugin
@@ -74,7 +76,11 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 				variant.generateBuildConfig
 			)
 			generatorTask.dependsOn(variant.outputs.map[processResources])
-			variant.javaCompiler.doLast[generatorTask.installDebugInfo]
+			variant.javaCompiler.doLast(new Action<Task>() {
+				override void execute(Task it) {
+					generatorTask.installDebugInfo()
+				}
+			})
 			val sourceDirs = newArrayList
 			val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
 			sourceDirs += javaDirs
