@@ -43,7 +43,7 @@ subprojects {
 
   dependencies {
     compile gradleApi()
-    compile 'com.google.guava:guava:21.0'
+    compile 'com.google.guava:guava:27.1-jre'
     testCompile 'junit:junit:4.12'
     testCompile 'org.ow2.asm:asm:6.1.1'
   }
