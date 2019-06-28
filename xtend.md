@@ -47,7 +47,7 @@ xtend {
     suppressWarningsAnnotation = false
     //whether to generate the @Generated annotation, disabled by default
     generatedAnnotation {
-      enabled = true
+      active = true
       comment = "Copyright My Cool Company"
       includeDate = true
     }
