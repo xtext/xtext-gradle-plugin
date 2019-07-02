@@ -38,7 +38,7 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @Input @Optional FileCollection bootstrapClasspath
 
-	@Accessors @Input @Optional FileCollection classesDirs
+	@Accessors @Optional FileCollection classesDirs // not marked with @Input intentionally
 
 	@Accessors XtextSourceSetOutputs sourceSetOutputs
 
