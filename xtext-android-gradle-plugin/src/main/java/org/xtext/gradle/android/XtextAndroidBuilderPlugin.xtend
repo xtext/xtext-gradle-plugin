@@ -78,7 +78,9 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			generatorTask.dependsOn(variant.outputs.map[processResources])
 			variant.javaCompiler.doLast(new Action<Task>() {
 				override void execute(Task it) {
-					generatorTask.installDebugInfo()
+					if (it instanceof AbstractCompile) {
+						generatorTask.installDebugInfo(destinationDir)
+					}
 				}
 			})
 			val sourceDirs = newArrayList
@@ -97,7 +99,6 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 				generatorTask.classpath = compile.classpath.plus(
 						project.files(android.bootClasspath)
 				)
-				generatorTask.classesDirs = project.files(compile.destinationDir)
 				generatorTask.options.encoding = android.compileOptions.encoding
 				variant.registerJavaGeneratingTask(generatorTask, generatorTask.outputDirectories)
 			} else {

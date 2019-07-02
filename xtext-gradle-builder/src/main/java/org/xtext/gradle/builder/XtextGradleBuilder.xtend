@@ -268,7 +268,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	
 	override void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
 		val request = new InstallDebugInfoRequest => [
-			classesDirs = gradleRequest.classesDirs
+			classesDir = gradleRequest.classesDir
 			sourceInstallerByFileExtension = gradleRequest.sourceInstallerByFileExtension.mapValues[gradleConfig|
 				new SourceInstallerConfig => [
 					sourceInstaller = SourceInstaller.valueOf(gradleConfig.sourceInstaller.name)
