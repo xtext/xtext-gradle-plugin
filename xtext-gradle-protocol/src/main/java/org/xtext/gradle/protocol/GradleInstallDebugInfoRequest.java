@@ -11,16 +11,16 @@ import com.google.common.collect.Maps;
 
 public class GradleInstallDebugInfoRequest {
 
-	private FileCollection classesDirs;
+	private File classesDir;
 	private Collection<File> generatedJavaFiles = Lists.newArrayList();
 	private Map<String, GradleSourceInstallerConfig> sourceInstallerByFileExtension = Maps.newHashMap();
 
-	public FileCollection getClassesDirs() {
-		return classesDirs;
+	public File getClassesDir() {
+		return classesDir;
 	}
 
-	public void setClassesDirs(FileCollection classesDirs) {
-		this.classesDirs = classesDirs;
+	public void setClassesDir(File classesDir) {
+		this.classesDir = classesDir;
 	}
 	
 	public Map<String, GradleSourceInstallerConfig> getSourceInstallerByFileExtension() {

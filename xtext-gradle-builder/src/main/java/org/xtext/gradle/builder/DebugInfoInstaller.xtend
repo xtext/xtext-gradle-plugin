@@ -50,13 +50,12 @@ class DebugInfoInstaller {
 
 	def private void installDebugInfo(InstallDebugInfoRequest request, File javaFile, JvmGenericType type, AbstractTraceRegion trace) throws IOException {
 		val relativePath = '''«type.qualifiedName.replace(".", File.separator)».class'''
-		for (classesDir : request.classesDirs) {
-			val classFile = new File(classesDir, relativePath)
-			if (classFile.exists) {
-				installDebugInfo(request, javaFile, classFile, trace)
-				for (member : type.members.filter(JvmGenericType)) {
-					installDebugInfo(request, javaFile, member, trace)
-				}
+		val classesDir = request.classesDir
+		val classFile = new File(classesDir, relativePath)
+		if (classFile.exists) {
+			installDebugInfo(request, javaFile, classFile, trace)
+			for (member : type.members.filter(JvmGenericType)) {
+				installDebugInfo(request, javaFile, member, trace)
 			}
 		}
 	}

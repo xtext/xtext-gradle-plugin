@@ -11,7 +11,7 @@ import org.gradle.api.file.FileCollection
 @Accessors
 class InstallDebugInfoRequest {
 	Collection<File> generatedJavaFiles = newArrayList
-	FileCollection classesDirs
+	File classesDir
 	Map<String, SourceInstallerConfig> sourceInstallerByFileExtension = newHashMap
 	ResourceSet resourceSet
 
