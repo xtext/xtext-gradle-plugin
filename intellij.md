@@ -36,7 +36,7 @@ The following snippet explains the syntax elements of the plugin.
 
 ```groovy
 plugins {
-	id 'org.xtext.idea-plugin' version '2.0.7'
+	id 'org.xtext.idea-plugin' version '2.0.8'
 }
 
 ideaDevelopment {
@@ -74,7 +74,7 @@ You can have a (parent) project that is not a plugin itself, but references othe
 
 ```groovy
 plugins {
-	id 'org.xtext.idea-development' version '2.0.7'
+	id 'org.xtext.idea-development' version '2.0.8'
 }
 
 ideaDevelopment {
@@ -90,7 +90,7 @@ ideaDevelopment {
 
 ```groovy
 plugins {
-	id 'org.xtext.idea-repository' version '2.0.7'
+	id 'org.xtext.idea-repository' version '2.0.8'
 }
 
 ideaRepository.rootUrl = '<the URL to which you will upload the ideaRepository folder>'
