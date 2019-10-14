@@ -15,7 +15,11 @@ class XtextEclipseSettings extends DefaultTask {
 
 	@Accessors @Internal Set<XtextSourceDirectorySet> sourceSets
 	@Accessors @Internal Set<Language> languages
-	
+
+	new() {
+		outputs.upToDateWhen [false]
+	}
+
 	@OutputFiles
 	def getOutputFiles() {
 		languages.map[ language|

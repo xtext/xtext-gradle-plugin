@@ -84,7 +84,7 @@ class Language implements Named {
 	@Nested val GeneratorConfig generator
 	@Nested val debugger = new DebuggerConfig
 	@Nested val validator = new ValidatorConfig
-	@Input Map<String, Object> preferences = newHashMap
+	@Input Map<String, Object> preferences = newLinkedHashMap
 
 	@Accessors(NONE) val Project project
 
@@ -186,7 +186,7 @@ class DebuggerConfig {
 
 @Accessors
 class ValidatorConfig {
-	@Input Map<String, IssueSeverity> severities = newHashMap
+	@Input Map<String, IssueSeverity> severities = newLinkedHashMap
 
 	def void error(String code) {
 		severities.put(code, IssueSeverity.ERROR)
