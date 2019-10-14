@@ -5,16 +5,21 @@ import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
-import org.gradle.api.tasks.OutputFiles
 
 class XtextEclipseSettings extends DefaultTask {
 
-	@Accessors Set<XtextSourceDirectorySet> sourceSets
-	@Accessors Set<Language> languages
-	
+	@Accessors @Internal Set<XtextSourceDirectorySet> sourceSets
+	@Accessors @Internal Set<Language> languages
+
+	new() {
+		outputs.upToDateWhen [false]
+	}
+
 	@OutputFiles
 	def getOutputFiles() {
 		languages.map[ language|

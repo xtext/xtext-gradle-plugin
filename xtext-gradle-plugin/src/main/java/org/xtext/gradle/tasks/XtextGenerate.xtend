@@ -8,8 +8,10 @@ import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
@@ -28,17 +30,17 @@ import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
 class XtextGenerate extends DefaultTask {
 
 
-	@Accessors XtextSourceDirectorySet sources
+	@Accessors @Internal XtextSourceDirectorySet sources
 
-	@Accessors Set<Language> languages
+	@Accessors @Nested Set<Language> languages
 
-	@Accessors @InputFiles FileCollection xtextClasspath
+	@Accessors @Classpath FileCollection xtextClasspath
 
-	@Accessors @InputFiles @Optional FileCollection classpath
+	@Accessors @Classpath @Optional FileCollection classpath
 
-	@Accessors @Input @Optional FileCollection bootstrapClasspath
+	@Accessors @Classpath @Optional FileCollection bootstrapClasspath
 
-	@Accessors XtextSourceSetOutputs sourceSetOutputs
+	@Accessors @Internal XtextSourceSetOutputs sourceSetOutputs
 
 	@Accessors @Nested val XtextBuilderOptions options = new XtextBuilderOptions
 
