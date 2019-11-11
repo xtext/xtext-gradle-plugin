@@ -51,6 +51,7 @@ subprojects {
 
 configure(subprojects.findAll{p-> !p.name.contains('protocol')}) {
   apply plugin: 'org.xtext.xtend'
+  sourceJar.dependsOn generateXtext
 }
 
 apply from: "${rootDir}/gradle/xtend-bootstrap.gradle"
