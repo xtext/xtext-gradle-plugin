@@ -54,18 +54,18 @@ class BuildingASimpleXtendProjectWithStandardCharsets extends AbstractXtendInteg
 		file('src/main/java/HelloWorld.xtend') => [
 			parentFile.mkdirs
 			createNewFile
-			Files.write('''
+			Files.asCharSink(it, charset).write('''
 				class HelloWorld {
 					val «variableDeclaration»
 				}
-			''', it, charset)
+			''')
 		]
 
 		if (expectSuccess) {
 			// when
 			build('build')
 			// then
-			val fileContent = Files.toString(file('build/xtend/main/HelloWorld.java'), charset)
+			val fileContent = Files.asCharSource(file('build/xtend/main/HelloWorld.java'), charset).toString
 			assertTrue(fileContent.contains('''private final String «variableDeclaration»;'''))
 		} else {
 			// expect: build failure

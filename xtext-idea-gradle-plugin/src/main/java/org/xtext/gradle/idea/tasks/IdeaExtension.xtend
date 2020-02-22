@@ -80,8 +80,8 @@ class IdeaExtension {
 	}
 
 	def File getIdeaHome() {
-		if (ideaHome == null) {
-			if (ideaVersion == null) {
+		if (ideaHome === null) {
+			if (ideaVersion === null) {
 				throw new IllegalStateException("Cannot determine IDEA home directory. Neither 'ideaHome' nor 'ideaVersion' were set.")
 			} else {
 				project.gradle.gradleUserHomeDir / "ideaSDK" / ideaVersion
@@ -152,11 +152,11 @@ class IdeaPluginDependencies {
 	}
 	
 	def getEndorsedDependencies() {
-		dependencies.filter[version == null]
+		dependencies.filter[version === null]
 	}
 
 	def getExternalDependencies() {
-		dependencies.filter[version != null]
+		dependencies.filter[version !== null]
 	}
 
 	def getProjectDependencies() {

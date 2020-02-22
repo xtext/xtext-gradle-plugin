@@ -6,11 +6,12 @@ import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.InputDirectory
 
 @Accessors
 class RunIdea extends JavaExec {
-	@Input File sandboxDir
-	@Input File ideaHome
+	@InputDirectory File sandboxDir
+	@InputDirectory File ideaHome
 	@Input boolean debugBuilder
 
 	new() {

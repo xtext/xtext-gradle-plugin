@@ -20,7 +20,7 @@ class DownloadIdea extends DefaultTask {
 	@Input @Optional String ideaVersion
 
 	new() {
-		onlyIf[ideaVersion != null && needsRedownload(new IdeaDistribution(ideaVersion))]
+		onlyIf[ideaVersion !== null && needsRedownload(new IdeaDistribution(ideaVersion))]
 	}
 
 	@TaskAction

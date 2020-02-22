@@ -19,7 +19,7 @@ class IdeaRepository extends Sync {
 	override protected copy() {
 		super.copy()
 		val pluginDescriptor = new File(destinationDir, "updatePlugins.xml")
-		Files.write('''
+		Files.asCharSink(pluginDescriptor, Charsets.UTF_8).write('''
 			<?xml version="1.0" encoding="UTF-8"?>
 			<plugins>
 				«FOR it : files»
@@ -30,6 +30,6 @@ class IdeaRepository extends Sync {
 					/>
 				«ENDFOR»
 			</plugins>
-		''', pluginDescriptor, Charsets.UTF_8)
+		''')
 	}
 }
