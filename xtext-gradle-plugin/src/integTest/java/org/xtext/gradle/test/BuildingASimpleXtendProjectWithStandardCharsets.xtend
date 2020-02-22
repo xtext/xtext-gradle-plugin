@@ -65,7 +65,7 @@ class BuildingASimpleXtendProjectWithStandardCharsets extends AbstractXtendInteg
 			// when
 			build('build')
 			// then
-			val fileContent = Files.asCharSource(file('build/xtend/main/HelloWorld.java'), charset).toString
+			val fileContent = Files.asCharSource(file('build/xtend/main/HelloWorld.java'), charset).read
 			assertTrue(fileContent.contains('''private final String «variableDeclaration»;'''))
 		} else {
 			// expect: build failure
