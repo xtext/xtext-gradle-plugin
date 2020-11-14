@@ -81,6 +81,8 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
 
   minimumIntegrationTest {
     dependsOn("install")
+    reports.html.destination = file("$testReportDir/$name")
+    reports.junitXml.destination = file("$testResultsDir/$name")
     systemProperty 'xtext.version', minimumXtextVersion
   }
 
