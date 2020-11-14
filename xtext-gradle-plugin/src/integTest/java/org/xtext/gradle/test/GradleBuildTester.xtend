@@ -39,12 +39,19 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def BuildResult build(String... tasks) {
-		gradle.withArguments(tasks).build
+		gradle.withArguments(tasks + defaultArguments).build
 	}
 
 	def BuildResult buildAndFail(String... tasks) {
-		gradle.withArguments(tasks).buildAndFail
+		gradle.withArguments(tasks + defaultArguments).buildAndFail
 	}
+
+	private def getDefaultArguments() {
+		#[
+			"-Dhttp.connectionTimeout=120000",
+			"-Dhttp.socketTimeout=120000"
+		]
+        }
 
 	def void setContent(File file, CharSequence content) {
 		file.parentFile.mkdirs
