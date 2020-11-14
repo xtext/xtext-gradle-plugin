@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: "Build"
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -18,19 +18,33 @@ jobs:
         with:
           java-version: 1.8
       - id: get_version
-        name: "Get Version"
+        name: Get Version
         uses: battila7/get-version-action@v2
-      - name: "Build"
+      - name: Build
         uses: eskatos/gradle-command-action@v1
         with:
-           arguments: build --info
+           arguments: build
            dependencies-cache-enabled: true
-      - name: Release on Tag
+      - name: Release on tag
         if: startsWith(github.ref, 'refs/tags/v')
         uses: eskatos/gradle-command-action@v1
         env:
           ORG_GRADLE_PROJECT_bintrayApiKey: ${{ secrets.ORG_GRADLE_PROJECT_BINTRAYAPIKEY }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
         with: 
-          arguments: release --info "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
+          arguments: release"-PreleaseVersion=${{ steps.get_version.outputs.version }}"
           dependencies-cache-enabled: true
+      - name: Store HTML test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-report-html
+          path: "**/reports/tests/"
+      - name: Store XML test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-xml
+          path: "**/test-results/"
+
+
+
+
