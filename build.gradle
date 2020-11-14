@@ -73,9 +73,14 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
     }
   }
 
+  tasks.withType(Test) {
+    def testkitDir = System.getenv("CI") ? gradle.gradleUserHomeDir : "$rootDir/testkit-dir"
+    systemProperty 'gradle.project.version', version
+    systemProperty 'org.gradle.testkit.dir', testkitDir
+  }
+
   minimumIntegrationTest {
     dependsOn("install")
-    systemProperty 'gradle.project.version', version
     systemProperty 'xtext.version', minimumXtextVersion
   }
 
@@ -83,7 +88,6 @@ configure(subprojects.findAll{p-> p.name.contains('plugin')}){
     classpath = minimumIntegrationTest.classpath
     testClassesDirs = minimumIntegrationTest.testClassesDirs
     dependsOn("install")
-    systemProperty 'gradle.project.version', version
     systemProperty 'xtext.version', latestXtextVersion
     enabled = JavaVersion.current().java8Compatible
   }
