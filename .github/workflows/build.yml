@@ -34,7 +34,7 @@ jobs:
           ORG_GRADLE_PROJECT_bintrayApiKey: ${{ secrets.ORG_GRADLE_PROJECT_BINTRAYAPIKEY }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
         with: 
-          arguments: release"-PreleaseVersion=${{ steps.get_version.outputs.version }}"
+          arguments: release "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
           dependencies-cache-enabled: true
       - name: Store HTML test report
         uses: actions/upload-artifact@v2
