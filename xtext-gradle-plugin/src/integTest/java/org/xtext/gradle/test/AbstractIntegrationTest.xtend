@@ -34,7 +34,10 @@ abstract class AbstractIntegrationTest {
 	protected def CharSequence getRepositories() '''
 		repositories {
 			mavenLocal()
-			jcenter()
+			mavenCentral()
+			maven {
+      			url "https://plugins.gradle.org/m2/"
+    		}
 		}
 	'''
 	
