@@ -1,11 +1,11 @@
 package org.xtext.gradle.test
 
+import java.io.File
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.junit.Before
 import org.junit.Rule
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
-import java.io.File
 
 abstract class AbstractIntegrationTest {
 

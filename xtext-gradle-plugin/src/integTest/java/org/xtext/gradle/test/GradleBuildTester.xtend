@@ -16,6 +16,7 @@ import org.junit.rules.TemporaryFolder
 import static org.junit.Assert.*
 
 class GradleBuildTester extends ExternalResource {
+	public final static String GRADLE_VERSION = System.getProperty("gradle.version", "4.3")
 	val temp = new TemporaryFolder
 	ProjectUnderTest rootProject
 	GradleRunner gradle
@@ -28,7 +29,7 @@ class GradleBuildTester extends ExternalResource {
 			owner = this
 		]
 		gradle = GradleRunner.create
-			.withGradleVersion(System.getProperty("gradle.version", "4.3"))
+			.withGradleVersion(GRADLE_VERSION)
 			.withPluginClasspath
 			.withProjectDir(rootProject.projectDir)
 			.forwardOutput()

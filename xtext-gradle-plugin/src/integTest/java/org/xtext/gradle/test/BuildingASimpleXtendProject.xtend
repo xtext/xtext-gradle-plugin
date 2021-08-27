@@ -1,6 +1,5 @@
 package org.xtext.gradle.test
 
-import org.junit.Ignore
 import org.junit.Test
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
@@ -240,7 +239,6 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		staleFile.shouldNotExist
 	}
 
-	@Ignore("Doesn't work if we want to keep @SkipWhenEmpty on the XtextGenerate sources")
 	@Test
 	def void theOutputIsCleanedWhenTheLastXtendFileIsRemoved() {
 		val staleFile = file('build/xtend/main/com/example/Foo.java')
