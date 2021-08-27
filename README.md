@@ -1,5 +1,5 @@
 Xtext Gradle Plugins
-===================
+====================
 
 A set of [Gradle](http://gradle.org) plugins to build and use [Xtext](http://xtext.org) languages and the [Xtend](http://xtend-lang.org) programming language.
 
