@@ -87,9 +87,9 @@ class XtextAndroidBuilderPlugin implements Plugin<Project> {
 			val javaDirs = variant.sourceSets.map[javaDirectories].flatten.filter[directory]
 			sourceDirs += javaDirs
 			sourceDirs += #[
-				variant.aidlCompile.sourceOutputDir,
+				variant.aidlCompile.sourceOutputDir.asFile.get,
 				variant.generateBuildConfig.sourceOutputDir,
-				variant.renderscriptCompile.sourceOutputDir
+				variant.renderscriptCompile.sourceOutputDir.asFile.get
 			]
 			sourceDirs += variant.outputs.map[processResources.sourceOutputDir]
 			sourceSet.srcDirs(sourceDirs)

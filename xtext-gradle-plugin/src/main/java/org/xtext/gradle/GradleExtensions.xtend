@@ -16,4 +16,8 @@ class GradleExtensions {
 		dependencyHandler.externalModule(coordinates)[]
 	}
 
+	static def externalPlatform(DependencyHandler dependencyHandler, String coordinates) {
+		dependencyHandler.platform(coordinates)[]
+	}
+
 }

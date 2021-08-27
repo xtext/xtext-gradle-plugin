@@ -69,6 +69,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 					}
 				}
 				val xtendTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtendTooling")).defaultDependencies[
+					add(project.dependencies.externalPlatform("org.eclipse.xtext:xtext-dev-bom:" + version.apply))
 					add(project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version.apply))
 				]
 				xtext.makeXtextCompatible(xtendTooling)

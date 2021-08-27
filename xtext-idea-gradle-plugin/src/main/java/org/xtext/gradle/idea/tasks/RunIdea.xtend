@@ -3,7 +3,7 @@ package org.xtext.gradle.idea.tasks
 import com.google.common.collect.Lists
 import java.io.File
 import org.eclipse.xtend.lib.annotations.Accessors
-import org.gradle.api.internal.tasks.options.Option
+import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.InputDirectory
