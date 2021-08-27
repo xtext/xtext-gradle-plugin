@@ -15,7 +15,6 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
@@ -25,8 +24,6 @@ import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
-
-import static org.xtext.gradle.XtextBuilderPluginVersion.*
 
 import static extension org.xtext.gradle.GradleExtensions.*
 
@@ -60,6 +57,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				val XtextGenerate generate = it
 				xtextClasspath = project.files(new Callable<FileCollection>() {
 					FileCollection inferredClasspath
+
 					override call() throws Exception {
 						if (inferredClasspath === null) {
 							inferredClasspath = inferXtextClasspath(sourceSet, generate.classpath)
@@ -69,32 +67,32 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				})
 			]
 			project.tasks.create('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
-				delete( [
-					xtext.languages
-						.map[generator.outlets].flatten
-						.filter[cleanAutomatically]
-						.map[sourceSet.output.getDir(it)]
-						.toSet
+				delete([
+					xtext.languages.map[generator.outlets].flatten.filter[cleanAutomatically].map [
+						sourceSet.output.getDir(it)
+					].toSet
 				] as Callable<Set<File>>)
 			]
 		]
 	}
 
 	private def inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection classpath) {
-		xtext.classpathInferrers.fold(xtextLanguages as FileCollection)[newXextClasspath, inferrer | inferrer.inferXtextClasspath(sourceSet, newXextClasspath, classpath) ]
+		xtext.classpathInferrers.fold(xtextLanguages as FileCollection) [ newXextClasspath, inferrer |
+			inferrer.inferXtextClasspath(sourceSet, newXextClasspath, classpath)
+		]
 	}
-	
-	
+
 	private def automaticallyInferXtextCoreClasspath() {
 		xtext.classpathInferrers += new XtextClasspathInferrer() {
 			override inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection xtextClasspath, FileCollection classpath) {
-				val xtextBuilder =  project.dependencies.externalModule('''org.xtext:xtext-gradle-builder:«PLUGIN_VERSION»''')
+				val xtextJavaSupport = project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext.java''')
+				val jdtCore = project.dependencies.externalModule('''org.eclipse.jdt:org.eclipse.jdt.core:3.10.0''')
 				val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
-				xtextTooling.dependencies += xtextBuilder
+				xtextTooling.dependencies += #[xtextJavaSupport, jdtCore]
 				xtext.makeXtextCompatible(xtextTooling)
 				xtext.forceXtextVersion(xtextTooling, new Function0<String>() {
 					String version = null
-		
+
 					override apply() {
 						if (version === null) {
 							version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
@@ -125,8 +123,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def addSourceSetIncludes() {
 		project.afterEvaluate [
-			xtext.languages.all [lang|
-				xtext.sourceSets.all[
+			xtext.languages.all [ lang |
+				xtext.sourceSets.all [
 					filter.include("**/*." + lang.fileExtension)
 				]
 			]
@@ -138,7 +136,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			project.apply[plugin(XtextJavaLanguagePlugin)]
 			val java = project.convention.findPlugin(JavaPluginConvention)
 			xtext.languages.all [
-				project.afterEvaluate [p |
+				project.afterEvaluate [ p |
 					generator.javaSourceLevel = generator.javaSourceLevel ?: java.sourceCompatibility.majorVersion
 				]
 			]
@@ -147,17 +145,17 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
 					project.afterEvaluate [ p |
-						xtextSourceSet.srcDirs.forEach[
+						xtextSourceSet.srcDirs.forEach [
 							javaSourceSet.allSource.srcDir(it)
 						]
-						javaSourceSet.java.srcDirs.forEach[
+						javaSourceSet.java.srcDirs.forEach [
 							xtextSourceSet.srcDir(it)
 						]
-						javaSourceSet.resources.srcDirs.forEach[
+						javaSourceSet.resources.srcDirs.forEach [
 							xtextSourceSet.srcDir(it)
 						]
 						val javaOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava]
-						javaOutlets.forEach[
+						javaOutlets.forEach [
 							javaSourceSet.java.srcDir(xtextSourceSet.output.getDir(it))
 						]
 						if (!javaOutlets.isEmpty) {
@@ -170,7 +168,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						}
 						generatorTask.options.encoding = generatorTask.options.encoding ?: javaCompile.options.encoding
 						generatorTask.classpath = generatorTask.classpath ?: javaSourceSet.compileClasspath
-						generatorTask.bootstrapClasspath = generatorTask.bootstrapClasspath ?: javaCompile.options.bootstrapClasspath
+						generatorTask.bootstrapClasspath = generatorTask.bootstrapClasspath ?:
+							javaCompile.options.bootstrapClasspath
 					]
 				]
 			]

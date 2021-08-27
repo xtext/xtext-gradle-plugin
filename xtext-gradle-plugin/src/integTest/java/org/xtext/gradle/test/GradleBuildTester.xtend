@@ -27,7 +27,7 @@ class GradleBuildTester extends ExternalResource {
 			projectDir = temp.newFolder(name)
 			owner = this
 		]
-		gradle = GradleRunner.create.withProjectDir(rootProject.projectDir).forwardOutput()
+		gradle = GradleRunner.create.withPluginClasspath.withProjectDir(rootProject.projectDir).forwardOutput()
 	}
 
 	override protected after() {

@@ -18,33 +18,25 @@ abstract class AbstractIntegrationTest {
 	def void setup() {
 		rootProject = tester.rootProject
 		buildFile = '''
-			buildscript {
-				«repositories»
-				dependencies {
-					classpath 'org.xtext:xtext-gradle-plugin:«System.getProperty("gradle.project.version") ?: 'unspecified'»'
-				}
+			plugins {
+				id 'org.xtext.builder' apply false
 			}
-			
 			allprojects {
 				«repositories»
 			}
 		'''
 	}
-	
+
 	protected def CharSequence getRepositories() '''
 		repositories {
-			mavenLocal()
 			mavenCentral()
-			maven {
-      			url "https://plugins.gradle.org/m2/"
-    		}
 		}
 	'''
-	
+
 	def BuildTask getXtextTask(BuildResult buildResult) {
 		buildResult.getXtextTask(rootProject)
 	}
-	
+
 	def BuildTask getXtextTask(BuildResult buildResult, ProjectUnderTest project) {
 		val taskName = '''«project.path»:generateXtext'''
 		return buildResult.task(taskName)

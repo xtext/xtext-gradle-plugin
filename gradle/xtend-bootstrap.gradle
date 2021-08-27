@@ -1,7 +1,3 @@
-repositories {
-	mavenCentral()
-}
-
 configurations {
 	xtendCompiler {
 		description 'Bootstrap dependencies for the Xtend compiler'
@@ -24,14 +20,14 @@ dependencies {
 
 subprojects {
 	plugins.withId('org.xtext.xtend') {
-	  dependencies {
-	    compile "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
-	  }
+	dependencies {
+		compile "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
+	}
 
-	  tasks.matching {it.class.simpleName.startsWith('XtextGenerate')}.all {
+	tasks.matching {it.class.simpleName.startsWith('XtextGenerate')}.all {
 			afterEvaluate {
 				xtextClasspath = rootProject.configurations.xtendCompiler
 			}
-	  }
+	}
 	}
 }
