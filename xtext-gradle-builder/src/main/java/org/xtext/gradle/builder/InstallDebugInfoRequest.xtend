@@ -5,7 +5,6 @@ import java.util.Collection
 import java.util.Map
 import org.eclipse.emf.ecore.resource.ResourceSet
 import org.eclipse.xtend.lib.annotations.Accessors
-import org.gradle.api.file.FileCollection
 
 //TODO move to Xtext
 @Accessors

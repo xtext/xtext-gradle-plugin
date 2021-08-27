@@ -5,12 +5,12 @@ import org.gradle.testkit.runner.BuildTask
 import org.junit.Before
 import org.junit.Rule
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
+import java.io.File
 
 abstract class AbstractIntegrationTest {
 
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject
-	protected val extension XtextBuilderAssertions = new XtextBuilderAssertions
 
 	public final static String XTEXT_VERSION = System.getProperty("xtext.version", "2.9.0")
 
@@ -25,6 +25,7 @@ abstract class AbstractIntegrationTest {
 				«repositories»
 			}
 		'''
+		createFile('gradle.properties', 'org.gradle.jvmargs=-XX:MaxMetaspaceSize=512m')
 	}
 
 	protected def CharSequence getRepositories() '''
@@ -40,6 +41,10 @@ abstract class AbstractIntegrationTest {
 	def BuildTask getXtextTask(BuildResult buildResult, ProjectUnderTest project) {
 		val taskName = '''«project.path»:generateXtext'''
 		return buildResult.task(taskName)
+	}
+
+	def OutputSnapshot snapshot(File baseDir) {
+		new OutputSnapshot(baseDir)
 	}
 
 }

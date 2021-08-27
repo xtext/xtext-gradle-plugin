@@ -5,7 +5,7 @@ import org.junit.Test
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
-    @Test
+	@Test
 	def theGeneratorShouldRunAndCompileWhenInvokedInSeperateBuilds() {
 		file('src/main/java/HelloWorld.xtend').content = '''
 			class HelloWorld {}
@@ -37,7 +37,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		file('build/xtend/main/org/xtext/it/HelloWorld.java').shouldExist
 		file('build/xtend/main/org/xtext/it/.HelloWorld.java._trace').shouldExist
 	}
-	
+
 	@Test
 	def theGeneratorShouldRunOnValidInput() {
 		file('src/main/java/HelloWorld.xtend').content = '''
@@ -66,29 +66,28 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		val upStream = createFile('src/main/java/UpStream.xtend', '''
 			class UpStream {}
 		''')
-		val downStream = createFile('src/main/java/DownStream.xtend', '''
+		createFile('src/main/java/DownStream.xtend', '''
 			class DownStream {
 				UpStream upStream
 			}
 		''')
-		val unrelated = createFile('src/main/java/Unrelated.xtend', '''
+		createFile('src/main/java/Unrelated.xtend', '''
 			class Unrelated {}
 		''')
 
 		build("build")
+		val snapshot = snapshot(projectDir)
 
 		upStream.content = '''
 			class UpStream {
 				def void foo() {}
 			}
 		'''
-		val secondResult = build("build", "-i")
+		build("build")
 
-		secondResult.hasRunGeneratorFor(upStream)
-		secondResult.hasRunGeneratorFor(downStream)
-		secondResult.hasNotRunGeneratorFor(unrelated)
+		snapshot.assertChangedClasses("UpStream", "DownStream")
 	}
-	
+
 	@Test
 	def affectedResourcesAreDetectedAcrossXtendAndJava() {
 		val upStream = createFile('src/main/java/A.xtend', '''
@@ -98,29 +97,29 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 			public class B extends A {
 			}
 		''')
-		val downStream = createFile('src/main/java/C.xtend', '''
+		createFile('src/main/java/C.xtend', '''
 			class C extends B {}
 		''')
 
 		build("build")
+		val snapshot = snapshot(projectDir)
 
 		upStream.content = '''
 			class A {
 				def void foo() {}
 			}
 		'''
-		val secondResult = build("build", "-i")
+		build("build")
 
-		secondResult.hasRunGeneratorFor(upStream)
-		secondResult.hasRunGeneratorFor(downStream)
+		snapshot.assertChangedClasses("A", "C")
 	}
-	
+
 	@Test
 	def void builtInActiveAnnotationsWork() {
 		file('src/main/java/HelloWorld.xtend').content = '''
 			import org.eclipse.xtend.lib.annotations.Data
-			
-			@Data 
+
+			@Data
 			class HelloWorld {
 				String greeting
 				def test() {
@@ -131,34 +130,34 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 		build("generateXtext")
 	}
-	
+
 	@Test
 	def void shouldCompileAfterErrorIsFixed() {
 		// given
 		val file = createFile('src/main/java/HelloWorld.xtend', '''
 			class HelloWorld {
-				
+
 				def void helloWorld() {
 					println "This is Groovy syntax"
 				}
-				
+
 			}
 		''')
 		buildAndFail('build')
-		
+
 		// expect: no failure
 		file.content = '''
 			class HelloWorld {
-				
+
 				def void helloWorld() {
 					println("This is Xtend syntax")
 				}
-				
+
 			}
 		'''
 		build('build')
 	}
-	
+
 	@Test
 	def void classFilesAreGenerated() {
 		// given
@@ -172,7 +171,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		file('build/classes/java/main/HelloWorld.class').shouldExist
 	}
-	
+
 	@Test
 	def void classFilesAdhereToPackageStructure() {
 		// given
@@ -187,7 +186,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		file('build/classes/java/main/com/example/HelloWorld.class').shouldExist
 	}
-	
+
 	@Test
 	def void theOutputFolderCanBeConfigured() {
 		buildFile << '''
@@ -206,8 +205,8 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		file('build/xtend-gen/com/example/HelloWorld.java').shouldExist
 		file('build/classes/java/main/com/example/HelloWorld.class').shouldExist
 	}
-	
-    @Test
+
+	@Test
 	def void theOutputIsCleanedOnAFullBuild() {
 		file('src/main/java/com/example/HelloWorld.xtend').content = '''
 			package com.example
@@ -225,7 +224,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		staleFile.shouldNotExist
 	}
-	
+
 	@Test
 	def void theOutputIsCleanedWhenCallingGradleClean() {
 		val staleFile = file('build/xtend/main/com/example/Foo.java')
@@ -240,7 +239,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		staleFile.shouldNotExist
 	}
-	
+
 	@Ignore("Doesn't work if we want to keep @SkipWhenEmpty on the XtextGenerate sources")
 	@Test
 	def void theOutputIsCleanedWhenTheLastXtendFileIsRemoved() {
@@ -256,8 +255,8 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		// then
 		staleFile.shouldNotExist
 	}
-	
- 	@Test
+
+	@Test
 	def void theIndexerCanHandleNonExistentClasspathEntries() {
 		file('src/test/java/com/example/HelloWorld.xtend').content = '''
 			package com.example
@@ -267,7 +266,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		build("build")
 	}
 
- 	@Test
+	@Test
 	def void theIndexerCanHandleDirectoryClasspathEntries() {
 		file('src/main/java/com/example/Foo.xtend').content = '''
 			package com.example

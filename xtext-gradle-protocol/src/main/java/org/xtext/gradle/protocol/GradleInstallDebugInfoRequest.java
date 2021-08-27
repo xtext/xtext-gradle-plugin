@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
-import org.gradle.api.file.FileCollection;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 

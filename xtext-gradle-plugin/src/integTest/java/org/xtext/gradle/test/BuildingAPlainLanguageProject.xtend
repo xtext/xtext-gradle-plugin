@@ -9,16 +9,16 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 		super.setup
 		buildFile << '''
 			apply plugin: 'org.xtext.builder'
-			
+
 			configurations {
 				compile
 			}
-			
+
 			dependencies {
 				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:«XTEXT_VERSION»'
 				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«XTEXT_VERSION»'
 			}
-			
+
 			xtext {
 				version = '«XTEXT_VERSION»'
 				languages {
@@ -32,7 +32,7 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 					}
 				}
 			}
-			
+
 			generateXtext.classpath = configurations.compile
 		'''
 	}
@@ -65,28 +65,27 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 		val upStream = createFile('src/main/xtend/UpStream.xtend', '''
 			class UpStream {}
 		''')
-		val downStream = createFile('src/main/xtend/DownStream.xtend', '''
+		createFile('src/main/xtend/DownStream.xtend', '''
 			class DownStream {
 				UpStream upStream
 			}
 		''')
-		val unrelated = createFile('src/main/xtend/Unrelated.xtend', '''
+		createFile('src/main/xtend/Unrelated.xtend', '''
 			class Unrelated {}
 		''')
-
 		build("generateXtext")
+		val snapshot = snapshot(projectDir)
+
 		upStream.content = '''
 			class UpStream {
 				def void foo() {}
 			}
 		'''
-		val secondResult = build("generateXtext", "-i")
-		
-		secondResult.hasRunGeneratorFor(upStream)
-		secondResult.hasRunGeneratorFor(downStream)
-		secondResult.hasNotRunGeneratorFor(unrelated)
+		build("generateXtext")
+
+		snapshot.assertChangedClasses("UpStream", "DownStream")
 	}
-	
+
 	@Test
 	def void generateOnceFoldersAreNotCleanedByCleanBuilds() {
 		buildFile << '''xtext.languages.xtend.generator.outlet.cleanAutomatically = false'''
@@ -106,7 +105,7 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 		// then
 		staleFile.shouldExist
 	}
-	
+
 	@Test
 	def void generateOnceFoldersAreNotCleanedByGradleClean() {
 		buildFile << '''xtext.languages.xtend.generator.outlet.cleanAutomatically = false'''

@@ -3,7 +3,6 @@ package org.xtext.gradle;
 import java.io.File
 import java.util.Set
 import java.util.concurrent.Callable
-import org.eclipse.xtext.xbase.lib.Functions.Function0
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -11,7 +10,8 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Delete
@@ -36,7 +36,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	override void apply(Project project) {
 		this.project = project
 
-		project.plugins.<BasePlugin>apply(BasePlugin)
+		project.plugins.apply("base")
+		if (project.supportsJvmEcoSystemplugin) {
+			project.plugins.apply("jvm-ecosystem")
+		}
+
 		xtext = project.extensions.create("xtext", XtextExtension, project);
 		xtextLanguages = project.configurations.create("xtextLanguages")
 		xtext.makeXtextCompatible(xtextLanguages)
@@ -55,16 +59,21 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
 				val XtextGenerate generate = it
-				xtextClasspath = project.files(new Callable<FileCollection>() {
-					FileCollection inferredClasspath
-
-					override call() throws Exception {
-						if (inferredClasspath === null) {
-							inferredClasspath = inferXtextClasspath(sourceSet, generate.classpath)
-						}
-						inferredClasspath
+				xtextClasspath = new LazilyInitializedFileCollection() {
+					override getDisplayName() {
+						"Xtext classpath"
 					}
-				})
+
+					override createDelegate() {
+						inferXtextClasspath(sourceSet, generate.classpath)
+					}
+
+					override visitDependencies(TaskDependencyResolveContext context) {
+						context.add(generate.classpath)
+						context.add(xtextLanguages)
+					}
+
+				}
 			]
 			project.tasks.create('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
 				delete([
@@ -85,26 +94,22 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	private def automaticallyInferXtextCoreClasspath() {
 		xtext.classpathInferrers += new XtextClasspathInferrer() {
 			override inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection xtextClasspath, FileCollection classpath) {
-				val xtextJavaSupport = project.dependencies.externalModule('''org.eclipse.xtext:org.eclipse.xtext.java''')
-				val jdtCore = project.dependencies.externalModule('''org.eclipse.jdt:org.eclipse.jdt.core:3.10.0''')
+				val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
+				if (version === null) {
+					throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
+				}
 				val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
-				xtextTooling.dependencies += #[xtextJavaSupport, jdtCore]
+				xtextTooling.dependencies += #[
+					'org.eclipse.xtext:org.eclipse.xtext',
+					'org.eclipse.xtext:org.eclipse.xtext.smap',
+					'org.eclipse.xtext:org.eclipse.xtext.xbase',
+					'org.eclipse.xtext:org.eclipse.xtext.java',
+					'org.eclipse.jdt:org.eclipse.jdt.core:3.10.0'
+				]
+				.map[project.dependencies.externalModule(it)]
 				xtext.makeXtextCompatible(xtextTooling)
-				xtext.forceXtextVersion(xtextTooling, new Function0<String>() {
-					String version = null
-
-					override apply() {
-						if (version === null) {
-							version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
-							if (version === null) {
-								throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
-							}
-						}
-						version
-					}
-				})
-				val result = xtextTooling.plus(xtextClasspath)
-				return result
+				xtext.forceXtextVersion(xtextTooling, version)
+				xtextTooling.plus(xtextClasspath)
 			}
 		}
 	}
@@ -135,8 +140,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		project.plugins.withType(JavaBasePlugin) [
 			project.apply[plugin(XtextJavaLanguagePlugin)]
 			val java = project.convention.findPlugin(JavaPluginConvention)
-			xtext.languages.all [
-				project.afterEvaluate [ p |
+			project.afterEvaluate [ p |
+				xtext.languages.all [
 					generator.javaSourceLevel = generator.javaSourceLevel ?: java.sourceCompatibility.majorVersion
 				]
 			]

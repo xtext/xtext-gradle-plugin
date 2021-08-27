@@ -1,6 +1,5 @@
 package org.xtext.gradle
 
-import org.eclipse.xtext.xbase.lib.Functions.Function0
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -55,22 +54,12 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 	private def void automaticallyInferXtendCompilerClasspath() {
 		xtext.classpathInferrers += new XtextClasspathInferrer() {
 			override inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection xtextClasspath, FileCollection classpath) {
-				val version = new Function0<String>() {
-					String version = null
-		
-					override apply() {
-						if (version === null) {
-							version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
-							if (version === null) {
-								throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
-							}
-						}
-						version
-					}
+				val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
+				if (version === null) {
+					throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
 				}
-				val xtendTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtendTooling")).defaultDependencies[
-					add(project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version.apply))
-				]
+				val xtendTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtendTooling"))
+				xtendTooling.dependencies += project.dependencies.externalModule("org.eclipse.xtend:org.eclipse.xtend.core:" + version)
 				xtext.makeXtextCompatible(xtendTooling)
 				xtext.forceXtextVersion(xtendTooling, version)
 				xtendTooling.plus(xtextClasspath)

@@ -93,12 +93,14 @@ tasks.withType(Test) {
 minimumIntegrationTest {
 	reports.html.destination = file("$testReportDir/$name")
 	reports.junitXml.destination = file("$testResultsDir/$name")
+	systemProperty 'gradle.version', minimumGradleVersion
 	systemProperty 'xtext.version', minimumXtextVersion
 }
 
 task latestIntegrationTest(type: Test) {
 	classpath = minimumIntegrationTest.classpath
 	testClassesDirs = minimumIntegrationTest.testClassesDirs
+	systemProperty 'gradle.version', latestGradleVersion
 	systemProperty 'xtext.version', latestXtextVersion
 	enabled = JavaVersion.current().java8Compatible
 }
