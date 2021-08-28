@@ -9,7 +9,7 @@ Xtext Builder Plugin
 
 A Gradle Plugin for using [Xtext](http://xtext.org)-based code generators. Get the latest version from the [Plugin Portal](http://plugins.gradle.org/plugin/org.xtext.builder)
 
-The plugin allows any number of Xtext languages to cross-link against each other. The Generator works incrementally, only indexing, validating and generating for files that were affected by a change. It integrates well with other Gradle plugins like the Java plugin, Eclipse plugin and the Android build tools.
+The plugin allows any number of Xtext languages to cross-link against each other. The Generator works incrementally, only indexing, validating and generating for files that were affected by a change. It integrates well with other Gradle plugins like the Java plugin and Eclipse plugin..
 
 Minimal Example
 ---------------
@@ -18,7 +18,7 @@ Below is the minimal configuration for a language that does not integrate with J
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '2.0.8'
+    id 'org.xtext.builder' version '2.0.9'
   }
 
   repositories {
@@ -51,7 +51,7 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '2.0.8'
+    id 'org.xtext.builder' version '2.0.9'
     id 'java'
   }
 
@@ -73,35 +73,11 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
   }
 ```
 
-Android Integration
--------------------
-
-For Android integration, use the [org.xtext.android](http://plugins.gradle.org/plugin/org.xtext.android) plugin.
-
-An Xtext Generator task is created for every Variant as well as for the tests. The Java compiler task is set to depend on this Generator task. The compile dependencies of the Variant are also available to the DSL files. If your languages produce Java code, their debug information is automatically installed into the class files after Java compilation.
-
-```groovy
-  plugins {
-    id 'com.android.application' version '1.5.0'
-    id 'org.xtext.android' version '2.0.8'
-  }
-
-  //repositories, dependencies and xtext configuration same as above
-
-  android {
-    //your usual android configuration
-  }
-```
-
 Eclipse Integration
 -------------------
 
 If you apply the `eclipse` plugin, Xtext will configure the output folders and other preferences to match your Gradle settings.
 
-IntelliJ Integration
---------------------
-
-Coming soon
 
 Configuration Options Overview
 ------------------------------
@@ -110,7 +86,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '2.0.8'
+    id 'org.xtext.builder' version '2.0.9'
     id 'java'
   }
 
@@ -149,7 +125,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
           //whether to generate @SuppressWarnings("all"), enabled by default
           suppressWarningsAnnotation = false
           //what level of Java source code to generate
-          //taken from the Java/Android configuration automatically
+          //taken from the Java configuration automatically
           javaSourceLevel = '1.7'
           //whether to generate the @Generated annotation, disabled by default
           generatedAnnotation {
@@ -171,7 +147,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
         }
         debugger {
           //how to install debug info into generated Java code
-          //SMAP is recommended in most cases (but Android does not support it)
+          //SMAP is recommended in most cases
           //PRIMARY makes Xtext the only debug info (throws away Java line numbers)
           sourceInstaller = 'SMAP' //or 'PRIMARY' or 'NONE'
           //whether to hide synthetic variables in the debugger

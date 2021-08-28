@@ -12,11 +12,11 @@ A Gradle plugin for compiling [Xtend](http://xtend-lang.org) source code.
 Getting Started
 ------
 
-Apply the latest [org.xtext.xtend](http://plugins.gradle.org/plugin/org.xtext.xtend) or [org.xtext.android.xtend](http://plugins.gradle.org/plugin/org.xtext.android.xtend) plugin. Then add the Xtend library.
+Apply the latest [org.xtext.xtend](http://plugins.gradle.org/plugin/org.xtext.xtend) plugin. Then add the Xtend library.
 
 ```groovy
 plugins {
-  id "org.xtext.xtend" version "2.0.8"
+  id "org.xtext.xtend" version "2.0.9"
 }
 
 repositories.jcenter()
@@ -32,7 +32,6 @@ Features
 - Incrementally compiles Xtend sources to Java
 - Enhances Java classes with Xtend debug information
 - Integrates seamlessly with the [Xtext Builder](xtext-builder.html) plugin and other Xtext languages
-- Supports both normal Java projects and the new Android build system
 - Hooks into 'gradle eclipse', so the Xtend compiler is configured for your project when you import it into Eclipse
 
 Options
@@ -56,7 +55,7 @@ xtend {
     //how to install debug info into generated Java code
     //SMAP adds Xtend debug info on top of Java
     //PRIMARY makes Xtend the only debug info (throws away Java line numbers)
-    //default is SMAP for Java projects and PRIMARY for Android
+    //default is SMAP
     sourceInstaller = 'SMAP' //or 'PRIMARY' or 'NONE'
     //whether to hide synthetic variables in the debugger
     hideSyntheticVariables = true
