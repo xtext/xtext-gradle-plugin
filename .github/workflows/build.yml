@@ -4,38 +4,27 @@ on:
   push:
     branches: 
       - master
-    tags:
-      - '*'
   pull_request:
 
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
-
+    strategy:
+       matrix:
+          java: [1.8]
+          os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
-      - id: get_version
-        name: Get Version
-        uses: battila7/get-version-action@v2
+          java-version: ${{ matrix.java }}
       - name: Build
         uses: eskatos/gradle-command-action@v1
         with:
            arguments: build
            dependencies-cache-enabled: true
-      - name: Release on tag
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: eskatos/gradle-command-action@v1
-        env:
-          ORG_GRADLE_PROJECT_bintrayApiKey: ${{ secrets.ORG_GRADLE_PROJECT_BINTRAYAPIKEY }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
-        with: 
-          arguments: release "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
-          dependencies-cache-enabled: true
       - name: Store HTML test report
         uses: actions/upload-artifact@v2
         with:

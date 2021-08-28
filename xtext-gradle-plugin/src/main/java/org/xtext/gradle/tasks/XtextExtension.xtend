@@ -18,9 +18,12 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.VersionNumber
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
+
+import static extension org.xtext.gradle.GradleExtensions.*
 
 class XtextExtension {
 	@Accessors String version
@@ -59,19 +62,28 @@ class XtextExtension {
 		return null
 	}
 
-	def void forceXtextVersion(Configuration dependencies, ()=>String xtextVersion) {
+	def void forceXtextVersion(Configuration dependencies, String xtextVersion) {
 		dependencies.resolutionStrategy.eachDependency [
 			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend")
-				useVersion(xtextVersion.apply)
+				useVersion(xtextVersion)
 		]
+
+		if (project.supportsJvmEcoSystemplugin && VersionNumber.parse(xtextVersion)>=  VersionNumber.parse("2.17.1")) {
+			dependencies.dependencies += project.dependencies.enforcedPlatform('''org.eclipse.xtext:xtext-dev-bom:«xtextVersion»''')
+		} else {
+			dependencies.resolutionStrategy.eachDependency [
+				if (requested.group == "com.google.inject" && requested.name == "guice")
+					useVersion("5.0.1")
+				if (requested.group == "org.eclipse.platform" && requested.name == "org.eclipse.equinox.common")
+					useVersion("3.13.0")
+				if (requested.group == "org.eclipse.platform" && requested.name == "org.eclipse.core.runtime")
+					useVersion("3.19.0")
+			]
+		}
 	}
 
 	def void makeXtextCompatible(Configuration dependencies) {
 		dependencies.exclude(#{'group' -> 'asm'})
-		dependencies.resolutionStrategy.eachDependency [
-			if (requested.group == "com.google.inject" && requested.name == "guice")
-				useVersion("4.0")
-		]
 	}
 }
 
@@ -105,7 +117,7 @@ class Language implements Named {
 	def generator(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, generator)
 	}
-	
+
 	def generator(Action<GeneratorConfig> action) {
 		action.execute(generator)
 	}
@@ -113,7 +125,7 @@ class Language implements Named {
 	def debugger(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, debugger)
 	}
-	
+
 	def debugger(Action<DebuggerConfig> action) {
 		action.execute(debugger)
 	}
@@ -121,7 +133,7 @@ class Language implements Named {
 	def validator(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, validator)
 	}
-	
+
 	def validator(Action<ValidatorConfig> action) {
 		action.execute(validator)
 	}
@@ -134,7 +146,7 @@ class Language implements Named {
 @Accessors
 class GeneratorConfig {
 	@Input boolean suppressWarningsAnnotation = true
-	@Input String javaSourceLevel
+	@Input @Optional String javaSourceLevel
 	@Nested val GeneratedAnnotationOptions generatedAnnotation = new GeneratedAnnotationOptions
 	@Nested val NamedDomainObjectContainer<Outlet> outlets
 
@@ -145,7 +157,7 @@ class GeneratorConfig {
 	def outlets(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, outlets)
 	}
-	
+
 	def outlets(Action<NamedDomainObjectContainer<Outlet>> action) {
 		action.execute(outlets)
 	}
@@ -157,7 +169,7 @@ class GeneratorConfig {
 	def outlet(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, outlet)
 	}
-	
+
 	def outlet(Action<Outlet> action) {
 		action.execute(outlet)
 	}
@@ -165,7 +177,7 @@ class GeneratorConfig {
 	def generatedAnnotation(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, generatedAnnotation)
 	}
-	
+
 	def generatedAnnotation(Action<GeneratedAnnotationOptions> action) {
 		action.execute(generatedAnnotation)
 	}

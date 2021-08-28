@@ -9,7 +9,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -26,9 +25,19 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInsta
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
+import com.google.common.io.Resources
+import org.xtext.gradle.XtextBuilderPlugin
+import com.google.common.io.Files
 
 class XtextGenerate extends DefaultTask {
 
+	static val builderJar = {
+		val jar = File.createTempFile("xtext-gradle-builder", "jar")
+		jar.deleteOnExit
+		Resources.asByteSource(typeof(XtextBuilderPlugin).classLoader.getResource("xtext-gradle-builder.jar"))
+			.copyTo(Files.asByteSink(jar))
+		jar
+	}
 
 	@Accessors @Internal XtextSourceDirectorySet sources
 
@@ -165,7 +174,7 @@ class XtextGenerate extends DefaultTask {
 	}
 
 	private def initializeBuilder() {
-		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, xtextClasspath.files)
+		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, (xtextClasspath.files + #[builderJar]).toSet)
 	}
 
 	private def getContainerHandle() {

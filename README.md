@@ -5,4 +5,4 @@ A set of [Gradle](http://gradle.org) plugins to build and use [Xtext](http://xte
 
 The documentation is hosted on the [project's website](http://xtext.github.io/xtext-gradle-plugin/).
 
-To build and install locally run `./gradlew install -Dorg.gradle.project.version=<version>` e.g. with `<version>` set to `1.0.22-SNAPSHOT`.
+To build and install locally run `./gradlew pTML -PreleaseVersion=<version>` e.g. with `<version>` set to `1.0.22-SNAPSHOT`.

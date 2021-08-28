@@ -1,10 +1,108 @@
 description 'A plugin for invoking Xtext base Code generators'
 
-dependencies {
-	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
-	compile project(':xtext-gradle-protocol')
+apply plugin: 'nebula.facet'
+apply plugin: 'org.xtext.xtend'
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'com.gradle.plugin-publish'
+apply plugin: 'maven-publish'
+
+group = 'org.xtext'
+version = findProperty('releaseVersion')
+
+facets {
+	integTest {
+		parentSourceSet = 'test'
+		testTaskName = 'minimumIntegrationTest'
+	}
 }
 
-configure([minimumIntegrationTest, latestIntegrationTest]) {
-	dependsOn(':xtext-gradle-builder:install', ':xtext-gradle-protocol:install')
+gradlePlugin {
+	plugins {
+		xtext {
+			id = "org.xtext.builder"
+			description = "A Gradle plugin for generating code with Xtext"
+			implementationClass = "org.xtext.gradle.XtextBuilderPlugin"
+		}
+		xtend {
+			id = "org.xtext.xtend"
+			description = "A Gradle plugin for the Xtend language"
+			implementationClass = "org.xtext.gradle.XtendLanguagePlugin"
+		}
+	}
+	testSourceSets sourceSets.integTest
 }
+
+pluginBundle {
+	website = 'https://www.eclipse.org/Xtext/'
+	vcsUrl = 'https://github.com/xtext/xtext-gradle-plugin'
+	description = 'Gradle plugins for generating code with Xtext/Xtend'
+	tags = ['Xtext', 'Xtend', 'DSL']
+
+	plugins {
+		xtext {
+			displayName = "Xtext Gradle Plugin"
+		}
+
+		xtend {
+			displayName = "Xtend Gradle Plugin"
+		}
+	}
+}
+
+configurations {
+	builder {
+		transitive = false
+	}
+	protocol {
+		transitive = false
+	}
+	compileClasspath {
+		extendsFrom protocol
+	}
+	testCompile {
+		extendsFrom protocol
+	}
+}
+
+dependencies {
+	builder project(':xtext-gradle-builder')
+	compile gradleApi()
+	compile 'com.google.guava:guava:27.1-jre'
+	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
+	protocol project(':xtext-gradle-protocol')
+}
+
+javadoc.dependsOn generateXtext
+
+processResources {
+	inputs.files(configurations.protocol)
+	from(configurations.builder) {
+		rename {
+			"xtext-gradle-builder.jar"
+		}
+	}
+	from({zipTree(configurations.protocol.singleFile)})
+}
+
+tasks.withType(Test) {
+	def testkitDir = System.getenv("CI") ? gradle.gradleUserHomeDir : "$rootDir/testkit-dir"
+	systemProperty 'gradle.project.version', version
+	systemProperty 'org.gradle.testkit.dir', testkitDir
+}
+
+minimumIntegrationTest {
+	reports.html.destination = file("$testReportDir/$name")
+	reports.junitXml.destination = file("$testResultsDir/$name")
+	systemProperty 'gradle.version', minimumGradleVersion
+	systemProperty 'xtext.version', minimumXtextVersion
+}
+
+task latestIntegrationTest(type: Test) {
+	classpath = minimumIntegrationTest.classpath
+	testClassesDirs = minimumIntegrationTest.testClassesDirs
+	systemProperty 'gradle.version', latestGradleVersion
+	systemProperty 'xtext.version', latestXtextVersion
+	enabled = JavaVersion.current().java8Compatible
+}
+
+check.dependsOn(latestIntegrationTest)

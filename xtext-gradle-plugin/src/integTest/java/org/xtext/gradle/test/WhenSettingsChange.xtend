@@ -1,8 +1,8 @@
 package org.xtext.gradle.test
 
 import org.gradle.api.tasks.compile.JavaCompile
-import org.junit.Ignore
 import org.junit.Test
+import org.junit.Assume
 
 class WhenSettingsChange extends AbstractXtendIntegrationTest {
 
@@ -31,8 +31,9 @@ class WhenSettingsChange extends AbstractXtendIntegrationTest {
 		result.xtextTask.shouldNotBeUpToDate
 	}
 
-	@Test @Ignore
+	@Test
 	def void shouldRecompileWhenLanguageSettingsChange() {
+		Assume.assumeTrue(GradleBuildTester.GRADLE_VERSION >= "5")
 		// when
 		buildFile.content = buildFile.contentAsString.
 			replace('''javaSourceLevel = "1.7"''', '''javaSourceLevel = "1.8"''')

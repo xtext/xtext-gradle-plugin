@@ -52,14 +52,15 @@ class BuildingAMultiModuleXtendProject extends AbstractXtendIntegrationTest {
 	@Test
 	def void upStreamChangesArePickedUpDownStream() {
 		val upStream = upStreamProject.createFile("src/main/java/A.xtend", '''class A {}''')
-		val downStream = downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
+		downStreamProject.createFile("src/main/java/B.xtend", '''class B extends A {}''')
 		build("build")
-		
+        val snapshot = snapshot(downStreamProject.projectDir)
+        
 		upStream.content = '''
 			class A implements Cloneable {}
 		'''
-		val result = build("build", "-i")
-		result.hasRunGeneratorFor(downStream)
+		build("build")
+		snapshot.assertChangedClasses("B")
 	}
 
 }
