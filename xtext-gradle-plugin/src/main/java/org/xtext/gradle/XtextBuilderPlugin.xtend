@@ -106,7 +106,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 					'org.eclipse.xtext:org.eclipse.xtext.java',
 					'org.eclipse.jdt:org.eclipse.jdt.core:3.10.0'
 				]
-				.map[project.dependencies.externalModule(it)]
+				.map[project.dependencies.create(it)]
 				xtext.makeXtextCompatible(xtextTooling)
 				xtext.forceXtextVersion(xtextTooling, version)
 				xtextTooling.plus(xtextClasspath)
