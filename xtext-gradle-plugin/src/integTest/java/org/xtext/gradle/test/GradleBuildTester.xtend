@@ -29,11 +29,7 @@ class GradleBuildTester extends ExternalResource {
 			projectDir = temp.newFolder(name)
 			owner = this
 		]
-		gradle = GradleRunner.create
-			.withGradleVersion(GRADLE_VERSION.toString)
-			.withPluginClasspath
-			.withProjectDir(rootProject.projectDir)
-			.forwardOutput()
+		gradle = GradleRunner.create.withGradleVersion(GRADLE_VERSION.toString).withPluginClasspath.withProjectDir(rootProject.projectDir).forwardOutput()
 	}
 
 	override protected after() {
@@ -57,7 +53,7 @@ class GradleBuildTester extends ExternalResource {
 			"-Dhttp.connectionTimeout=120000",
 			"-Dhttp.socketTimeout=120000",
 			"-s"
-		]
+		] + if(GRADLE_VERSION > Version.parse("5.6")) #["--warning-mode=fail"] else #[]
 	}
 
 	def void setContent(File file, CharSequence content) {
@@ -67,14 +63,14 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def void append(File file, CharSequence content) {
-		if (file.exists) {
+		if(file.exists) {
 			file.content = file.contentAsString + content
 		} else {
 			file.content = content
 		}
 	}
 
-	def void << (File file, CharSequence content) {
+	def void <<(File file, CharSequence content) {
 		file.append(content)
 	}
 
@@ -87,14 +83,14 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def void shouldExist(File file) {
-		if (!file.exists) {
+		if(!file.exists) {
 			val relativePath = rootProject.projectDir.toPath.relativize(file.toPath)
 			fail('''File '«relativePath»' should exist but it does not.''')
 		}
 	}
 
 	def void shouldNotExist(File file) {
-		if (file.exists) {
+		if(file.exists) {
 			val relativePath = rootProject.projectDir.toPath.relativize(file.toPath)
 			fail('''File '«relativePath»' should not exist but it does.''')
 		}
@@ -105,13 +101,13 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def void shouldBeUpToDate(BuildTask task) {
-		if (task.outcome != TaskOutcome.UP_TO_DATE) {
+		if(task.outcome != TaskOutcome.UP_TO_DATE) {
 			fail('''Expected task '«task.path»' to be <UP-TO-DATE> but was: <«task.outcome»>''')
 		}
 	}
 
 	def void shouldNotBeUpToDate(BuildTask task) {
-		if (task.outcome == TaskOutcome.UP_TO_DATE) {
+		if(task.outcome == TaskOutcome.UP_TO_DATE) {
 			fail('''Expected task '«task.path»' not to be <UP-TO-DATE> but it was.''')
 		}
 	}
@@ -163,7 +159,7 @@ class GradleBuildTester extends ExternalResource {
 		}
 
 		def String getPath() {
-			if (parent === null) {
+			if(parent === null) {
 				""
 			} else {
 				parent.path + ":" + name

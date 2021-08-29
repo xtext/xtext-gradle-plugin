@@ -16,10 +16,13 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 		buildFile << '''
 			subprojects {
 				apply plugin: 'org.xtext.builder'
-				apply plugin: 'java-base'
+
+				configurations {
+					compile
+				}
 
 				dependencies {
-					add('default', 'org.eclipse.xtend:org.eclipse.xtend.lib:«xtextVersion»')
+					compile 'org.eclipse.xtend:org.eclipse.xtend.lib:«xtextVersion»'
 					xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«xtextVersion»'
 				}
 
@@ -37,7 +40,7 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 					}
 				}
 
-				generateXtext.classpath = configurations.'default'
+				generateXtext.classpath = configurations.compile
 
 				task jar(type:Jar) {
 					from(xtext.sourceSets.main.files)
@@ -52,7 +55,7 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 		downStreamProject = createSubProject("downStream")
 		buildFile << '''
 			project('«downStreamProject.path»').dependencies {
-				add('default', project('«upStreamProject.path»'))
+				compile project('«upStreamProject.path»')
 			}
 		'''
 	}
