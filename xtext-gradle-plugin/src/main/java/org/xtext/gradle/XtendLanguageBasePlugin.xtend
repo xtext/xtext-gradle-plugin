@@ -29,7 +29,6 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 			setup = "org.eclipse.xtend.core.XtendStandaloneSetup"
 			generator.outlet => [
 				producesJava = true
-				cleanAutomatically = true
 			]
 			debugger => [
 				sourceInstaller = SourceInstaller.SMAP

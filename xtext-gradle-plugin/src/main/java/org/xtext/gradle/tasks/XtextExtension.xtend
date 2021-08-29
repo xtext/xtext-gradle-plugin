@@ -213,7 +213,7 @@ class Outlet implements Named {
 	@Internal val Language language
 	@Input val String name
 	@Input boolean producesJava = false
-	@Input boolean cleanAutomatically = false
+	@Input boolean cleanAutomatically = true
 
 	@Internal def getFolderFragment() {
 		if (name == Outlet.DEFAULT_OUTLET) {

@@ -108,6 +108,22 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 	}
 
 	@Test
+	def void generateOnceFilesAreNotOverwrittenWhenTheirSourceChanges() {
+		buildFile << '''xtext.languages.xtend.generator.outlet.cleanAutomatically = false'''
+		val sourceFile = file('src/main/java/com/example/HelloWorld.xtend')
+		sourceFile.content = '''
+			package com.example
+			class HelloWorld {}
+		'''
+		build('generateXtext')
+		val snapshot = snapshot(projectDir)
+
+		sourceFile << "//change"
+		build('generateXtext')
+		snapshot.assertChangedClasses()
+	}
+
+	@Test
 	def void generateOnceFoldersAreNotCleanedByGradleClean() {
 		buildFile << '''xtext.languages.xtend.generator.outlet.cleanAutomatically = false'''
 		file('src/main/java/com/example/HelloWorld.xtend').content = '''
