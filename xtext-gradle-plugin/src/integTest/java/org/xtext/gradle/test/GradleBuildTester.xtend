@@ -101,14 +101,22 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def void shouldBeUpToDate(BuildTask task) {
-		if(task.outcome != TaskOutcome.UP_TO_DATE) {
-			fail('''Expected task '«task.path»' to be <UP-TO-DATE> but was: <«task.outcome»>''')
+		task.shouldBe(TaskOutcome.UP_TO_DATE)
+	}
+
+	def void shouldBe(BuildTask task, TaskOutcome outcome) {
+		if(task.outcome != outcome) {
+			fail('''Expected task '«task.path»' to be «outcome» but was: <«task.outcome»>''')
 		}
 	}
 
 	def void shouldNotBeUpToDate(BuildTask task) {
-		if(task.outcome == TaskOutcome.UP_TO_DATE) {
-			fail('''Expected task '«task.path»' not to be <UP-TO-DATE> but it was.''')
+		task.shouldNotBe(TaskOutcome.UP_TO_DATE)
+	}
+
+	def void shouldNotBe(BuildTask task, TaskOutcome outcome) {
+		if(task.outcome == outcome) {
+			fail('''Expected task '«task.path»' not to be «outcome» but it was.''')
 		}
 	}
 

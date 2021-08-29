@@ -1,6 +1,8 @@
 package org.xtext.gradle.tasks;
 
 import com.google.common.base.Charsets
+import com.google.common.io.Files
+import com.google.common.io.Resources
 import java.io.File
 import java.util.Collection
 import java.util.Set
@@ -18,6 +20,7 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.util.PatternSet
+import org.xtext.gradle.XtextBuilderPlugin
 import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleGeneratorConfig
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest
@@ -25,9 +28,6 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInsta
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
-import com.google.common.io.Resources
-import org.xtext.gradle.XtextBuilderPlugin
-import com.google.common.io.Files
 
 class XtextGenerate extends DefaultTask {
 
@@ -66,7 +66,9 @@ class XtextGenerate extends DefaultTask {
 	def getMainSources() {
 		val patterns = new PatternSet
 		languages.filter[!generator.outlets.empty].forEach [lang |
-			patterns.include("**/*." + lang.fileExtension)
+			lang.fileExtensions.forEach[ ext |
+				patterns.include("**/*." + ext)
+			]
 		]
 		project.files(sources.srcDirs).asFileTree.matching(patterns)
 	}
@@ -163,11 +165,16 @@ class XtextGenerate extends DefaultTask {
 		val request = new GradleInstallDebugInfoRequest => [
 			generatedJavaFiles = generatedFiles.filter[name.endsWith(".java")].toSet
 			it.classesDir = classesDir
-			sourceInstallerByFileExtension = languages.toMap[fileExtension].mapValues[lang|
-				new GradleSourceInstallerConfig() => [
-					sourceInstaller = lang.debugger.sourceInstaller
-					hideSyntheticVariables = lang.debugger.hideSyntheticVariables
+			sourceInstallerByFileExtension = newLinkedHashMap
+
+			languages.forEach[lang|
+				lang.fileExtensions.forEach[ext |
+					sourceInstallerByFileExtension.put(ext, new GradleSourceInstallerConfig() => [
+						sourceInstaller = lang.debugger.sourceInstaller
+						hideSyntheticVariables = lang.debugger.hideSyntheticVariables
+					])
 				]
+
 			]
 		]
 		builder.installDebugInfo(request)

@@ -22,6 +22,7 @@ import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
 import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
+import java.util.Set
 
 class XtextExtension {
 	@Accessors String version
@@ -89,7 +90,7 @@ class XtextExtension {
 class Language implements Named {
 	@Input val String name
 	@Input String qualifiedName
-	@Input String fileExtension
+	@Input Set<String> fileExtensions
 	@Input String setup
 	@Nested val GeneratorConfig generator
 	@Nested val DebuggerConfig debugger
@@ -101,14 +102,22 @@ class Language implements Named {
 		this.generator = project.instantiate(typeof(GeneratorConfig), project, this)
 		this.debugger = project.instantiate(typeof(DebuggerConfig))
 		this.validator = project.instantiate(typeof(ValidatorConfig))
+		fileExtensions = newLinkedHashSet(name)
 	}
 
 	def getQualifiedName() {
 		qualifiedName ?: setup.replace("StandaloneSetup", "")
 	}
 
+	@Internal
+	@Deprecated
 	def getFileExtension() {
-		fileExtension ?: name
+		fileExtensions.head
+	}
+
+	@Deprecated
+	def setFileExtension(String ext) {
+		fileExtensions = newLinkedHashSet(ext)
 	}
 
 	def generator(Action<GeneratorConfig> action) {

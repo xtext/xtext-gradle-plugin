@@ -130,7 +130,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		project.afterEvaluate [
 			xtext.languages.all [ lang |
 				xtext.sourceSets.all [
-					filter.include("**/*." + lang.fileExtension)
+					lang.fileExtensions.forEach[ ext |
+						filter.include("**/*." + ext)
+					]
 				]
 			]
 		]

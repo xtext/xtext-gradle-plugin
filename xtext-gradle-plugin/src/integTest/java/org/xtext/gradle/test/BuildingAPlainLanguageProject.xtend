@@ -1,5 +1,6 @@
 package org.xtext.gradle.test
 
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Test
 
 //TODO use a different language than Xtend
@@ -124,5 +125,18 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 
 		// then
 		staleFile.shouldExist
+	}
+
+	/*
+	 * We currently lack a language with multiple file extensions,
+	 * so we test that an empty set will be detected as "no sources"
+	 * to at least have some coverage for the fact that fileExtensions
+	 * is indeed a Set.
+	 */
+	@Test
+	def void canOverrideFileExtensions() {
+		buildFile << '''xtext.languages.xtend.fileExtensions = []'''
+		file('src/main/java/HelloWorld.xtend').content = '''class HelloWorld {}'''
+		build('generateXtext').xtextTask.shouldBe(TaskOutcome.NO_SOURCE)
 	}
 }
