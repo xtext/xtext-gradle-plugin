@@ -23,6 +23,7 @@ import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
 import java.util.Set
+import java.io.File
 
 class XtextExtension {
 	@Accessors String version
@@ -47,18 +48,25 @@ class XtextExtension {
 		configureAction.execute(languages)
 	}
 
-	static val LIB_PATTERN = Pattern.compile("org\\.eclipse\\.xtext\\..*-(\\d.*?).jar")
+	static val LIB_PATTERN = Pattern.compile("org\\.eclipse\\.xtext(\\.xbase\\.lib.*?)?-(.*)\\.jar")
 
 	def String getXtextVersion(FileCollection classpath) {
 		if (version !== null)
 			return version
 		for (file : classpath) {
-			val matcher = LIB_PATTERN.matcher(file.name)
-			if (matcher.matches) {
-				return matcher.group(1)
+			val match = getXtextVersion(file)
+			if (match !== null) {
+				return match
 			}
 		}
 		return null
+	}
+
+	package static def String getXtextVersion(File library) {
+		val matcher = LIB_PATTERN.matcher(library.name)
+		if (matcher.matches) {
+			return matcher.group(2)
+		}
 	}
 
 	def void forceXtextVersion(Configuration dependencies, String xtextVersion) {
