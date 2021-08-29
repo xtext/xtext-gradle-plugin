@@ -23,11 +23,13 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	@Accessors val XtextSourceSetOutputs output
 	@Accessors val filter = new PatternSet
 	Project project
+	XtextExtension xtext
 	List<Object> source = newArrayList
 
 	new(String name, Project project, XtextExtension xtext) {
 		this.name = name
 		this.project = project
+		this.xtext = xtext
 		output = project.instantiate(typeof(DefaultXtextSourceSetOutputs), project, xtext)
 	}
 
@@ -48,7 +50,9 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	}
 
 	override FileTree getFiles() {
-		return project.files(srcDirs).asFileTree.matching(filter)
+		return project.files(srcDirs).asFileTree.matching(filter).matching[
+			xtext.languages.map[fileExtensions].flatten.map["**/*." + it]
+		]
 	}
 
 	override Set<File> getSrcDirs() {

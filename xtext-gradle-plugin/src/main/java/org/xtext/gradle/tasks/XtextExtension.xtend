@@ -2,8 +2,10 @@ package org.xtext.gradle.tasks;
 
 import com.google.common.base.CaseFormat
 import com.google.common.collect.Lists
+import java.io.File
 import java.util.List
 import java.util.Map
+import java.util.Set
 import java.util.regex.Pattern
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Action
@@ -22,8 +24,6 @@ import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
 import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
-import java.util.Set
-import java.io.File
 
 class XtextExtension {
 	@Accessors String version

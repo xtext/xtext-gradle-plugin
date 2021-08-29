@@ -19,7 +19,6 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import org.gradle.api.tasks.util.PatternSet
 import org.xtext.gradle.XtextBuilderPlugin
 import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleGeneratorConfig
@@ -28,6 +27,8 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.GradleSourceInsta
 import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
+
+import static extension org.xtext.gradle.GradleExtensions.*
 
 class XtextGenerate extends DefaultTask {
 
@@ -51,7 +52,7 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @Internal XtextSourceSetOutputs sourceSetOutputs
 
-	@Accessors @Nested val XtextBuilderOptions options = new XtextBuilderOptions
+	@Accessors @Nested val XtextBuilderOptions options = project.instantiate(XtextBuilderOptions)
 
 	IncrementalXtextBuilder builder
 
@@ -64,26 +65,15 @@ class XtextGenerate extends DefaultTask {
 
 	@InputFiles @SkipWhenEmpty
 	def getMainSources() {
-		val patterns = new PatternSet
-		languages.filter[!generator.outlets.empty].forEach [lang |
-			lang.fileExtensions.forEach[ ext |
-				patterns.include("**/*." + ext)
-			]
-		]
-		project.files(sources.srcDirs).asFileTree.matching(patterns)
+		val extensions = languages.filter[!generator.outlets.empty].map[fileExtensions].flatten.map["**/*." + it]
+		sources.files.matching[include(extensions)]
 	}
 
 	@OutputDirectories
 	def getOutputDirectories() {
-		// filter out all output directories where the generating outlet has "cleanAutomatically == false"
-		val buildContinuousLanguages = languages.filter[generator.outlets.exists[cleanAutomatically == true]]
-		val result = newArrayList
-		for (l : buildContinuousLanguages) {
-			for (o : l.generator.outlets) {
-				result.add(sourceSetOutputs.getDir(o))
-			}
-		}
-		return result.filter[it !== null]
+		languages.filter[generator.outlets.exists[cleanAutomatically == true]].map [
+			sourceSetOutputs.getDir(generator.outlet)
+		].filterNull
 	}
 
 	@TaskAction
@@ -104,7 +94,7 @@ class XtextGenerate extends DefaultTask {
 			containerHandle = this.containerHandle
 			allFiles = allSources.files
 			allClasspathEntries = this.getNullSafeClasspath.files
-			it.bootstrapClasspath = bootstrapClasspath
+			it.bootstrapClasspath = getBootstrapClasspath
 			sourceFolders = sources.srcDirs
 			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
 				val config = generator
@@ -181,7 +171,7 @@ class XtextGenerate extends DefaultTask {
 	}
 
 	private def initializeBuilder() {
-		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, (xtextClasspath.files + #[builderJar]).toSet)
+		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, (getXtextClasspath.files + #[builderJar]).toSet)
 	}
 
 	private def getContainerHandle() {
@@ -189,7 +179,7 @@ class XtextGenerate extends DefaultTask {
 	}
 
 	private def getNullSafeClasspath() {
-		classpath ?: project.files
+		getClasspath ?: project.files
 	}
 
 	private def getNullSafeEncoding() {

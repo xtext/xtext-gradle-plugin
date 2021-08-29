@@ -24,9 +24,10 @@ import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
+import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
-import org.xtext.gradle.tasks.internal.Version
+import org.gradle.api.internal.plugins.DslObject
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -48,7 +49,6 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		automaticallyInferXtextCoreClasspath
 		createGeneratorTasks
 		configureOutletDefaults
-		addSourceSetIncludes
 		integrateWithJavaPlugin
 		integrateWithEclipsePlugin
 	}
@@ -127,58 +127,31 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		]
 	}
 
-	private def addSourceSetIncludes() {
-		project.afterEvaluate [
-			xtext.languages.all [ lang |
-				xtext.sourceSets.all [
-					lang.fileExtensions.forEach[ ext |
-						filter.include("**/*." + ext)
-					]
-				]
-			]
-		]
-	}
-
 	private def integrateWithJavaPlugin() {
 		project.plugins.withType(JavaBasePlugin) [
 			project.apply[plugin(XtextJavaLanguagePlugin)]
 			val java = project.convention.findPlugin(JavaPluginConvention)
-			project.afterEvaluate [ p |
-				xtext.languages.all [
-					generator.javaSourceLevel = generator.javaSourceLevel ?: java.sourceCompatibility.majorVersion
-				]
+			xtext.languages.all [
+				new DslObject(generator).conventionMapping.map("javaSourceLevel")[java.sourceCompatibility.majorVersion]
 			]
 			java.sourceSets.all [ javaSourceSet |
 				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
-					project.afterEvaluate [ p |
-						xtextSourceSet.srcDirs.forEach [
-							javaSourceSet.allSource.srcDir(it)
-						]
-						javaSourceSet.java.srcDirs.forEach [
-							xtextSourceSet.srcDir(it)
-						]
-						javaSourceSet.resources.srcDirs.forEach [
-							xtextSourceSet.srcDir(it)
-						]
-						val javaOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava]
-						javaOutlets.forEach [
-							javaSourceSet.java.srcDir(xtextSourceSet.output.getDir(it))
-						]
-						if (!javaOutlets.isEmpty) {
-							javaCompile.dependsOn(generatorTask)
-							javaCompile.doLast(new Action<Task>() {
-								override void execute(Task it) {
-									generatorTask.installDebugInfo(javaCompile.destinationDir)
-								}
-							})
+					xtextSourceSet.srcDirs([javaSourceSet.java.srcDirs] as Callable<Set<File>>)
+					javaSourceSet.allSource.srcDirs([xtextSourceSet.srcDirs] as Callable<Set<File>>)
+					javaSourceSet.java.srcDirs([
+						xtext.languages.map[generator.outlets].flatten.filter[producesJava].map[xtextSourceSet.output.getDir(it)]
+					] as Callable<Iterable<File>>)
+					javaCompile.dependsOn(generatorTask)
+					javaCompile.doLast(new Action<Task>() {
+						override void execute(Task it) {
+							generatorTask.installDebugInfo(javaCompile.destinationDir)
 						}
-						generatorTask.options.encoding = generatorTask.options.encoding ?: javaCompile.options.encoding
-						generatorTask.classpath = generatorTask.classpath ?: javaSourceSet.compileClasspath
-						generatorTask.bootstrapClasspath = generatorTask.bootstrapClasspath ?:
-							javaCompile.options.bootstrapClasspath
-					]
+					})
+					new DslObject(generatorTask.options).conventionMapping.map("encoding")[javaCompile.options.encoding]
+					new DslObject(generatorTask).conventionMapping.map("classpath")[javaSourceSet.compileClasspath]
+					new DslObject(generatorTask).conventionMapping.map("bootstrapClasspath")[javaCompile.options.bootstrapClasspath]
 				]
 			]
 		]
