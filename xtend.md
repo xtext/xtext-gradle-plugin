@@ -9,6 +9,9 @@ Xtend Compiler
 
 A Gradle plugin for compiling [Xtend](http://xtend-lang.org) source code.
 
+Supports Gradle 4.3 and above (tested up to 7.2)
+Supports Xtend 2.9 and above (tested up to 25.0) 
+
 Getting Started
 ------
 
