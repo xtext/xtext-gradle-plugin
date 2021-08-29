@@ -119,7 +119,7 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	override output(Closure<?> configureAction) {
 		ConfigureUtil.configure(configureAction, output)
 	}
-	
+
 	override output(Action<XtextSourceSetOutputs> action) {
 		action.execute(output)
 	}

@@ -98,11 +98,8 @@ class Language implements Named {
 	@Nested val validator = new ValidatorConfig
 	@Input Map<String, Object> preferences = newLinkedHashMap
 
-	@Accessors(NONE) val Project project
-
 	new(String name, Project project) {
 		this.name = name
-		this.project = project
 		this.generator = new GeneratorConfig(project, this)
 	}
 

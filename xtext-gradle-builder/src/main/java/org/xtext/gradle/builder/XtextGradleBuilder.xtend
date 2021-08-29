@@ -51,7 +51,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	val sharedInjector = Guice.createInjector
 	val incrementalbuilder = sharedInjector.getInstance(IncrementalBuilder)
 	val debugInfoInstaller = sharedInjector.getInstance(DebugInfoInstaller)
-	
+
 	new(Set<String> setupNames, String encoding) throws Exception {
 		System.setProperty("org.eclipse.emf.common.util.ReferenceClearingQueue", "false")
 		for (setupName : setupNames) {
@@ -66,9 +66,9 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		val containerHandle = gradleRequest.containerHandle
 		val validator = new GradleValidatonCallback(gradleRequest.logger)
 		val response = new GradleBuildResponse
-		
+
 		indexChangedClasspathEntries(gradleRequest)
-		
+
 		val request = new BuildRequest => [
 			baseDir = createFolderURI(gradleRequest.projectDir)
 			if (needsCleanBuild(gradleRequest)) {
@@ -84,22 +84,22 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 
 			afterValidate = validator
 			afterGenerateFile = [source, target| response.generatedFiles.add(new File(target.toFileString))]
-			
+
 			preparResourceSet(containerHandle, state.resourceDescriptions, gradleRequest)
 		]
-		
+
 		val result = doBuild(request, gradleRequest)
-		
+
 		if (!validator.isErrorFree) {
 			throw new GradleException("Xtext validation failed, see build log for details.")
 		}
-		
+
 		val resultingIndex = result.indexState
 		index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
 		generatedMappings.put(containerHandle, resultingIndex.fileMappings)
 		return response
 	}
-	
+
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
 		val registry = IResourceServiceProvider.Registry.INSTANCE
 		gradleRequest.dirtyClasspathEntries.filter[exists].forEach[dirtyClasspathEntry|
@@ -116,15 +116,15 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 					dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [uri|
 						registry.getResourceServiceProvider(uri) !== null
 					]
-					
+
 					afterValidate = [false] //workaround for indexOnly not working in Xtext 2.9.0
-					
+
 					val indexChunk = new ResourceDescriptionsData(emptyList)
 					val fileMappings = new Source2GeneratedMapping
 					state = new IndexState(indexChunk, fileMappings)
 					preparResourceSet(containerHandle, indexChunk, gradleRequest)
 				]
-				
+
 				val result = doBuild(request, gradleRequest)
 				val resultingIndex = result.indexState
 				index.setContainer(containerHandle, resultingIndex.resourceDescriptions)
@@ -132,13 +132,13 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			}
 		]
 	}
-	
+
 	private def HashCode hash(File file) {
 		val hasher = Hashing.md5.newHasher
 		hash(file, hasher)
 		hasher.hash
 	}
-	
+
 	private def void hash(File file, Hasher hasher) {
 		if (file.isDirectory) {
 			file.listFiles.forEach[hash(hasher)]
@@ -146,7 +146,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			Files.asByteSource(file).copyTo(Funnels.asOutputStream(hasher))
 		}
 	}
-	
+
 	private def preparResourceSet(BuildRequest it, String containerHandle, ResourceDescriptionsData indexChunk, GradleBuildRequest gradleRequest) {
 		resourceSet = sharedInjector.getInstance(XtextResourceSet) => [
 			classpathURIContext = gradleRequest.jvmTypesLoader
@@ -159,7 +159,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			contextualIndex.setContainer(containerHandle, indexChunk)
 		]
 	}
-	
+
 	private def doBuild(BuildRequest request, GradleBuildRequest gradleRequest) {
 		try {
 			val registry = IResourceServiceProvider.Registry.INSTANCE
@@ -171,7 +171,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			cleanup(gradleRequest, request)
 		}
 	}
-	
+
 	private def doClean(GradleBuildRequest request) {
 		request.generatorConfigsByLanguage.values
 			.map[outputConfigs].flatten
@@ -181,18 +181,18 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 				deleteRecursive
 			]
 	}
-	
+
 	private def void deleteRecursive(File file) {
 		if (file.isDirectory) {
 			file.listFiles.forEach[deleteRecursive]
 		}
 		file.delete
 	}
-	
+
 	private def boolean needsCleanBuild(GradleBuildRequest request) {
 		!request.incremental || !request.dirtyClasspathEntries.isEmpty || index.getContainer(request.containerHandle) === null
 	}
-	
+
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
 		val parent = if (gradleRequest.bootstrapClasspath === null || gradleRequest.bootstrapClasspath.empty) {
 			ClassLoader.systemClassLoader
@@ -201,7 +201,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		}
 		new URLClassLoader(gradleRequest.allClasspathEntries.map[toURI.toURL], parent)
 	}
-	
+
 	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {
 		val resourceSet = request.resourceSet
 		val jvmTypesLoader = resourceSet.classpathURIContext
@@ -215,11 +215,11 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		resourceSet.resources.clear
 		resourceSet.eAdapters.clear
 	}
-	
+
 	private def attachProjectConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
 		ProjectConfigAdapter.install(resourceSet, new GradleProjectConfig(gradleRequest))
 	}
-	
+
 	private def attachProjectDescription(String containerHandle, List<String> dependencies, XtextResourceSet resourceSet) {
 		new ProjectDescription => [
 			name = containerHandle
@@ -227,7 +227,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			attachToEmfObject(resourceSet)
 		]
 	}
-	
+
 	private def attachGeneratorConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
 		new GeneratorConfigProvider.GeneratorConfigAdapter => [
 			attachToEmfObject(resourceSet)
@@ -265,7 +265,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			}
 		]
 	}
-	
+
 	override void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
 		val request = new InstallDebugInfoRequest => [
 			classesDir = gradleRequest.classesDir
