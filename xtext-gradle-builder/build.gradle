@@ -3,9 +3,10 @@ description 'A small wrapper for Xtext to make it easier to use from Gradle'
 apply plugin: 'org.xtext.xtend'
 
 dependencies {
-    compileOnly project(':xtext-gradle-protocol')
-    compileOnly gradleApi()
-    compileOnly "org.eclipse.xtext:org.eclipse.xtext:$minimumXtextVersion"
-    compileOnly "org.eclipse.xtext:org.eclipse.xtext.smap:$minimumXtextVersion"
-    compileOnly "org.eclipse.xtext:org.eclipse.xtext.xbase:$minimumXtextVersion"
+	compileOnly project(':xtext-gradle-protocol')
+	compileOnly gradleApi()
+	compileOnly "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
+	compileOnly "org.eclipse.xtext:org.eclipse.xtext:$minimumXtextVersion"
+	compileOnly "org.eclipse.xtext:org.eclipse.xtext.smap:$minimumXtextVersion"
+	compileOnly "org.eclipse.xtext:org.eclipse.xtext.xbase:$minimumXtextVersion"
 }

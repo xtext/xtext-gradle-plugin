@@ -20,11 +20,13 @@ gradlePlugin {
 	plugins {
 		xtext {
 			id = "org.xtext.builder"
+			displayName = "Xtext Gradle Plugin"
 			description = "A Gradle plugin for generating code with Xtext"
 			implementationClass = "org.xtext.gradle.XtextBuilderPlugin"
 		}
 		xtend {
 			id = "org.xtext.xtend"
+			displayName = "Xtend Gradle Plugin"
 			description = "A Gradle plugin for the Xtend language"
 			implementationClass = "org.xtext.gradle.XtendLanguagePlugin"
 		}
@@ -37,16 +39,6 @@ pluginBundle {
 	vcsUrl = 'https://github.com/xtext/xtext-gradle-plugin'
 	description = 'Gradle plugins for generating code with Xtext/Xtend'
 	tags = ['Xtext', 'Xtend', 'DSL']
-
-	plugins {
-		xtext {
-			displayName = "Xtext Gradle Plugin"
-		}
-
-		xtend {
-			displayName = "Xtend Gradle Plugin"
-		}
-	}
 }
 
 configurations {
@@ -59,16 +51,16 @@ configurations {
 	compileClasspath {
 		extendsFrom protocol
 	}
-	testCompile {
+	testImplementation {
 		extendsFrom protocol
 	}
 }
 
 dependencies {
 	builder project(':xtext-gradle-builder')
-	compile gradleApi()
-	compile 'com.google.guava:guava:27.1-jre'
-	compile 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
+	implementation "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
+	implementation 'com.google.guava:guava:27.1-jre'
+	implementation 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
 	protocol project(':xtext-gradle-protocol')
 }
 
