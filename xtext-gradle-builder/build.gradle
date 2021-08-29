@@ -9,4 +9,5 @@ dependencies {
 	compileOnly "org.eclipse.xtext:org.eclipse.xtext:$minimumXtextVersion"
 	compileOnly "org.eclipse.xtext:org.eclipse.xtext.smap:$minimumXtextVersion"
 	compileOnly "org.eclipse.xtext:org.eclipse.xtext.xbase:$minimumXtextVersion"
+	compileOnly "org.eclipse.xtext:org.eclipse.xtext.java:$minimumXtextVersion"
 }

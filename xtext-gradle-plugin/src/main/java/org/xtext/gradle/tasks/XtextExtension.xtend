@@ -18,10 +18,10 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.VersionNumber
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
+import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
 
@@ -68,7 +68,7 @@ class XtextExtension {
 				useVersion(xtextVersion)
 		]
 
-		if (project.supportsJvmEcoSystemplugin && VersionNumber.parse(xtextVersion)>=  VersionNumber.parse("2.17.1")) {
+		if (project.supportsJvmEcoSystemplugin && Version.parse(xtextVersion)>=  Version.parse("2.17.1")) {
 			dependencies.dependencies += project.dependencies.enforcedPlatform('''org.eclipse.xtext:xtext-dev-bom:«xtextVersion»''')
 		} else {
 			dependencies.resolutionStrategy.eachDependency [

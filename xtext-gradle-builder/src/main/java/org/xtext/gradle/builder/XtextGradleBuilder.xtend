@@ -12,6 +12,7 @@ import java.net.URLClassLoader
 import java.util.List
 import java.util.Set
 import java.util.concurrent.ConcurrentHashMap
+import org.eclipse.emf.common.notify.Notifier
 import org.eclipse.emf.common.util.URI
 import org.eclipse.xtext.ISetup
 import org.eclipse.xtext.build.BuildRequest
@@ -71,7 +72,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 
 		val request = new BuildRequest => [
 			baseDir = createFolderURI(gradleRequest.projectDir)
-			if (needsCleanBuild(gradleRequest)) {
+			if(needsCleanBuild(gradleRequest)) {
 				dirtyFiles = gradleRequest.allFiles.map[URI.createFileURI(absolutePath)].toList
 				state = new IndexState
 			} else {
@@ -83,14 +84,14 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			}
 
 			afterValidate = validator
-			afterGenerateFile = [source, target| response.generatedFiles.add(new File(target.toFileString))]
+			afterGenerateFile = [source, target|response.generatedFiles.add(new File(target.toFileString))]
 
 			preparResourceSet(containerHandle, state.resourceDescriptions, gradleRequest)
 		]
 
 		val result = doBuild(request, gradleRequest)
 
-		if (!validator.isErrorFree) {
+		if(!validator.isErrorFree) {
 			throw new GradleException("Xtext validation failed, see build log for details.")
 		}
 
@@ -102,9 +103,9 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
 		val registry = IResourceServiceProvider.Registry.INSTANCE
-		gradleRequest.dirtyClasspathEntries.filter[exists].forEach[dirtyClasspathEntry|
+		gradleRequest.dirtyClasspathEntries.filter[exists].forEach [ dirtyClasspathEntry |
 			val hash = hash(dirtyClasspathEntry)
-			if (dependencyHashes.get(dirtyClasspathEntry) != hash) {
+			if(dependencyHashes.get(dirtyClasspathEntry) != hash) {
 				val containerHandle = dirtyClasspathEntry.path
 				val request = new BuildRequest => [
 					indexOnly = true
@@ -113,12 +114,11 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 					 * Only mark files as dirty that have changed in the jar,
 					 * detect the deleted ones and reuse the existing index chunk for unchanged ones.
 					 */
-					dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [uri|
+					dirtyFiles += new PathTraverser().findAllResourceUris(dirtyClasspathEntry.path) [ uri |
 						registry.getResourceServiceProvider(uri) !== null
 					]
 
-					afterValidate = [false] //workaround for indexOnly not working in Xtext 2.9.0
-
+					afterValidate = [false] // workaround for indexOnly not working in Xtext 2.9.0
 					val indexChunk = new ResourceDescriptionsData(emptyList)
 					val fileMappings = new Source2GeneratedMapping
 					state = new IndexState(indexChunk, fileMappings)
@@ -140,7 +140,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	private def void hash(File file, Hasher hasher) {
-		if (file.isDirectory) {
+		if(file.isDirectory) {
 			file.listFiles.forEach[hash(hasher)]
 		} else {
 			Files.asByteSource(file).copyTo(Funnels.asOutputStream(hasher))
@@ -154,6 +154,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			attachGeneratorConfig(gradleRequest)
 			attachOutputConfig(gradleRequest)
 			attachPreferences(gradleRequest)
+			attachJavaConfig(gradleRequest)
 			attachProjectDescription(containerHandle, gradleRequest.allClasspathEntries.map[path].toList, it)
 			val contextualIndex = index.createShallowCopyWith(it)
 			contextualIndex.setContainer(containerHandle, indexChunk)
@@ -163,27 +164,23 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	private def doBuild(BuildRequest request, GradleBuildRequest gradleRequest) {
 		try {
 			val registry = IResourceServiceProvider.Registry.INSTANCE
-			if (needsCleanBuild(gradleRequest)) {
+			if(needsCleanBuild(gradleRequest)) {
 				doClean(gradleRequest)
 			}
-			incrementalbuilder.build(request, [uri| registry.getResourceServiceProvider(uri)])
+			incrementalbuilder.build(request, [uri|registry.getResourceServiceProvider(uri)])
 		} finally {
 			cleanup(gradleRequest, request)
 		}
 	}
 
 	private def doClean(GradleBuildRequest request) {
-		request.generatorConfigsByLanguage.values
-			.map[outputConfigs].flatten
-			.filter[cleanAutomatically]
-			.map[target]
-			.forEach[
-				deleteRecursive
-			]
+		request.generatorConfigsByLanguage.values.map[outputConfigs].flatten.filter[cleanAutomatically].map[target].forEach [
+			deleteRecursive
+		]
 	}
 
 	private def void deleteRecursive(File file) {
-		if (file.isDirectory) {
+		if(file.isDirectory) {
 			file.listFiles.forEach[deleteRecursive]
 		}
 		file.delete
@@ -194,21 +191,21 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
-		val parent = if (gradleRequest.bootstrapClasspath === null || gradleRequest.bootstrapClasspath.empty) {
-			ClassLoader.systemClassLoader
-		} else {
-			new AlternateJdkLoader(gradleRequest.bootstrapClasspath)
-		}
+		val parent = if(gradleRequest.bootstrapClasspath === null || gradleRequest.bootstrapClasspath.empty) {
+				ClassLoader.systemClassLoader
+			} else {
+				new AlternateJdkLoader(gradleRequest.bootstrapClasspath)
+			}
 		new URLClassLoader(gradleRequest.allClasspathEntries.map[toURI.toURL], parent)
 	}
 
 	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {
 		val resourceSet = request.resourceSet
 		val jvmTypesLoader = resourceSet.classpathURIContext
-		if (jvmTypesLoader instanceof Closeable) {
+		if(jvmTypesLoader instanceof Closeable) {
 			try {
 				jvmTypesLoader.close
-			} catch (Exception e) {
+			} catch(Exception e) {
 				gradleRequest.logger.debug("Couldn't close jvm types classloader", e)
 			}
 		}
@@ -232,11 +229,11 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		new GeneratorConfigProvider.GeneratorConfigAdapter => [
 			attachToEmfObject(resourceSet)
 			language2GeneratorConfig.putAll(
-				gradleRequest.generatorConfigsByLanguage.mapValues[gradleConfig|
+				gradleRequest.generatorConfigsByLanguage.mapValues [ gradleConfig |
 					new GeneratorConfig => [
 						generateSyntheticSuppressWarnings = gradleConfig.isGenerateSyntheticSuppressWarnings
 						generateGeneratedAnnotation = gradleConfig.isGenerateGeneratedAnnotation
-						includeDateInGeneratedAnnotation = 	gradleConfig.isIncludeDateInGeneratedAnnotation
+						includeDateInGeneratedAnnotation = gradleConfig.isIncludeDateInGeneratedAnnotation
 						generatedAnnotationComment = gradleConfig.generatedAnnotationComment
 						javaSourceVersion = JavaVersion.fromQualifier(gradleConfig.javaSourceLevel.toString)
 					]
@@ -247,8 +244,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 
 	private def attachOutputConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
 		resourceSet.eAdapters += new OutputConfigurationAdapter(
-			gradleRequest.generatorConfigsByLanguage.mapValues[
-				outputConfigs.map[gradleOutputConfig|
+			gradleRequest.generatorConfigsByLanguage.mapValues [
+				outputConfigs.map [ gradleOutputConfig |
 					new OutputConfiguration(gradleOutputConfig.outletName) => [
 						outputDirectory = gradleOutputConfig.target.absolutePath
 					]
@@ -266,10 +263,23 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		]
 	}
 
+	private def attachJavaConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
+		try {
+			val configClass = Class.forName("org.eclipse.xtext.java.resource.JavaConfig")
+			val javaConfig = configClass.newInstance
+			val javaVersion = JavaVersion.fromQualifier(gradleRequest.generatorConfigsByLanguage.values.head.javaSourceLevel.toString)
+			configClass.getMethod("attachToEmfObject", typeof(Notifier)).invoke(javaConfig, resourceSet)
+			configClass.getMethod("setJavaSourceLevel", typeof(JavaVersion)).invoke(javaConfig, javaVersion)
+			configClass.getMethod("setJavaTargetLevel", typeof(JavaVersion)).invoke(javaConfig, javaVersion)
+		} catch(ClassNotFoundException ignore) {
+			// this only exists in Xtext 2.11 and upwards
+		}
+	}
+
 	override void installDebugInfo(GradleInstallDebugInfoRequest gradleRequest) {
 		val request = new InstallDebugInfoRequest => [
 			classesDir = gradleRequest.classesDir
-			sourceInstallerByFileExtension = gradleRequest.sourceInstallerByFileExtension.mapValues[gradleConfig|
+			sourceInstallerByFileExtension = gradleRequest.sourceInstallerByFileExtension.mapValues [ gradleConfig |
 				new SourceInstallerConfig => [
 					sourceInstaller = SourceInstaller.valueOf(gradleConfig.sourceInstaller.name)
 					hideSyntheticVariables = gradleConfig.isHideSyntheticVariables

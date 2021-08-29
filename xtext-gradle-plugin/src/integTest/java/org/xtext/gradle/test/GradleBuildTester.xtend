@@ -12,11 +12,12 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
+import org.xtext.gradle.tasks.internal.Version
 
 import static org.junit.Assert.*
 
 class GradleBuildTester extends ExternalResource {
-	public final static String GRADLE_VERSION = System.getProperty("gradle.version", "4.3")
+	public final static Version GRADLE_VERSION = Version.parse(System.getProperty("gradle.version", "4.3"))
 	val temp = new TemporaryFolder
 	ProjectUnderTest rootProject
 	GradleRunner gradle
@@ -29,7 +30,7 @@ class GradleBuildTester extends ExternalResource {
 			owner = this
 		]
 		gradle = GradleRunner.create
-			.withGradleVersion(GRADLE_VERSION)
+			.withGradleVersion(GRADLE_VERSION.toString)
 			.withPluginClasspath
 			.withProjectDir(rootProject.projectDir)
 			.forwardOutput()
@@ -57,7 +58,7 @@ class GradleBuildTester extends ExternalResource {
 			"-Dhttp.socketTimeout=120000",
 			"-s"
 		]
-		}
+	}
 
 	def void setContent(File file, CharSequence content) {
 		file.parentFile.mkdirs

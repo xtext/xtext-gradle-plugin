@@ -1,11 +1,11 @@
 package org.xtext.gradle
 
 import org.gradle.api.Project
-import org.gradle.util.VersionNumber
+import org.xtext.gradle.tasks.internal.Version
 
 class GradleExtensions {
 
 	static def supportsJvmEcoSystemplugin(Project project) {
-		VersionNumber.parse(project.gradle.gradleVersion) >= VersionNumber.parse("6.7")
+		Version.parse(project.gradle.gradleVersion) >= Version.parse("6.7")
 	}
 }

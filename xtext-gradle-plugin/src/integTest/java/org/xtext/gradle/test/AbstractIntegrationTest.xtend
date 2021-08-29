@@ -6,13 +6,14 @@ import org.gradle.testkit.runner.BuildTask
 import org.junit.Before
 import org.junit.Rule
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
+import org.xtext.gradle.tasks.internal.Version
 
 abstract class AbstractIntegrationTest {
 
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject
 
-	final static String XTEXT_VERSION = System.getProperty("xtext.version", "2.9.0")
+	final static Version XTEXT_VERSION = Version.parse(System.getProperty("xtext.version", "2.9.0"))
 
 	@Before
 	def void setup() {
@@ -47,16 +48,16 @@ abstract class AbstractIntegrationTest {
 		new OutputSnapshot(baseDir)
 	}
 
-	def String getXtextVersion() {
+	def Version getXtextVersion() {
 		XTEXT_VERSION
 	}
 
-	def String getGradleVersion() {
+	def Version getGradleVersion() {
 		GradleBuildTester.GRADLE_VERSION
 	}
 
 	def String getImplementationScope() {
-		if (gradleVersion > '5') 'implementation' else 'compile'
+		if (gradleVersion > Version.parse('5')) 'implementation' else 'compile'
 	}
 
 }

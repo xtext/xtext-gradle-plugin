@@ -1,6 +1,8 @@
 package org.xtext.gradle.test
 
 import org.junit.Test
+import static org.junit.Assume.assumeTrue
+import org.xtext.gradle.tasks.internal.Version
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
@@ -276,6 +278,23 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		'''
 
 		build("build")
+	}
+
+	@Test
+	def void defaultMethodsAreInherited() {
+		assumeTrue(xtextVersion > Version.parse("2.11"))
+		file('src/main/java/I.java').content = '''
+			interface I {
+				default void foo() {
+				}
+			}
+		'''
+		file('src/main/java/A.xtend').content = '''
+			class A implements I {
+			}
+		'''
+
+		build("generateXtext")
 	}
 
 }

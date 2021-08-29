@@ -1,11 +1,12 @@
 package org.xtext.gradle.test
 
 import org.junit.Test
+import org.xtext.gradle.tasks.internal.Version
 
 class WhenUsingXtendForTestsOnly extends AbstractXtendIntegrationTest {
 
 	override getImplementationScope() {
-		if (gradleVersion > '5') 'testImplementation' else 'testCompile'
+		if (gradleVersion > Version.parse('5')) 'testImplementation' else 'testCompile'
 	}
 
 	@Test
