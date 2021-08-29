@@ -14,7 +14,7 @@ Features
 --------
 
 - Incrementally generates code based on changed files
-- Supports multiple languages to cross-reference each other
+- Allows multiple languages to cross-reference each other
 - Enhances Java classes with debug information when using Xbase languages
 - Hooks into 'gradle eclipse', so your languages are configured correctly when you import your projects
 - Supports Gradle 4.3 and above (tested up to 7.2)
