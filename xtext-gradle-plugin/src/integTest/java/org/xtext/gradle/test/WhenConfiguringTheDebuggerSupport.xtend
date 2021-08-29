@@ -13,14 +13,14 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 
 	@Test
 	def void sourcesCanBeInstalledAsSmap() {
-		Assume.assumeFalse(XTEXT_VERSION == '2.11.0.beta2') //beta 2 deactivates the smap installer
+		Assume.assumeFalse(xtextVersion == '2.11.0.beta2') //beta 2 deactivates the smap installer
 		testSourceInstallation(SourceInstaller.SMAP)[name, info|
 			assertEquals("HelloWorld.java", name)
 			assertTrue(info, info !== null && info.contains("SMAP"))
 			assertTrue(info, info !== null && info.contains("HelloWorld.xtend"))
 		]
 	}
-	
+
 	@Test
 	def void sourcesCanBeInstalledAsPrimary() {
 		testSourceInstallation(SourceInstaller.PRIMARY)[name, info|
@@ -34,19 +34,19 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 			assertNull(info)
 		]
 	}
-	
+
 	private def testSourceInstallation(SourceInstaller sourceInstaller, (String, String) => void sourceVisitor) {
 		buildFile << '''
 			apply plugin: 'java'
 			apply plugin: 'org.xtext.builder'
-			
+
 			dependencies {
-				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:«XTEXT_VERSION»'
-				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«XTEXT_VERSION»'
+				«implementationScope» 'org.eclipse.xtend:org.eclipse.xtend.lib:«xtextVersion»'
+				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«xtextVersion»'
 			}
-			
+
 			xtext {
-				version = '«XTEXT_VERSION»'
+				version = '«xtextVersion»'
 				languages {
 					xtend {
 						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
@@ -69,10 +69,10 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 				}
 			}
 		''')
-		
+
 		build("build")
 		val classFile = file("build/classes/java/main/HelloWorld.class")
-		
+
 		classFile.shouldExist
 		new ClassReader(classFile.content).accept(new ClassVisitor(Opcodes.ASM5) {
 			override visitSource(String name, String info) {

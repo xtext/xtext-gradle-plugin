@@ -15,12 +15,12 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 			}
 
 			dependencies {
-				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:«XTEXT_VERSION»'
-				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«XTEXT_VERSION»'
+				compile 'org.eclipse.xtend:org.eclipse.xtend.lib:«xtextVersion»'
+				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«xtextVersion»'
 			}
 
 			xtext {
-				version = '«XTEXT_VERSION»'
+				version = '«xtextVersion»'
 				languages {
 					xtend {
 						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'

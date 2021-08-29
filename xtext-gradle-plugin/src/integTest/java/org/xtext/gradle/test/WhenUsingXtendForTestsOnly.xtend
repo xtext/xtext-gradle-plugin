@@ -4,8 +4,8 @@ import org.junit.Test
 
 class WhenUsingXtendForTestsOnly extends AbstractXtendIntegrationTest {
 
-	override protected getXtendScope() {
-		'testCompile'
+	override getImplementationScope() {
+		if (gradleVersion > '5') 'testImplementation' else 'testCompile'
 	}
 
 	@Test

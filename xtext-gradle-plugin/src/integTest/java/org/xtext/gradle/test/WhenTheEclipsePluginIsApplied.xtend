@@ -14,11 +14,11 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 			apply plugin: 'java'
 			apply plugin: 'eclipse'
 			apply plugin: 'org.xtext.builder'
-			
+
 			sourceCompatibility = '1.6'
-			
+
 			xtext {
-				version = '«XTEXT_VERSION»'
+				version = '«xtextVersion»'
 				languages {
 					xtend {
 						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
@@ -43,7 +43,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 	def void properSettingsAreGenerated() {
 		// when
 		build('eclipse')
-		
+
 		// then
 		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
 		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
@@ -65,15 +65,15 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 		prefs.shouldContain('org.eclipse.xtend.some.some.issue', 'error')
 		prefs.shouldContain('org.eclipse.xtend.some.pref', 'true')
 	}
-	
+
 	@Test
 	def void settingsAreCleanedProperly() {
 		// given
 		build('eclipse')
-		
+
 		// when
 		build('cleanEclipse')
-		
+
 		// then
 		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldNotExist
 	}

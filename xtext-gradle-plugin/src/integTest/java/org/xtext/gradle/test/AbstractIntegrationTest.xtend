@@ -12,7 +12,7 @@ abstract class AbstractIntegrationTest {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject
 
-	public final static String XTEXT_VERSION = System.getProperty("xtext.version", "2.9.0")
+	final static String XTEXT_VERSION = System.getProperty("xtext.version", "2.9.0")
 
 	@Before
 	def void setup() {
@@ -45,6 +45,18 @@ abstract class AbstractIntegrationTest {
 
 	def OutputSnapshot snapshot(File baseDir) {
 		new OutputSnapshot(baseDir)
+	}
+
+	def String getXtextVersion() {
+		XTEXT_VERSION
+	}
+
+	def String getGradleVersion() {
+		GradleBuildTester.GRADLE_VERSION
+	}
+
+	def String getImplementationScope() {
+		if (gradleVersion > '5') 'implementation' else 'compile'
 	}
 
 }
