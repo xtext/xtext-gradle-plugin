@@ -9,10 +9,16 @@ Xtext Builder Plugin
 
 A Gradle Plugin for using [Xtext](http://xtext.org)-based code generators. Get the latest version from the [Plugin Portal](http://plugins.gradle.org/plugin/org.xtext.builder)
 
-The plugin allows any number of Xtext languages to cross-link against each other. The Generator works incrementally, only indexing, validating and generating for files that were affected by a change. It integrates well with other Gradle plugins like the Java plugin and Eclipse plugin..
 
-Supports Gradle 4.3 and above (tested up to 7.2)
-Supports Xtext 2.9 and above (tested up to 25.0)
+Features
+--------
+
+- Incrementally generates code based on changed files
+- Supports multiple languages to cross-reference each other
+- Enhances Java classes with debug information when using Xbase languages
+- Hooks into 'gradle eclipse', so your languages are configured correctly when you import your projects
+- Supports Gradle 4.3 and above (tested up to 7.2)
+- Supports Xtext 2.9 and above (tested up to 25.0) 
 
 Minimal Example
 ---------------
