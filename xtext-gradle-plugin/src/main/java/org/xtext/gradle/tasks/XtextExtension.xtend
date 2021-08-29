@@ -2,7 +2,6 @@ package org.xtext.gradle.tasks;
 
 import com.google.common.base.CaseFormat
 import com.google.common.collect.Lists
-import groovy.lang.Closure
 import java.util.List
 import java.util.Map
 import java.util.regex.Pattern
@@ -17,7 +16,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
@@ -35,8 +33,8 @@ class XtextExtension {
 
 	new(Project project) {
 		this.project = project
-		sourceSets = project.container(XtextSourceDirectorySet)[name|new DefaultXtextSourceDirectorySet(name, project, this)]
-		languages = project.container(Language)[name|new Language(name, project)]
+		sourceSets = project.container(XtextSourceDirectorySet)[name|project.instantiate(typeof(DefaultXtextSourceDirectorySet), name, project, this)]
+		languages = project.container(Language)[name|project.instantiate(typeof(Language), name, project)]
 		classpathInferrers = Lists.newArrayList
 	}
 
@@ -94,13 +92,15 @@ class Language implements Named {
 	@Input String fileExtension
 	@Input String setup
 	@Nested val GeneratorConfig generator
-	@Nested val debugger = new DebuggerConfig
-	@Nested val validator = new ValidatorConfig
+	@Nested val DebuggerConfig debugger
+	@Nested val ValidatorConfig validator
 	@Input Map<String, Object> preferences = newLinkedHashMap
 
 	new(String name, Project project) {
 		this.name = name
-		this.generator = new GeneratorConfig(project, this)
+		this.generator = project.instantiate(typeof(GeneratorConfig), project, this)
+		this.debugger = project.instantiate(typeof(DebuggerConfig))
+		this.validator = project.instantiate(typeof(ValidatorConfig))
 	}
 
 	def getQualifiedName() {
@@ -111,24 +111,12 @@ class Language implements Named {
 		fileExtension ?: name
 	}
 
-	def generator(Closure<?> configureClosure) {
-		ConfigureUtil.configure(configureClosure, generator)
-	}
-
 	def generator(Action<GeneratorConfig> action) {
 		action.execute(generator)
 	}
 
-	def debugger(Closure<?> configureClosure) {
-		ConfigureUtil.configure(configureClosure, debugger)
-	}
-
 	def debugger(Action<DebuggerConfig> action) {
 		action.execute(debugger)
-	}
-
-	def validator(Closure<?> configureClosure) {
-		ConfigureUtil.configure(configureClosure, validator)
 	}
 
 	def validator(Action<ValidatorConfig> action) {
@@ -144,17 +132,13 @@ class Language implements Named {
 class GeneratorConfig {
 	@Input boolean suppressWarningsAnnotation = true
 	@Input @Optional String javaSourceLevel
-	@Nested val GeneratedAnnotationOptions generatedAnnotation = new GeneratedAnnotationOptions
+	@Nested val GeneratedAnnotationOptions generatedAnnotation
 	@Nested val NamedDomainObjectContainer<Outlet> outlets
 
 	new(Project project, Language language) {
-		this.outlets = project.container(Outlet)[outlet|new Outlet(language, outlet)]
+		this.generatedAnnotation = project.instantiate(typeof(GeneratedAnnotationOptions))
+		this.outlets = project.container(Outlet)[outlet|project.instantiate(typeof(Outlet), language, outlet)]
 	}
-
-	def outlets(Closure<?> configureClosure) {
-		ConfigureUtil.configure(configureClosure, outlets)
-	}
-
 	def outlets(Action<NamedDomainObjectContainer<Outlet>> action) {
 		action.execute(outlets)
 	}
@@ -163,18 +147,9 @@ class GeneratorConfig {
 		outlets.maybeCreate(Outlet.DEFAULT_OUTLET)
 	}
 
-	def outlet(Closure<?> configureClosure) {
-		ConfigureUtil.configure(configureClosure, outlet)
-	}
-
 	def outlet(Action<Outlet> action) {
 		action.execute(outlet)
 	}
-
-	def generatedAnnotation(Closure<?> configureClosure) {
-		ConfigureUtil.configure(configureClosure, generatedAnnotation)
-	}
-
 	def generatedAnnotation(Action<GeneratedAnnotationOptions> action) {
 		action.execute(generatedAnnotation)
 	}

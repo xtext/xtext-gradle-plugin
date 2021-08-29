@@ -1,11 +1,10 @@
 package org.xtext.gradle.tasks
 
-import groovy.lang.Closure
 import java.io.File
 import java.util.Set
+import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.api.Action
 
 interface XtextSourceDirectorySet extends PatternFilterable {
 
@@ -25,8 +24,6 @@ interface XtextSourceDirectorySet extends PatternFilterable {
 
 	def XtextSourceSetOutputs getOutput()
 
-	def void output(Closure<?> configureClosure)
-	
 	def void output(Action<XtextSourceSetOutputs> action)
 
 	def String getGeneratorTaskName()

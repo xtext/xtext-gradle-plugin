@@ -5,17 +5,18 @@ import java.io.File
 import java.util.List
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.ConfigureUtil
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
-import org.gradle.api.Action
+
+import static extension org.xtext.gradle.GradleExtensions.*
 
 class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	@Accessors val String name
@@ -27,7 +28,7 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	new(String name, Project project, XtextExtension xtext) {
 		this.name = name
 		this.project = project
-		output = new DefaultXtextSourceSetOutputs(project, xtext)
+		output = project.instantiate(typeof(DefaultXtextSourceSetOutputs), project, xtext)
 	}
 
 	override XtextSourceDirectorySet srcDir(Object srcDir) {
@@ -114,10 +115,6 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	override PatternFilterable exclude(Closure excludeSpec) {
 		filter.exclude(excludeSpec)
 		return this
-	}
-
-	override output(Closure<?> configureAction) {
-		ConfigureUtil.configure(configureAction, output)
 	}
 
 	override output(Action<XtextSourceSetOutputs> action) {
