@@ -26,6 +26,7 @@ import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 
 import static extension org.xtext.gradle.GradleExtensions.*
+import org.xtext.gradle.tasks.internal.Version
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -194,6 +195,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
 			eclipse.project.natures("org.eclipse.xtext.ui.shared.xtextNature")
+			if (Version.parse(project.gradle.gradleVersion) > Version.parse("5.4")) {
+				eclipse.synchronizationTasks(settingsTask)
+			}
 		]
 	}
 }
