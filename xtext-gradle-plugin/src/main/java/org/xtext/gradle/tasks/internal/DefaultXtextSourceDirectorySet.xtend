@@ -56,7 +56,10 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	}
 
 	override Set<File> getSrcDirs() {
-		return project.files(source).files.filter[!output.dirs.contains(it)].toSet
+		val autoCleanedFolders = xtext.languages.filter[generator.outlets.exists[cleanAutomatically == true]].map [
+			output.getDir(generator.outlet)
+		].filterNull.toSet
+		return project.files(source).files.filter[!autoCleanedFolders.contains(it)].toSet
 	}
 
 	override PatternFilterable getFilter() {
