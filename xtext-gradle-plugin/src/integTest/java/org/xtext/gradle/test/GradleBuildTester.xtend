@@ -53,7 +53,7 @@ class GradleBuildTester extends ExternalResource {
 			"-Dhttp.connectionTimeout=120000",
 			"-Dhttp.socketTimeout=120000",
 			"-s"
-		] + if(GRADLE_VERSION > new ComparableVersion("5.6")) #["--warning-mode=fail"] else #[]
+		] + if(GRADLE_VERSION >= new ComparableVersion("5.6")) #["--warning-mode=fail"] else #[]
 	}
 
 	def void setContent(File file, CharSequence content) {

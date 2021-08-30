@@ -173,7 +173,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
 			eclipse.project.natures("org.eclipse.xtext.ui.shared.xtextNature")
-			if (new ComparableVersion(project.gradle.gradleVersion) > new ComparableVersion("5.4")) {
+			if (new ComparableVersion(project.gradle.gradleVersion) >= new ComparableVersion("5.4")) {
 				eclipse.synchronizationTasks(settingsTask)
 			}
 		]

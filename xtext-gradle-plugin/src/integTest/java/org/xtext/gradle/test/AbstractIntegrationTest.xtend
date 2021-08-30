@@ -57,7 +57,7 @@ abstract class AbstractIntegrationTest {
 	}
 
 	def String getImplementationScope() {
-		if (gradleVersion > new ComparableVersion('5')) 'implementation' else 'compile'
+		if (gradleVersion >= new ComparableVersion('5')) 'implementation' else 'compile'
 	}
 
 }

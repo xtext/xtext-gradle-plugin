@@ -285,7 +285,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def void defaultMethodsAreInherited() {
-		assumeTrue(xtextVersion > new ComparableVersion("2.11"))
+		assumeTrue(xtextVersion >= new ComparableVersion("2.11"))
 		file('src/main/java/I.java').content = '''
 			interface I {
 				default void foo() {

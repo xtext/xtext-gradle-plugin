@@ -6,7 +6,7 @@ import org.junit.Test
 class WhenUsingXtendForTestsOnly extends AbstractXtendIntegrationTest {
 
 	override getImplementationScope() {
-		if (gradleVersion > new ComparableVersion('5')) 'testImplementation' else 'testCompile'
+		if (gradleVersion >= new ComparableVersion('5')) 'testImplementation' else 'testCompile'
 	}
 
 	@Test
