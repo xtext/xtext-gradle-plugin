@@ -42,7 +42,6 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 				xtext.sourceSets.getAt(sourceSet.name),
 				xtend.generator.outlet
 			)
-			//TODO get rid of this internal API usage
 			new DslObject(sourceSet).convention.plugins.put("xtend", xtendSourceSet)
 		]
 	}

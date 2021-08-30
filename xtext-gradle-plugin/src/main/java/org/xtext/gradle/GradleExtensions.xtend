@@ -12,6 +12,6 @@ class GradleExtensions {
 	}
 
 	static def <T> T instantiate(Project project, Class<T> type, Object... args) {
-		(project as ProjectInternal).services.get(typeof(Instantiator)).newInstance(type, args)
+		(project as ProjectInternal).services.get(Instantiator).newInstance(type, args)
 	}
 }

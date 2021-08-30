@@ -30,7 +30,7 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 		this.name = name
 		this.project = project
 		this.xtext = xtext
-		output = project.instantiate(typeof(DefaultXtextSourceSetOutputs), project, xtext)
+		output = project.instantiate(DefaultXtextSourceSetOutputs, project, xtext)
 	}
 
 	override XtextSourceDirectorySet srcDir(Object srcDir) {

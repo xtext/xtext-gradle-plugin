@@ -35,8 +35,8 @@ class XtextExtension {
 
 	new(Project project) {
 		this.project = project
-		sourceSets = project.container(XtextSourceDirectorySet)[name|project.instantiate(typeof(DefaultXtextSourceDirectorySet), name, project, this)]
-		languages = project.container(Language)[name|project.instantiate(typeof(Language), name, project)]
+		sourceSets = project.container(XtextSourceDirectorySet)[name|project.instantiate(DefaultXtextSourceDirectorySet, name, project, this)]
+		languages = project.container(Language)[name|project.instantiate(Language, name, project)]
 		classpathInferrers = Lists.newArrayList
 	}
 
@@ -107,9 +107,9 @@ class Language implements Named {
 
 	new(String name, Project project) {
 		this.name = name
-		this.generator = project.instantiate(typeof(GeneratorConfig), project, this)
-		this.debugger = project.instantiate(typeof(DebuggerConfig))
-		this.validator = project.instantiate(typeof(ValidatorConfig))
+		this.generator = project.instantiate(GeneratorConfig, project, this)
+		this.debugger = project.instantiate(DebuggerConfig)
+		this.validator = project.instantiate(ValidatorConfig)
 		fileExtensions = newLinkedHashSet(name)
 	}
 
@@ -153,8 +153,8 @@ class GeneratorConfig {
 	@Nested val NamedDomainObjectContainer<Outlet> outlets
 
 	new(Project project, Language language) {
-		this.generatedAnnotation = project.instantiate(typeof(GeneratedAnnotationOptions))
-		this.outlets = project.container(Outlet)[outlet|project.instantiate(typeof(Outlet), language, outlet)]
+		this.generatedAnnotation = project.instantiate(GeneratedAnnotationOptions)
+		this.outlets = project.container(Outlet)[outlet|project.instantiate(Outlet, language, outlet)]
 	}
 	def outlets(Action<NamedDomainObjectContainer<Outlet>> action) {
 		action.execute(outlets)

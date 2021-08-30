@@ -271,9 +271,9 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			val configClass = Class.forName("org.eclipse.xtext.java.resource.JavaConfig")
 			val javaConfig = configClass.newInstance
 			val javaVersion = JavaVersion.fromQualifier(gradleRequest.generatorConfigsByLanguage.values.head.javaSourceLevel.toString)
-			configClass.getMethod("attachToEmfObject", typeof(Notifier)).invoke(javaConfig, resourceSet)
-			configClass.getMethod("setJavaSourceLevel", typeof(JavaVersion)).invoke(javaConfig, javaVersion)
-			configClass.getMethod("setJavaTargetLevel", typeof(JavaVersion)).invoke(javaConfig, javaVersion)
+			configClass.getMethod("attachToEmfObject", Notifier).invoke(javaConfig, resourceSet)
+			configClass.getMethod("setJavaSourceLevel", JavaVersion).invoke(javaConfig, javaVersion)
+			configClass.getMethod("setJavaTargetLevel", JavaVersion).invoke(javaConfig, javaVersion)
 		} catch(ClassNotFoundException ignore) {
 			// this only exists in Xtext 2.11 and upwards
 		}
