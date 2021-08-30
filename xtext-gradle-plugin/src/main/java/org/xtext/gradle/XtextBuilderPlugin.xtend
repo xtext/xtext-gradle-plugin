@@ -1,6 +1,7 @@
 package org.xtext.gradle;
 
 import java.io.File
+import java.util.LinkedHashSet
 import java.util.Set
 import java.util.concurrent.Callable
 import org.gradle.api.Action
@@ -11,6 +12,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -27,7 +29,6 @@ import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
-import org.gradle.api.internal.plugins.DslObject
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
@@ -139,7 +140,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
 					xtextSourceSet.srcDirs([javaSourceSet.java.srcDirs] as Callable<Set<File>>)
-					javaSourceSet.allSource.srcDirs([xtextSourceSet.srcDirs] as Callable<Set<File>>)
+					javaSourceSet.allSource.srcDirs([
+						val dslSources = new LinkedHashSet(xtextSourceSet.srcDirs)
+						dslSources.removeAll(javaSourceSet.java.srcDirs)
+						dslSources
+					] as Callable<Set<File>>)
 					javaSourceSet.java.srcDirs([
 						xtext.languages.map[generator.outlets].flatten.filter[producesJava].map[xtextSourceSet.output.getDir(it)]
 					] as Callable<Iterable<File>>)
