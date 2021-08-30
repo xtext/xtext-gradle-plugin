@@ -1,19 +1,19 @@
 package org.xtext.gradle.test
 
 import java.io.File
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.junit.Before
 import org.junit.Rule
 import org.xtext.gradle.test.GradleBuildTester.ProjectUnderTest
-import org.xtext.gradle.tasks.internal.Version
 
 abstract class AbstractIntegrationTest {
 
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject
 
-	final static Version XTEXT_VERSION = Version.parse(System.getProperty("xtext.version", "2.9.0"))
+	final static ComparableVersion XTEXT_VERSION = new ComparableVersion(System.getProperty("xtext.version", "2.9.0"))
 
 	@Before
 	def void setup() {
@@ -48,16 +48,16 @@ abstract class AbstractIntegrationTest {
 		new OutputSnapshot(baseDir)
 	}
 
-	def Version getXtextVersion() {
+	def ComparableVersion getXtextVersion() {
 		XTEXT_VERSION
 	}
 
-	def Version getGradleVersion() {
+	def ComparableVersion getGradleVersion() {
 		GradleBuildTester.GRADLE_VERSION
 	}
 
 	def String getImplementationScope() {
-		if (gradleVersion > Version.parse('5')) 'implementation' else 'compile'
+		if (gradleVersion > new ComparableVersion('5')) 'implementation' else 'compile'
 	}
 
 }

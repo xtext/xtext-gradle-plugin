@@ -1,14 +1,14 @@
 package org.xtext.gradle
 
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.xtext.gradle.tasks.internal.Version
 
 class GradleExtensions {
 
 	static def supportsJvmEcoSystemplugin(Project project) {
-		Version.parse(project.gradle.gradleVersion) >= Version.parse("6.7")
+		new ComparableVersion(project.gradle.gradleVersion) >= new ComparableVersion("6.7")
 	}
 
 	static def <T> T instantiate(Project project, Class<T> type, Object... args) {

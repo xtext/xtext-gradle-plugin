@@ -5,6 +5,7 @@ import com.google.common.io.Files
 import java.io.File
 import java.util.Collections
 import java.util.Set
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
@@ -12,12 +13,11 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.rules.ExternalResource
 import org.junit.rules.TemporaryFolder
-import org.xtext.gradle.tasks.internal.Version
 
 import static org.junit.Assert.*
 
 class GradleBuildTester extends ExternalResource {
-	public final static Version GRADLE_VERSION = Version.parse(System.getProperty("gradle.version", "4.3"))
+	public final static ComparableVersion GRADLE_VERSION = new ComparableVersion(System.getProperty("gradle.version", "4.3"))
 	val temp = new TemporaryFolder
 	ProjectUnderTest rootProject
 	GradleRunner gradle
@@ -53,7 +53,7 @@ class GradleBuildTester extends ExternalResource {
 			"-Dhttp.connectionTimeout=120000",
 			"-Dhttp.socketTimeout=120000",
 			"-s"
-		] + if(GRADLE_VERSION > Version.parse("5.6")) #["--warning-mode=fail"] else #[]
+		] + if(GRADLE_VERSION > new ComparableVersion("5.6")) #["--warning-mode=fail"] else #[]
 	}
 
 	def void setContent(File file, CharSequence content) {

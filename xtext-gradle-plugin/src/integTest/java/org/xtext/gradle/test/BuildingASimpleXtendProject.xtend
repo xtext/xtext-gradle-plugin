@@ -1,8 +1,9 @@
 package org.xtext.gradle.test
 
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.junit.Test
+
 import static org.junit.Assume.assumeTrue
-import org.xtext.gradle.tasks.internal.Version
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
@@ -282,7 +283,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def void defaultMethodsAreInherited() {
-		assumeTrue(xtextVersion > Version.parse("2.11"))
+		assumeTrue(xtextVersion > new ComparableVersion("2.11"))
 		file('src/main/java/I.java').content = '''
 			interface I {
 				default void foo() {

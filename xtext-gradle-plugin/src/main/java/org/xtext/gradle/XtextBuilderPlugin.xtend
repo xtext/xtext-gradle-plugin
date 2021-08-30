@@ -4,6 +4,7 @@ import java.io.File
 import java.util.LinkedHashSet
 import java.util.Set
 import java.util.concurrent.Callable
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -26,7 +27,6 @@ import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
-import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
 
@@ -173,7 +173,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
 			eclipse.project.natures("org.eclipse.xtext.ui.shared.xtextNature")
-			if (Version.parse(project.gradle.gradleVersion) > Version.parse("5.4")) {
+			if (new ComparableVersion(project.gradle.gradleVersion) > new ComparableVersion("5.4")) {
 				eclipse.synchronizationTasks(settingsTask)
 			}
 		]

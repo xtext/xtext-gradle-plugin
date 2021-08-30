@@ -7,6 +7,7 @@ import java.util.List
 import java.util.Map
 import java.util.Set
 import java.util.regex.Pattern
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Action
 import org.gradle.api.Named
@@ -21,7 +22,6 @@ import org.gradle.api.tasks.Optional
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
-import org.xtext.gradle.tasks.internal.Version
 
 import static extension org.xtext.gradle.GradleExtensions.*
 
@@ -75,7 +75,7 @@ class XtextExtension {
 				useVersion(xtextVersion)
 		]
 
-		if (project.supportsJvmEcoSystemplugin && Version.parse(xtextVersion)>=  Version.parse("2.17.1")) {
+		if (project.supportsJvmEcoSystemplugin && new ComparableVersion(xtextVersion)>=  new ComparableVersion("2.17.1")) {
 			dependencies.dependencies += project.dependencies.enforcedPlatform('''org.eclipse.xtext:xtext-dev-bom:«xtextVersion»''')
 		} else {
 			dependencies.resolutionStrategy.eachDependency [

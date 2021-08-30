@@ -61,6 +61,9 @@ dependencies {
 	implementation "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
 	implementation 'com.google.guava:guava:27.1-jre'
 	implementation 'org.eclipse.core:org.eclipse.core.runtime:3.7.0'
+	implementation('org.apache.maven:maven-artifact:3.8.2') {
+		transitive = false
+	}
 	protocol project(':xtext-gradle-protocol')
 }
 
