@@ -81,10 +81,10 @@ class XtextExtension {
 			dependencies.resolutionStrategy.eachDependency [
 				if (requested.group == "com.google.inject" && requested.name == "guice")
 					useVersion("5.0.1")
-				if (requested.group == "org.eclipse.platform" && requested.name == "org.eclipse.equinox.common")
-					useVersion("3.13.0")
-				if (requested.group == "org.eclipse.platform" && requested.name == "org.eclipse.core.runtime")
-					useVersion("3.19.0")
+				if (requested.name == "org.eclipse.equinox.common")
+					useTarget("org.eclipse.platform:org.eclipse.equinox.common:3.13.0")
+				if (requested.name == "org.eclipse.core.runtime")
+					useTarget("org.eclipse.platform:org.eclipse.core.runtime:3.19.0")
 			]
 		}
 	}
