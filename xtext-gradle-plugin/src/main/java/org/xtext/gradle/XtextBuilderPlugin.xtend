@@ -149,6 +149,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						val javaProducingOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava]
 						project.files(javaProducingOutlets.map[xtextSourceSet.output.getDir(it)]).builtBy(generatorTask)
 					] as Callable<Iterable<File>>)
+					javaCompile.dependsOn(generatorTask)
 					javaCompile.doLast(new Action<Task>() {
 						override void execute(Task it) {
 							generatorTask.installDebugInfo(javaCompile.destinationDir)

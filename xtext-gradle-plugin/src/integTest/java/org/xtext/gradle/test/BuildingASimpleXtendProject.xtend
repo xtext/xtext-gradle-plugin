@@ -10,39 +10,6 @@ import static org.junit.Assume.*
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
-	def theGeneratorShouldRunAndCompileWhenInvokedInSeperateBuilds() {
-		file('src/main/java/HelloWorld.xtend').content = '''
-			class HelloWorld {}
-		'''
-
-		build("generateXtext")
-		file('build/xtend/main/HelloWorld.java').shouldExist
-		file('build/xtend/main/.HelloWorld.java._trace').shouldExist
-
-		build("compileJava")
-
-		file('build/xtend/main/HelloWorld.java').shouldExist
-		file('build/xtend/main/.HelloWorld.java._trace').shouldExist
-	}
-
-	@Test
-	def theGeneratorShouldRunAndCompileWhenInvokedInSeperateBuildsWithJavaPackage() {
-		file('src/main/java/org/xtext/it/HelloWorld.xtend').content = '''
-			package org.xtext.it
-			class HelloWorld {}
-		'''
-
-		build("generateXtext")
-		file('build/xtend/main/org/xtext/it/HelloWorld.java').shouldExist
-		file('build/xtend/main/org/xtext/it/.HelloWorld.java._trace').shouldExist
-
-		build("compileJava")
-
-		file('build/xtend/main/org/xtext/it/HelloWorld.java').shouldExist
-		file('build/xtend/main/org/xtext/it/.HelloWorld.java._trace').shouldExist
-	}
-
-	@Test
 	def theGeneratorShouldRunOnValidInput() {
 		file('src/main/java/HelloWorld.xtend').content = '''
 			class HelloWorld {}
@@ -319,6 +286,31 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		} finally {
 			sourceJar.close
 		}
+	}
+
+	@Test
+	def void debugInfoCanBeInstalledInSeparateGradleInvocations() {
+		file('src/main/java/org/xtext/it/HelloWorld.xtend').content = '''
+			package org.xtext.it
+			class HelloWorld {}
+		'''
+
+		build("generateXtext")
+		build("compileJava")
+	}
+
+	@Test
+	def void theGeneratorRunsBeforeCompilingJava() {
+		file('src/main/java/A.java').content = '''
+			interface A extends B {
+			}
+		'''
+		file('src/main/java/B.xtend').content = '''
+			interface B {
+			}
+		'''
+
+		build("compileJava")
 	}
 
 }
