@@ -1,9 +1,11 @@
 package org.xtext.gradle.test
 
+import java.util.zip.ZipFile
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.junit.Test
 
-import static org.junit.Assume.assumeTrue
+import static org.junit.Assert.*
+import static org.junit.Assume.*
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
@@ -296,6 +298,27 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		'''
 
 		build("generateXtext")
+	}
+
+	@Test
+	def void sourcesAreIncludedInTheSourceJar() {
+		file('src/main/java/HelloWorld.xtend') << '''
+			class HelloWorld {}
+		'''
+		buildFile << '''
+			task sourceJar(type: Jar) {
+				classifier = 'sources'
+				from(sourceSets.main.allSource)
+			}
+		'''
+		build("sourceJar")
+		val sourceJar = new ZipFile(file('build/libs/root-sources.jar'))
+		try {
+			assertNotNull(sourceJar.getEntry('HelloWorld.xtend'))
+			assertNotNull(sourceJar.getEntry('HelloWorld.java'))
+		} finally {
+			sourceJar.close
+		}
 	}
 
 }
