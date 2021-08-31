@@ -63,4 +63,34 @@ class BuildingAMultiModuleXtendProject extends AbstractXtendIntegrationTest {
 		snapshot.assertChangedClasses("B")
 	}
 
+	@Test
+	def void activeAnnotationsCanReadResourcesByDefault() {
+		upStreamProject.file("src/main/java/ReadingAnnotation.xtend") << '''
+			import org.eclipse.xtend.lib.macro.*
+			@Active(ReadingProcessor)
+			annotation ReadingAnnotation {}
+		'''
+		upStreamProject.file("src/main/java/ReadingProcessor.xtend") << '''
+			import org.eclipse.xtend.lib.macro.*
+			import org.eclipse.xtend.lib.macro.declaration.*
+			class ReadingProcessor extends AbstractClassProcessor {
+				override doValidate(ClassDeclaration annotatedClass, @Extension ValidationContext context) {
+					val exists = context.getProjectSourceFolders(annotatedClass.compilationUnit.filePath).exists [ folder |
+						context.exists(folder.append(annotatedClass.simpleName + '.txt'))
+					]
+					if (!exists) {
+						context.addError(annotatedClass, 'No corresponding text file found')
+					}
+				}
+			}
+		'''
+		downStreamProject.file("src/main/java/Foo.xtend") << '''
+			@ReadingAnnotation class Foo {}
+		'''
+		downStreamProject.file("src/main/resources/Foo.txt") << '''
+			FOO!
+		'''
+		build('build')
+	}
+
 }

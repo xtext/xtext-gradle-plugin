@@ -129,9 +129,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
 					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
 					xtextSourceSet.srcDirs([javaSourceSet.java.srcDirs] as Callable<Set<File>>)
+					xtextSourceSet.srcDirs([javaSourceSet.resources.srcDirs] as Callable<Set<File>>)
 					javaSourceSet.allSource.srcDirs([
 						val dslSources = new LinkedHashSet(xtextSourceSet.srcDirs)
 						dslSources.removeAll(javaSourceSet.java.srcDirs)
+						dslSources.removeAll(javaSourceSet.resources.srcDirs)
 						dslSources
 					] as Callable<Set<File>>)
 					javaSourceSet.java.srcDirs([
