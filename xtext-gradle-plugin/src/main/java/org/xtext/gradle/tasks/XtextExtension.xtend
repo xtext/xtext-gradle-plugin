@@ -1,19 +1,15 @@
 package org.xtext.gradle.tasks;
 
 import com.google.common.base.CaseFormat
-import com.google.common.collect.Lists
 import java.io.File
-import java.util.List
 import java.util.Map
 import java.util.Set
 import java.util.regex.Pattern
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -29,7 +25,6 @@ class XtextExtension {
 	@Accessors String version
 	@Accessors val NamedDomainObjectContainer<XtextSourceDirectorySet> sourceSets
 	@Accessors val NamedDomainObjectContainer<Language> languages;
-	@Accessors val List<XtextClasspathInferrer> classpathInferrers;
 
 	Project project
 
@@ -37,7 +32,6 @@ class XtextExtension {
 		this.project = project
 		sourceSets = project.container(XtextSourceDirectorySet)[name|project.instantiate(DefaultXtextSourceDirectorySet, name, project, this)]
 		languages = project.container(Language)[name|project.instantiate(Language, name, project)]
-		classpathInferrers = Lists.newArrayList
 	}
 
 	def sourceSets(Action<? super NamedDomainObjectContainer<XtextSourceDirectorySet>> configureAction) {
@@ -67,30 +61,6 @@ class XtextExtension {
 		if (matcher.matches) {
 			return matcher.group(2)
 		}
-	}
-
-	def void forceXtextVersion(Configuration dependencies, String xtextVersion) {
-		dependencies.resolutionStrategy.eachDependency [
-			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend")
-				useVersion(xtextVersion)
-		]
-
-		if (project.supportsJvmEcoSystemplugin && new ComparableVersion(xtextVersion)>=  new ComparableVersion("2.17.1")) {
-			dependencies.dependencies += project.dependencies.enforcedPlatform('''org.eclipse.xtext:xtext-dev-bom:«xtextVersion»''')
-		} else {
-			dependencies.resolutionStrategy.eachDependency [
-				if (requested.group == "com.google.inject" && requested.name == "guice")
-					useVersion("5.0.1")
-				if (requested.name == "org.eclipse.equinox.common")
-					useTarget("org.eclipse.platform:org.eclipse.equinox.common:3.13.0")
-				if (requested.name == "org.eclipse.core.runtime")
-					useTarget("org.eclipse.platform:org.eclipse.core.runtime:3.19.0")
-			]
-		}
-	}
-
-	def void makeXtextCompatible(Configuration dependencies) {
-		dependencies.exclude(#{'group' -> 'asm'})
 	}
 }
 

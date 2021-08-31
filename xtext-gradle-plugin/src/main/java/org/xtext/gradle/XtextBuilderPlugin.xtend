@@ -11,10 +11,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.plugins.DslObject
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Delete
@@ -22,7 +19,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.xtext.gradle.tasks.Outlet
-import org.xtext.gradle.tasks.XtextClasspathInferrer
 import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
@@ -46,8 +42,6 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 		xtext = project.extensions.create("xtext", XtextExtension, project);
 		xtextLanguages = project.configurations.create("xtextLanguages")
-		xtext.makeXtextCompatible(xtextLanguages)
-		automaticallyInferXtextCoreClasspath
 		createGeneratorTasks
 		configureOutletDefaults
 		integrateWithJavaPlugin
@@ -56,27 +50,12 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def createGeneratorTasks() {
 		xtext.sourceSets.all [ sourceSet |
-			project.tasks.create(sourceSet.generatorTaskName, XtextGenerate) [
+			val generatorTask = project.tasks.create(sourceSet.generatorTaskName, XtextGenerate) [
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
-				val XtextGenerate generate = it
-				xtextClasspath = new LazilyInitializedFileCollection() {
-					override getDisplayName() {
-						"Xtext classpath"
-					}
-
-					override createDelegate() {
-						inferXtextClasspath(sourceSet, generate.classpath)
-					}
-
-					override visitDependencies(TaskDependencyResolveContext context) {
-						context.add(generate.classpath)
-						context.add(xtextLanguages)
-					}
-
-				}
 			]
+			setupXtextClasspath(sourceSet, generatorTask)
 			project.tasks.create('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
 				delete([
 					xtext.languages.map[generator.outlets].flatten.filter[cleanAutomatically].map [
@@ -87,33 +66,44 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		]
 	}
 
-	private def inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection classpath) {
-		xtext.classpathInferrers.fold(xtextLanguages as FileCollection) [ newXextClasspath, inferrer |
-			inferrer.inferXtextClasspath(sourceSet, newXextClasspath, classpath)
-		]
-	}
-
-	private def automaticallyInferXtextCoreClasspath() {
-		xtext.classpathInferrers += new XtextClasspathInferrer() {
-			override inferXtextClasspath(XtextSourceDirectorySet sourceSet, FileCollection xtextClasspath, FileCollection classpath) {
-				val version = xtext.getXtextVersion(classpath) ?: xtext.getXtextVersion(xtextClasspath)
-				if (version === null) {
-					throw new GradleException('''Could not infer Xtext classpath, because xtext.version was not set and no xtext libraries were found on the «classpath» classpath''')
-				}
-				val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
-				xtextTooling.dependencies += #[
-					'org.eclipse.xtext:org.eclipse.xtext',
-					'org.eclipse.xtext:org.eclipse.xtext.smap',
-					'org.eclipse.xtext:org.eclipse.xtext.xbase',
-					'org.eclipse.xtext:org.eclipse.xtext.java',
-					'org.eclipse.jdt:org.eclipse.jdt.core:3.10.0'
-				]
-				.map[project.dependencies.create(it)]
-				xtext.makeXtextCompatible(xtextTooling)
-				xtext.forceXtextVersion(xtextTooling, version)
-				xtextTooling.plus(xtextClasspath)
+	private def setupXtextClasspath(XtextSourceDirectorySet sourceSet, XtextGenerate generatorTask) {
+		val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
+		generatorTask.xtextClasspath = xtextTooling
+		xtextTooling.extendsFrom(xtextLanguages)
+		xtextTooling.exclude(#{"group" -> "asm"})
+		#[
+			'org.eclipse.xtext:org.eclipse.xtext',
+			'org.eclipse.xtext:org.eclipse.xtext.smap',
+			'org.eclipse.xtext:org.eclipse.xtext.xbase',
+			'org.eclipse.xtext:org.eclipse.xtext.java'
+		].forEach[project.dependencies.add(xtextTooling.name, it)]
+		val xtextVersion = new LazyXtextVersion(xtext, xtextLanguages, generatorTask)
+		xtextTooling.withDependencies [
+			val version = xtextVersion.getVersion
+			if (version === null) {
+				return
 			}
-		}
+			if (project.supportsJvmEcoSystemplugin && new ComparableVersion(version) >=  new ComparableVersion("2.17.1")) {
+				add(project.dependencies.enforcedPlatform('''org.eclipse.xtext:xtext-dev-bom'''))
+			}
+		]
+		xtextTooling.resolutionStrategy.eachDependency [
+			val version = xtextVersion.getVersion
+			if (version === null) {
+				return
+			}
+			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend")
+				useVersion(version)
+
+			if (!project.supportsJvmEcoSystemplugin || new ComparableVersion(version) <  new ComparableVersion("2.17.1")) {
+				if (requested.group == "com.google.inject" && requested.name == "guice")
+					useVersion("5.0.1")
+				if (requested.name == "org.eclipse.equinox.common")
+					useTarget("org.eclipse.platform:org.eclipse.equinox.common:3.13.0")
+				if (requested.name == "org.eclipse.core.runtime")
+					useTarget("org.eclipse.platform:org.eclipse.core.runtime:3.19.0")
+			}
+		]
 	}
 
 	private def configureOutletDefaults() {
@@ -178,5 +168,28 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				eclipse.synchronizationTasks(settingsTask)
 			}
 		]
+	}
+
+	private static class LazyXtextVersion {
+		val XtextExtension xtext
+		val Configuration languages
+		val XtextGenerate task
+		var String version
+
+		new (XtextExtension xtext, Configuration languages, XtextGenerate task) {
+			this.xtext = xtext
+			this.languages = languages
+			this.task = task
+		}
+
+		def String getVersion() {
+			if (version === null) {
+				version = xtext.getXtextVersion(task.classpath) ?: xtext.getXtextVersion(languages)
+				if (version === null && !task.mainSources.empty) {
+					throw new GradleException('''Could not infer Xtext classpath for «task», because xtext.version was not set and no xtext libraries were found in «task.classpath» or «languages»''')
+				}
+			}
+			version
+		}
 	}
 }
