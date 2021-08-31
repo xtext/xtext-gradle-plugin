@@ -70,7 +70,6 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
 		generatorTask.xtextClasspath = xtextTooling
 		xtextTooling.extendsFrom(xtextLanguages)
-		xtextTooling.exclude(#{"group" -> "asm"})
 		#[
 			'org.eclipse.xtext:org.eclipse.xtext',
 			'org.eclipse.xtext:org.eclipse.xtext.smap',
