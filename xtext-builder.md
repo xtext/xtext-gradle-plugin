@@ -17,7 +17,7 @@ Features
 - Allows multiple languages to cross-reference each other
 - Enhances Java classes with debug information when using Xbase languages
 - Hooks into 'gradle eclipse', so your languages are configured correctly when you import your projects
-- Supports Gradle 4.3 and above (tested up to 7.2)
+- Supports Gradle 4.7 and above (tested up to 7.2)
 - Supports Xtext 2.9 and above (tested up to 25.0) 
 
 Minimal Example
@@ -27,7 +27,7 @@ Below is the minimal configuration for a language that does not integrate with J
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '2.0.9'
+    id 'org.xtext.builder' version '3.0.0'
   }
 
   repositories {
@@ -41,7 +41,7 @@ Below is the minimal configuration for a language that does not integrate with J
   xtext {
     languages {
       herolang {
-        fileExtension = 'hero' // required, unless fileExtension == language name (here "herolang")
+        fileExtensions = ['hero'] // required, unless fileExtension == language name (here "herolang")
         setup = 'org.example.herolang.HerolangStandaloneSetup'
       }
     }
@@ -60,7 +60,7 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '2.0.9'
+    id 'org.xtext.builder' version '3.0.0'
     id 'java'
   }
 
@@ -95,7 +95,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '2.0.9'
+    id 'org.xtext.builder' version '3.0.0'
     id 'java'
   }
 
@@ -127,9 +127,9 @@ Below is a more elaborate example with two hypothetical languages that makes use
         * by removing 'StandaloneSetup' from the class listed under 'setup'
         */
         qualifiedName = 'org.example.herolang.HeroLanguage'
-        //the file extension for your language.
+        //the file extensions for your language.
         //Equal to the language's name by default
-        fileExtension = 'hero'
+        fileExtensions = ['hero', 'villain']
         generator {
           //whether to generate @SuppressWarnings("all"), enabled by default
           suppressWarningsAnnotation = false
@@ -151,6 +151,8 @@ Below is a more elaborate example with two hypothetical languages that makes use
             VILLAINS {
               //automatically adds the output folder to the Java source folders
               producesJava = true
+              //only generate sources once and never overwrite or delete them
+              cleanAutomatically = false
             }
           }
         }

@@ -16,7 +16,7 @@ Apply the latest [org.xtext.xtend](http://plugins.gradle.org/plugin/org.xtext.xt
 
 ```groovy
 plugins {
-  id "org.xtext.xtend" version "2.0.9"
+  id "org.xtext.xtend" version "3.0.0"
 }
 
 repositories.jcenter()
@@ -33,7 +33,7 @@ Features
 - Enhances Java classes with Xtend debug information
 - Integrates seamlessly with the [Xtext Builder](xtext-builder.html) plugin and other Xtext languages
 - Hooks into 'gradle eclipse', so the Xtend compiler is configured for your project when you import it into Eclipse
-- Supports Gradle 4.3 and above (tested up to 7.2)
+- Supports Gradle 4.7 and above (tested up to 7.2)
 - Supports Xtend 2.9 and above (tested up to 25.0) 
 
 Options
