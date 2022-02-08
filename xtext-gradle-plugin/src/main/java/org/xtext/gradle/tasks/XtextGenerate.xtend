@@ -11,6 +11,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -63,7 +64,7 @@ class XtextGenerate extends DefaultTask {
 		sources.files
 	}
 
-	@InputFiles @SkipWhenEmpty
+	@InputFiles @SkipWhenEmpty @IgnoreEmptyDirectories
 	def getMainSources() {
 		val extensions = languages.filter[!generator.outlets.empty].map[fileExtensions].flatten.map["**/*." + it]
 		sources.files.matching[include(extensions)]
