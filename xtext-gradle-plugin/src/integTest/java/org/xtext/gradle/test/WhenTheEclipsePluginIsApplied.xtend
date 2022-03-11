@@ -55,7 +55,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 		prefs.shouldContain('generateGeneratedAnnotation', false)
 		prefs.shouldContain('includeDateInGenerated', false)
 		prefs.shouldContain('useJavaCompilerCompliance', false)
-		prefs.shouldContain('targetJavaVersion', 'Java6')
+		prefs.shouldContain('targetJavaVersion', 'JAVA6')
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.userOutputPerSourceFolder', true)
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.installDslAsPrimarySource', false)
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.hideLocalSyntheticVariables', true)
