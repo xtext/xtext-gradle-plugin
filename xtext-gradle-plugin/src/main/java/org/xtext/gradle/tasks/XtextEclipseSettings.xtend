@@ -54,7 +54,7 @@ class XtextEclipseSettings extends DefaultTask {
 			if (generatedAnnotation.comment !== null) {
 				prefs.put("generatedAnnotationComment", generatedAnnotation.comment)
 			}
-			prefs.put("targetJavaVersion", "Java" + JavaVersion.toVersion(javaSourceLevel).majorVersion)
+			prefs.put("targetJavaVersion", "JAVA" + JavaVersion.toVersion(javaSourceLevel).majorVersion)
 			prefs.putBoolean("useJavaCompilerCompliance", false)
 			outlets.forEach [ outlet |
 				addOutletPreferences(prefs, language, outlet)
