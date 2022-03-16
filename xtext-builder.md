@@ -27,7 +27,7 @@ Below is the minimal configuration for a language that does not integrate with J
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '3.0.1'
+    id 'org.xtext.builder' version '3.0.2'
   }
 
   repositories {
@@ -60,7 +60,7 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '3.0.1'
+    id 'org.xtext.builder' version '3.0.2'
     id 'java'
   }
 
@@ -95,7 +95,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '3.0.1'
+    id 'org.xtext.builder' version '3.0.2'
     id 'java'
   }
 
