@@ -49,10 +49,15 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 		return this
 	}
 
+	FileTree files
+
 	override FileTree getFiles() {
-		return project.files(srcDirs).asFileTree.matching(filter).matching[
-			xtext.languages.map[fileExtensions].flatten.map["**/*." + it]
-		]
+		if (files === null) {
+			files = project.files(srcDirs).asFileTree.matching(filter).matching[
+				xtext.languages.map[fileExtensions].flatten.map["**/*." + it]
+			]
+		}
+		return files
 	}
 
 	override Set<File> getSrcDirs() {

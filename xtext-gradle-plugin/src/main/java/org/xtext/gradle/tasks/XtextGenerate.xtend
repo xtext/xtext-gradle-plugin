@@ -19,7 +19,9 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.work.ChangeType
+import org.gradle.work.Incremental
+import org.gradle.work.InputChanges
 import org.xtext.gradle.XtextBuilderPlugin
 import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleGeneratorConfig
@@ -47,7 +49,7 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @Classpath FileCollection xtextClasspath
 
-	@Accessors @Classpath @Optional FileCollection classpath
+	@Accessors @Classpath @Optional @Incremental FileCollection classpath
 
 	@Accessors @Classpath @Optional FileCollection bootstrapClasspath
 
@@ -60,6 +62,7 @@ class XtextGenerate extends DefaultTask {
 	Collection<File> generatedFiles
 
 	@InputFiles
+	@Incremental
 	def getAllSources() {
 		sources.files
 	}
@@ -78,7 +81,7 @@ class XtextGenerate extends DefaultTask {
 	}
 
 	@TaskAction
-	def generate(IncrementalTaskInputs inputs) {
+	def generate(InputChanges inputs) {
 		generatedFiles = newHashSet
 		initializeBuilder
 
@@ -94,7 +97,10 @@ class XtextGenerate extends DefaultTask {
 			projectDir = project.projectDir
 			containerHandle = this.containerHandle
 			allFiles = allSources.files
-			allClasspathEntries = this.getNullSafeClasspath.files
+			val cp = this.getClasspath
+			if (cp !== null) {
+				allClasspathEntries = cp.files
+			}
 			it.bootstrapClasspath = getBootstrapClasspath
 			sourceFolders = sources.srcDirs
 			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
@@ -124,23 +130,25 @@ class XtextGenerate extends DefaultTask {
 		]
 	}
 
-	private def addIncrementalInputs(GradleBuildRequest request, IncrementalTaskInputs inputs) {
+	private def addIncrementalInputs(GradleBuildRequest request, InputChanges inputs) {
 		request.incremental = options.incremental && inputs.incremental
 
-		inputs.outOfDate[
-			if (allSources.contains(file)) {
-				request.dirtyFiles += file
+		for (change : inputs.getFileChanges(allSources)) {
+			if (change.changeType == ChangeType.MODIFIED || change.changeType == ChangeType.ADDED) {
+				request.dirtyFiles += change.file
+			} else if (change.changeType == ChangeType.REMOVED) {
+				request.deletedFiles += change.file
 			}
-			if (getNullSafeClasspath.contains(file)) {
-				request.dirtyClasspathEntries += file
+		}
+		
+		val cp = getClasspath
+		if (cp !== null) {
+			for (change : inputs.getFileChanges(cp)) {
+				if (cp.contains(change.file)) {
+					request.dirtyClasspathEntries += change.file
+				}
 			}
-		]
-
-		inputs.removed[
-			if (allSources.contains(file)) {
-				request.deletedFiles += file
-			}
-		]
+		}	
 	}
 
 	def installDebugInfo(File classesDir) {
@@ -177,10 +185,6 @@ class XtextGenerate extends DefaultTask {
 
 	private def getContainerHandle() {
 		project.projectDir + ':' + sources.name
-	}
-
-	private def getNullSafeClasspath() {
-		getClasspath ?: project.files
 	}
 
 	private def getNullSafeEncoding() {
