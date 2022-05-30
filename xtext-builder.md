@@ -18,7 +18,7 @@ Features
 - Enhances Java classes with debug information when using Xbase languages
 - Hooks into 'gradle eclipse', so your languages are configured correctly when you import your projects
 - Supports Gradle 4.7 and above (tested up to 7.2)
-- Supports Xtext 2.9 and above (tested up to 25.0) 
+- Supports Xtext 2.9 and above (tested up to 2.27.0) 
 
 Minimal Example
 ---------------
@@ -110,7 +110,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
   xtext {
     //Xtext version, can be omitted if Xtext is found on the classpath already
-    version = '2.26.0'
+    version = '2.27.0'
     //
     languages {
       //a language configuration can be very simple, everything has good defaults
