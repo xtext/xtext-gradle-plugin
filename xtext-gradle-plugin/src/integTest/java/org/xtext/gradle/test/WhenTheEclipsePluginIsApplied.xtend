@@ -66,6 +66,16 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 		prefs.shouldContain('org.eclipse.xtend.some.pref', 'true')
 	}
 
+        @Test
+        def void settingsDontContainComments() {
+                // when
+                build('eclipse')
+
+                // then
+                val prefs = file('.settings/org.eclipse.xtend.core.Xtend.prefs')
+                assertFalse(prefs.contentAsString.contains("#"))
+        }
+
 	@Test
 	def void settingsAreCleanedProperly() {
 		// given
