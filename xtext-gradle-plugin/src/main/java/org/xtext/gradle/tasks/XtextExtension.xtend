@@ -3,35 +3,38 @@ package org.xtext.gradle.tasks;
 import com.google.common.base.CaseFormat
 import java.io.File
 import java.util.Map
-import java.util.Set
 import java.util.regex.Pattern
+import javax.inject.Inject
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.protocol.IssueSeverity
 import org.xtext.gradle.tasks.internal.DefaultXtextSourceDirectorySet
 
-import static extension org.xtext.gradle.GradleExtensions.*
+abstract class XtextExtension {
+	static val LIB_PATTERN = Pattern.compile("org\\.eclipse\\.xtext(\\.xbase\\.lib.*?)?-(.*)\\.jar")
 
-class XtextExtension {
-	@Accessors String version
+	abstract def Property<String> getVersion()
+
 	@Accessors val NamedDomainObjectContainer<XtextSourceDirectorySet> sourceSets
-	@Accessors val NamedDomainObjectContainer<Language> languages;
 
-	Project project
+	abstract def NamedDomainObjectContainer<Language> getLanguages();
 
-	new(Project project) {
-		this.project = project
-		sourceSets = project.container(XtextSourceDirectorySet)[name|project.instantiate(DefaultXtextSourceDirectorySet, name, project, this)]
-		languages = project.container(Language)[name|project.instantiate(Language, name, project)]
+	@Inject
+	new(ObjectFactory factory) {
+		sourceSets = factory.domainObjectContainer(XtextSourceDirectorySet) [ name |
+			factory.newInstance(DefaultXtextSourceDirectorySet, name, this)
+		]
 	}
 
 	def sourceSets(Action<? super NamedDomainObjectContainer<XtextSourceDirectorySet>> configureAction) {
@@ -42,9 +45,8 @@ class XtextExtension {
 		configureAction.execute(languages)
 	}
 
-	static val LIB_PATTERN = Pattern.compile("org\\.eclipse\\.xtext(\\.xbase\\.lib.*?)?-(.*)\\.jar")
-
 	def String getXtextVersion(FileCollection classpath) {
+		val version = version.orNull
 		if (version !== null)
 			return version
 		for (file : classpath) {
@@ -64,39 +66,24 @@ class XtextExtension {
 	}
 }
 
-@Accessors
-class Language implements Named {
-	@Input val String name
-	@Input String qualifiedName
-	@Input Set<String> fileExtensions
-	@Input String setup
-	@Nested val GeneratorConfig generator
-	@Nested val DebuggerConfig debugger
-	@Nested val ValidatorConfig validator
-	@Input Map<String, Object> preferences = newLinkedHashMap
+abstract class Language implements Named {
+	
+	@Input abstract override String getName()
+	
+	@Input abstract def Property<String> getQualifiedName()
 
-	new(String name, Project project) {
-		this.name = name
-		this.generator = project.instantiate(GeneratorConfig, project, this)
-		this.debugger = project.instantiate(DebuggerConfig)
-		this.validator = project.instantiate(ValidatorConfig)
-		fileExtensions = newLinkedHashSet(name)
-	}
+	@Input abstract def SetProperty<String> getFileExtensions()
 
-	def getQualifiedName() {
-		qualifiedName ?: setup.replace("StandaloneSetup", "")
-	}
+	@Input abstract def Property<String> getSetup()
 
-	@Internal
-	@Deprecated
-	def getFileExtension() {
-		fileExtensions.head
-	}
+	@Nested abstract def GeneratorConfig getGenerator()
 
-	@Deprecated
-	def setFileExtension(String ext) {
-		fileExtensions = newLinkedHashSet(ext)
-	}
+	@Nested abstract def DebuggerConfig getDebugger()
+
+	@Nested abstract def ValidatorConfig getValidator()
+
+	@Input abstract def MapProperty<String, Object> getPreferences()
+
 
 	def generator(Action<GeneratorConfig> action) {
 		action.execute(generator)
@@ -115,17 +102,12 @@ class Language implements Named {
 	}
 }
 
-@Accessors
-class GeneratorConfig {
-	@Input boolean suppressWarningsAnnotation = true
-	@Input @Optional String javaSourceLevel
-	@Nested val GeneratedAnnotationOptions generatedAnnotation
-	@Nested val NamedDomainObjectContainer<Outlet> outlets
-
-	new(Project project, Language language) {
-		this.generatedAnnotation = project.instantiate(GeneratedAnnotationOptions)
-		this.outlets = project.container(Outlet)[outlet|project.instantiate(Outlet, language, outlet)]
-	}
+abstract class GeneratorConfig {
+	@Input abstract def Property<Boolean> getSuppressWarningsAnnotation()
+	@Input @Optional abstract def Property<String> getJavaSourceLevel();
+	@Nested abstract def GeneratedAnnotationOptions getGeneratedAnnotation()
+	@Nested abstract def NamedDomainObjectContainer<Outlet> getOutlets()
+	
 	def outlets(Action<NamedDomainObjectContainer<Outlet>> action) {
 		action.execute(outlets)
 	}
@@ -137,27 +119,26 @@ class GeneratorConfig {
 	def outlet(Action<Outlet> action) {
 		action.execute(outlet)
 	}
+
 	def generatedAnnotation(Action<GeneratedAnnotationOptions> action) {
 		action.execute(generatedAnnotation)
 	}
+
 }
 
-@Accessors
-class GeneratedAnnotationOptions {
-	@Input boolean active
-	@Input boolean includeDate
-	@Input @Optional String comment
+abstract class GeneratedAnnotationOptions {
+	@Input abstract def Property<Boolean> getActive()
+	@Input abstract def Property<Boolean> getIncludeDate()
+	@Input @Optional abstract def Property<String> getComment()
 }
 
-@Accessors
-class DebuggerConfig {
-	@Input SourceInstaller sourceInstaller = SourceInstaller.NONE
-	@Input boolean hideSyntheticVariables = true
+abstract class DebuggerConfig {
+	@Input abstract def Property<String> getSourceInstaller()
+	@Input abstract def Property<Boolean> getHideSyntheticVariables()
 }
 
-@Accessors
-class ValidatorConfig {
-	@Input Map<String, IssueSeverity> severities = newLinkedHashMap
+abstract class ValidatorConfig {
+	@Input abstract def MapProperty<String, IssueSeverity> getSeverities()
 
 	def void error(String code) {
 		severities.put(code, IssueSeverity.ERROR)
@@ -176,14 +157,12 @@ class ValidatorConfig {
 	}
 }
 
-@Accessors
-class Outlet implements Named {
+abstract class Outlet implements Named {
 	public static val DEFAULT_OUTLET = "DEFAULT_OUTPUT"
 
-	@Internal val Language language
-	@Input val String name
-	@Input boolean producesJava = false
-	@Input boolean cleanAutomatically = true
+	@Input abstract override String getName()
+	@Input abstract def Property<Boolean>  getProducesJava()
+	@Input abstract def Property<Boolean>  getCleanAutomatically()
 
 	@Internal def getFolderFragment() {
 		if (name == Outlet.DEFAULT_OUTLET) {

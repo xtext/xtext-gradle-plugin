@@ -40,7 +40,7 @@ class BuildingAMultiModulePlainLanguageProject extends AbstractIntegrationTest {
 					}
 				}
 
-				generateXtext.classpath = configurations.compile
+				generateXtext.classpath .from(configurations.compile)
 
 				task jar(type:Jar) {
 					from(xtext.sourceSets.main.files)

@@ -1,14 +1,13 @@
 package org.xtext.gradle.protocol;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.Logger;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 public class GradleBuildRequest {
 	private Logger logger;
@@ -16,85 +15,52 @@ public class GradleBuildRequest {
 	private File projectDir;
 	private String projectName;
 	private boolean incremental;
-	private Collection<File> allFiles = Lists.newArrayList();
-	private Collection<File> dirtyFiles = Lists.newArrayList();
-	private Collection<File> deletedFiles = Lists.newArrayList();
-	private Collection<File> allClasspathEntries = Lists.newArrayList();
-	private Collection<File> dirtyClasspathEntries = Lists.newArrayList();
-	private FileCollection bootstrapClasspath;
-	private Collection<File> sourceFolders = Lists.newArrayList();
-	private Map<String, GradleGeneratorConfig> generatorConfigsByLanguage = Maps.newHashMap();
-	private Map<String, Map<String, String>> preferencesByLanguage = Maps.newHashMap();
+	private final Set<File> allFiles = Sets.newHashSet();
+	private final Set<File> dirtyFiles = Sets.newHashSet();
+	private final Set<File> deletedFiles = Sets.newHashSet();
+	private final Set<File> allClasspathEntries = Sets.newHashSet();
+	private final Set<File> dirtyClasspathEntries = Sets.newHashSet();
+	private final Set<File> sourceFolders = Sets.newHashSet();
+	private final Map<String, GradleGeneratorConfig> generatorConfigsByLanguage = Maps.newHashMap();
+	private final Map<String, Map<String, String>> preferencesByLanguage = Maps.newHashMap();
 	private File classesDir;
-	
+
 	public boolean isIncremental() {
 		return incremental;
 	}
-	
+
 	public void setIncremental(boolean incremental) {
 		this.incremental = incremental;
 	}
-	
-	public Collection<File> getAllFiles() {
+
+	public Set<File> getAllFiles() {
 		return allFiles;
 	}
-	
-	public void setAllFiles(Collection<File> allFiles) {
-		this.allFiles = allFiles;
-	}
-	
-	public Collection<File> getAllClasspathEntries() {
+
+	public Set<File> getAllClasspathEntries() {
 		return allClasspathEntries;
 	}
-	
-	public void setAllClasspathEntries(Collection<File> allClasspathEntries) {
-		this.allClasspathEntries = allClasspathEntries;
-	}
-	
-	public Collection<File> getDirtyClasspathEntries() {
+
+	public Set<File> getDirtyClasspathEntries() {
 		return dirtyClasspathEntries;
 	}
-	
-	public void setDirtyClasspathEntries(Collection<File> dirtyClasspathEntries) {
-		this.dirtyClasspathEntries = dirtyClasspathEntries;
-	}
-	
-	public FileCollection getBootstrapClasspath() {
-		return bootstrapClasspath;
-	}
-	
-	public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
-		this.bootstrapClasspath = bootstrapClasspath;
-	}
 
-	public Collection<File> getDirtyFiles() {
+	public Set<File> getDirtyFiles() {
 		return dirtyFiles;
 	}
-	
-	public void setDirtyFiles(Collection<File> dirtyFiles) {
-		this.dirtyFiles = dirtyFiles;
-	}
-	
-	public Collection<File> getDeletedFiles() {
+
+	public Set<File> getDeletedFiles() {
 		return deletedFiles;
 	}
-	
-	public void setDeletedFiles(Collection<File> deletedFiles) {
-		this.deletedFiles = deletedFiles;
-	}
 
-	public Collection<File> getSourceFolders() {
+	public Set<File> getSourceFolders() {
 		return sourceFolders;
-	}
-	
-	public void setSourceFolders(Collection<File> sourceFolders) {
-		this.sourceFolders = sourceFolders;
 	}
 
 	public File getClassesDir() {
 		return classesDir;
 	}
-	
+
 	public void setClassesDir(File classesDir) {
 		this.classesDir = classesDir;
 	}
@@ -130,20 +96,12 @@ public class GradleBuildRequest {
 	public void setLogger(Logger logger) {
 		this.logger = logger;
 	}
-	
+
 	public Map<String, GradleGeneratorConfig> getGeneratorConfigsByLanguage() {
 		return generatorConfigsByLanguage;
-	}
-	
-	public void setGeneratorConfigsByLanguage(Map<String, GradleGeneratorConfig> generatorConfigsByLanguage) {
-		this.generatorConfigsByLanguage = generatorConfigsByLanguage;
 	}
 
 	public Map<String, Map<String, String>> getPreferencesByLanguage() {
 		return preferencesByLanguage;
-	}
-
-	public void setPreferencesByLanguage(Map<String, Map<String, String>> preferencesByLanguage) {
-		this.preferencesByLanguage = preferencesByLanguage;
 	}
 }

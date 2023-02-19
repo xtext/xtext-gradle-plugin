@@ -13,7 +13,7 @@ abstract class AbstractIntegrationTest {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject
 
-	final static ComparableVersion XTEXT_VERSION = new ComparableVersion(System.getProperty("xtext.version", "2.9.0"))
+	final static ComparableVersion XTEXT_VERSION = new ComparableVersion(System.getProperty("xtext.version", "2.17.1"))
 
 	@Before
 	def void setup() {
@@ -57,7 +57,7 @@ abstract class AbstractIntegrationTest {
 	}
 
 	def String getImplementationScope() {
-		if (gradleVersion >= new ComparableVersion('5')) 'implementation' else 'compile'
+		'implementation'
 	}
 
 }

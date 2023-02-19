@@ -1,11 +1,9 @@
 package org.xtext.gradle.test
 
 import java.util.zip.ZipFile
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.junit.Test
 
 import static org.junit.Assert.*
-import static org.junit.Assume.*
 
 class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
@@ -161,7 +159,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 	@Test
 	def void theOutputFolderCanBeConfigured() {
 		buildFile << '''
-			sourceSets.main.xtendOutputDir = "build/xtend-gen"
+			sourceSets.main.xtend.outputDir = "build/xtend-gen"
 		'''
 		// given
 		file('src/main/java/com/example/HelloWorld.xtend').content = '''
@@ -252,7 +250,6 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def void defaultMethodsAreInherited() {
-		assumeTrue(xtextVersion >= new ComparableVersion("2.11"))
 		file('src/main/java/I.java').content = '''
 			interface I {
 				default void foo() {
@@ -274,7 +271,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 		'''
 		buildFile << '''
 			task sourceJar(type: Jar) {
-				classifier = 'sources'
+				archiveClassifier = 'sources'
 				from(sourceSets.main.allSource)
 			}
 		'''
