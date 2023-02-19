@@ -11,8 +11,11 @@ buildscript {
 
 subprojects {
 	apply plugin: 'java'
-
-	sourceCompatibility = 1.8
+	java {
+	    toolchain {
+	        languageVersion.set(JavaLanguageVersion.of(11))
+	    }
+	}
 
 	tasks.withType(JavaCompile) {
 		options.encoding = 'UTF-8'

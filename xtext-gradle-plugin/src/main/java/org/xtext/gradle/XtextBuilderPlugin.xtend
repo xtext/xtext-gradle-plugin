@@ -13,7 +13,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -54,6 +54,8 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
+				options.incremental.convention(true)
+				options.encoding.convention("UTF-8")
 			]
 			setupXtextClasspath(sourceSet, generatorTask)
 			project.tasks.create('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
@@ -68,7 +70,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def setupXtextClasspath(XtextSourceDirectorySet sourceSet, XtextGenerate generatorTask) {
 		val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
-		generatorTask.xtextClasspath = xtextTooling
+		generatorTask.xtextClasspath.from(xtextTooling)
 		xtextTooling.extendsFrom(xtextLanguages)
 		#[
 			'org.eclipse.xtext:org.eclipse.xtext',
@@ -120,7 +122,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	private def integrateWithJavaPlugin() {
 		project.plugins.withType(JavaBasePlugin) [
 			project.apply[plugin(XtextJavaLanguagePlugin)]
-			val java = project.convention.findPlugin(JavaPluginConvention)
+			val java = project.extensions.getByType(JavaPluginExtension)
 			xtext.languages.all [
 				new DslObject(generator).conventionMapping.map("javaSourceLevel")[java.sourceCompatibility.majorVersion]
 			]
@@ -143,12 +145,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 					javaCompile.dependsOn(generatorTask)
 					javaCompile.doLast(new Action<Task>() {
 						override void execute(Task it) {
-							generatorTask.installDebugInfo(javaCompile.destinationDir)
+							generatorTask.installDebugInfo(javaCompile.destinationDirectory.get.asFile)
 						}
 					})
-					new DslObject(generatorTask.options).conventionMapping.map("encoding")[javaCompile.options.encoding]
-					new DslObject(generatorTask).conventionMapping.map("classpath")[javaSourceSet.compileClasspath]
-					new DslObject(generatorTask).conventionMapping.map("bootstrapClasspath")[javaCompile.options.bootstrapClasspath]
+					generatorTask.options.encoding.set(project.provider[javaCompile.options.encoding ?: "UTF-8"])
+					generatorTask.classpath.from(javaSourceSet.compileClasspath)
 				]
 			]
 		]

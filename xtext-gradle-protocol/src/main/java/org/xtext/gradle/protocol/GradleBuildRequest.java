@@ -21,7 +21,6 @@ public class GradleBuildRequest {
 	private Collection<File> deletedFiles = Lists.newArrayList();
 	private Collection<File> allClasspathEntries = Lists.newArrayList();
 	private Collection<File> dirtyClasspathEntries = Lists.newArrayList();
-	private FileCollection bootstrapClasspath;
 	private Collection<File> sourceFolders = Lists.newArrayList();
 	private Map<String, GradleGeneratorConfig> generatorConfigsByLanguage = Maps.newHashMap();
 	private Map<String, Map<String, String>> preferencesByLanguage = Maps.newHashMap();
@@ -59,14 +58,6 @@ public class GradleBuildRequest {
 		this.dirtyClasspathEntries = dirtyClasspathEntries;
 	}
 	
-	public FileCollection getBootstrapClasspath() {
-		return bootstrapClasspath;
-	}
-	
-	public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
-		this.bootstrapClasspath = bootstrapClasspath;
-	}
-
 	public Collection<File> getDirtyFiles() {
 		return dirtyFiles;
 	}

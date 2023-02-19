@@ -1,7 +1,7 @@
 package org.xtext.gradle
 
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.junit.Test
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
@@ -36,7 +36,7 @@ class XtextBuilderPluginTest extends AbstractPluginTest {
 	def void generateXtextTaskIsAddedForEverySourceSet() {
 		// given
 		project.apply(JavaBasePlugin)
-		val java = project.convention.findPlugin(JavaPluginConvention)
+		val java = project.extensions.getByType(JavaPluginExtension)
 		java.sourceSets => [
 			create('main')
 			create('custom')

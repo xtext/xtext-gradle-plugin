@@ -1,6 +1,5 @@
 package org.xtext.gradle.tasks;
 
-import com.google.common.base.Charsets
 import com.google.common.io.Files
 import com.google.common.io.Resources
 import java.io.File
@@ -9,17 +8,18 @@ import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.work.ChangeType
+import org.gradle.work.Incremental
+import org.gradle.work.InputChanges
 import org.xtext.gradle.XtextBuilderPlugin
 import org.xtext.gradle.protocol.GradleBuildRequest
 import org.xtext.gradle.protocol.GradleGeneratorConfig
@@ -29,9 +29,7 @@ import org.xtext.gradle.protocol.GradleOutputConfig
 import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
 
-import static extension org.xtext.gradle.GradleExtensions.*
-
-class XtextGenerate extends DefaultTask {
+abstract class XtextGenerate extends DefaultTask {
 
 	static val builderJar = {
 		val jar = File.createTempFile("xtext-gradle-builder", "jar")
@@ -45,26 +43,21 @@ class XtextGenerate extends DefaultTask {
 
 	@Accessors @Nested Set<Language> languages
 
-	@Accessors @Classpath FileCollection xtextClasspath
-
-	@Accessors @Classpath @Optional FileCollection classpath
-
-	@Accessors @Classpath @Optional FileCollection bootstrapClasspath
-
 	@Accessors @Internal XtextSourceSetOutputs sourceSetOutputs
-
-	@Accessors @Nested val XtextBuilderOptions options = project.instantiate(XtextBuilderOptions)
 
 	IncrementalXtextBuilder builder
 
 	Collection<File> generatedFiles
 
 	@InputFiles
+	@Incremental
 	def getAllSources() {
 		sources.files
 	}
 
-	@InputFiles @SkipWhenEmpty @IgnoreEmptyDirectories
+	@InputFiles 
+	@SkipWhenEmpty 
+	@IgnoreEmptyDirectories
 	def getMainSources() {
 		val extensions = languages.filter[!generator.outlets.empty].map[fileExtensions].flatten.map["**/*." + it]
 		sources.files.matching[include(extensions)]
@@ -78,7 +71,7 @@ class XtextGenerate extends DefaultTask {
 	}
 
 	@TaskAction
-	def generate(IncrementalTaskInputs inputs) {
+	def generate(InputChanges inputs) {
 		generatedFiles = newHashSet
 		initializeBuilder
 
@@ -94,8 +87,7 @@ class XtextGenerate extends DefaultTask {
 			projectDir = project.projectDir
 			containerHandle = this.containerHandle
 			allFiles = allSources.files
-			allClasspathEntries = this.getNullSafeClasspath.files
-			it.bootstrapClasspath = getBootstrapClasspath
+			allClasspathEntries = this.classpath.files
 			sourceFolders = sources.srcDirs
 			generatorConfigsByLanguage = languages.toMap[qualifiedName].mapValues[
 				val config = generator
@@ -124,22 +116,18 @@ class XtextGenerate extends DefaultTask {
 		]
 	}
 
-	private def addIncrementalInputs(GradleBuildRequest request, IncrementalTaskInputs inputs) {
-		request.incremental = options.incremental && inputs.incremental
-
-		inputs.outOfDate[
-			if (allSources.contains(file)) {
+	private def addIncrementalInputs(GradleBuildRequest request, InputChanges inputs) {
+		request.incremental = options.incremental.get && inputs.incremental
+		inputs.getFileChanges(allSources).forEach [
+			if (changeType == ChangeType.REMOVED) {
+				request.deletedFiles += file
+			} else {
 				request.dirtyFiles += file
 			}
-			if (getNullSafeClasspath.contains(file)) {
-				request.dirtyClasspathEntries += file
-			}
 		]
-
-		inputs.removed[
-			if (allSources.contains(file)) {
-				request.deletedFiles += file
-			}
+		inputs.getFileChanges(classpath).forEach [ change |
+			//Gradle notifies us about individual .class files, but we only want their containing directory
+			request.dirtyClasspathEntries += classpath.files.findFirst[change.file.path.startsWith(it.path)]
 		]
 	}
 
@@ -172,20 +160,22 @@ class XtextGenerate extends DefaultTask {
 	}
 
 	private def initializeBuilder() {
-		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, nullSafeEncoding, (getXtextClasspath.files + #[builderJar]).toSet)
+		builder = IncrementalXtextBuilderProvider.getBuilder(languageSetups, options.encoding.get, (getXtextClasspath.files + #[builderJar]).toSet)
 	}
 
 	private def getContainerHandle() {
 		project.projectDir + ':' + sources.name
 	}
 
-	private def getNullSafeClasspath() {
-		getClasspath ?: project.files
-	}
-
-	private def getNullSafeEncoding() {
-		options.encoding ?: Charsets.UTF_8.name //TODO probably should be default charset
-	}
+	@Classpath
+	@Incremental
+	abstract def ConfigurableFileCollection getClasspath()
+	
+	@Classpath
+	abstract def ConfigurableFileCollection getXtextClasspath()
+	
+	@Nested 
+	abstract def XtextBuilderOptions getOptions()
 
 	private def getLanguageSetups() {
 		languages.map[setup].toSet

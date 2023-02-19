@@ -61,12 +61,13 @@ dependencies {
 	implementation "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
 	implementation 'com.google.guava:guava:27.1-jre'
 	implementation 'org.eclipse.platform:org.eclipse.equinox.preferences:3.6.1'
-        implementation 'org.eclipse.platform:org.eclipse.equinox.common:3.8.0'
-        implementation 'org.osgi:org.osgi.framework:1.8.0'
+	implementation 'org.eclipse.platform:org.eclipse.equinox.common:3.8.0'
+	implementation 'org.osgi:org.osgi.framework:1.8.0'
 	implementation('org.apache.maven:maven-artifact:3.8.2') {
 		transitive = false
 	}
 	protocol project(':xtext-gradle-protocol')
+	testImplementation 'org.ow2.asm:asm:9.4'
 }
 
 javadoc.dependsOn generateXtext
@@ -99,7 +100,9 @@ task latestIntegrationTest(type: Test) {
 	testClassesDirs = minimumIntegrationTest.testClassesDirs
 	systemProperty 'gradle.version', latestGradleVersion
 	systemProperty 'xtext.version', latestXtextVersion
-	enabled = JavaVersion.current().java8Compatible
+	javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    })
 }
 
 check.dependsOn(latestIntegrationTest)

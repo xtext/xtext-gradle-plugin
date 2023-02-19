@@ -25,6 +25,7 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	Project project
 	XtextExtension xtext
 	List<Object> source = newArrayList
+	FileTree files
 
 	new(String name, Project project, XtextExtension xtext) {
 		this.name = name
@@ -50,9 +51,12 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	}
 
 	override FileTree getFiles() {
-		return project.files(srcDirs).asFileTree.matching(filter).matching[
-			xtext.languages.map[fileExtensions].flatten.map["**/*." + it]
-		]
+		if (files === null) {
+			files = project.files(srcDirs).asFileTree.matching(filter).matching[
+				xtext.languages.map[fileExtensions].flatten.map["**/*." + it]
+			]
+		}
+		return files
 	}
 
 	override Set<File> getSrcDirs() {
