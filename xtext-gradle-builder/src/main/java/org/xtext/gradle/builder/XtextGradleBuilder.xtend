@@ -102,7 +102,8 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 
 	private def indexChangedClasspathEntries(GradleBuildRequest gradleRequest) {
 		val registry = IResourceServiceProvider.Registry.INSTANCE
-		gradleRequest.dirtyClasspathEntries.filter[exists].forEach [ dirtyClasspathEntry |
+		gradleRequest.dirtyClasspathEntries.filterNull.filter[exists].toSet.forEach [ dirtyClasspathEntry |
+		println(dirtyClasspathEntry)
 			val hash = hash(dirtyClasspathEntry)
 			if(dependencyHashes.get(dirtyClasspathEntry) != hash) {
 				val containerHandle = dirtyClasspathEntry.path
