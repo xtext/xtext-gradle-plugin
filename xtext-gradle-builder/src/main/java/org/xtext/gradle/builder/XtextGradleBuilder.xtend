@@ -56,7 +56,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		System.setProperty("org.eclipse.emf.common.util.ReferenceClearingQueue", "false")
 		for (setupName : setupNames) {
 			val setupClass = class.classLoader.loadClass(setupName)
-			val setup = setupClass.newInstance as ISetup
+			val setup = setupClass.getConstructor().newInstance as ISetup
 			val injector = setup.createInjectorAndDoEMFRegistration
 			injector.getInstance(IEncodingProvider.Runtime).setDefaultEncoding(encoding)
 		}
@@ -263,7 +263,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	private def attachJavaConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
 		try {
 			val configClass = Class.forName("org.eclipse.xtext.java.resource.JavaConfig")
-			val javaConfig = configClass.newInstance
+			val javaConfig = configClass.getConstructor().newInstance
 			val javaVersion = JavaVersion.fromQualifier(gradleRequest.generatorConfigsByLanguage.values.head.javaSourceLevel.toString)
 			configClass.getMethod("attachToEmfObject", Notifier).invoke(javaConfig, resourceSet)
 			configClass.getMethod("setJavaSourceLevel", JavaVersion).invoke(javaConfig, javaVersion)
