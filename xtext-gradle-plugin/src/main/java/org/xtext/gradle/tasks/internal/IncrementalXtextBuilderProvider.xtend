@@ -13,7 +13,8 @@ class IncrementalXtextBuilderProvider {
 	static long builderChecksum
 	static Object lock = new Object
 
-	static def IncrementalXtextBuilder getBuilder(Set<String> languageSetups, String encoding, Set<File> xtextClasspath) {
+	static def IncrementalXtextBuilder getBuilder(Set<String> languageSetups, String encoding,
+		Set<File> xtextClasspath) {
 		synchronized (lock) {
 			if (incompatibleBuilderExists(languageSetups, encoding, xtextClasspath)) {
 				closeBuilder
@@ -24,8 +25,9 @@ class IncrementalXtextBuilderProvider {
 			return builder;
 		}
 	}
-	
-	private static def incompatibleBuilderExists(Set<String> languageSetups, String encoding, Set<File> xtextClasspath) {
+
+	private static def incompatibleBuilderExists(Set<String> languageSetups, String encoding,
+		Set<File> xtextClasspath) {
 		builder !== null && getCheckSum(languageSetups, encoding, xtextClasspath) != builderChecksum
 	}
 
@@ -38,7 +40,7 @@ class IncrementalXtextBuilderProvider {
 		val loader = ServiceLoader.load(IncrementalXtextBuilderFactory, getBuilderClassLoader(xtextClasspath))
 		val providers = loader.iterator();
 		if (providers.hasNext()) {
-			builder =  providers.next().get(languageSetups, encoding);
+			builder = providers.next().get(languageSetups, encoding);
 			builderChecksum = getCheckSum(languageSetups, encoding, xtextClasspath)
 		} else {
 			throw new IllegalStateException('''No «IncrementalXtextBuilderFactory.name» found on the classpath''');
@@ -47,7 +49,8 @@ class IncrementalXtextBuilderProvider {
 
 	private static def getBuilderClassLoader(Set<File> xtextClasspath) {
 		val parent = IncrementalXtextBuilderProvider.classLoader
-		val filtered = new FilteringClassLoader(parent, #["org.gradle", "org.apache.log4j", "org.slf4j", "org.xtext.gradle"])
+		val filtered = new FilteringClassLoader(parent,
+			#["org.gradle", "org.apache.log4j", "org.slf4j", "org.xtext.gradle"])
 		new URLClassLoader(xtextClasspath.map[toURI.toURL], filtered)
 	}
 

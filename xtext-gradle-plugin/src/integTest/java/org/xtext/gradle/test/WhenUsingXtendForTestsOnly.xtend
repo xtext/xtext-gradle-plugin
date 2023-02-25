@@ -1,12 +1,11 @@
 package org.xtext.gradle.test
 
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.junit.Test
 
 class WhenUsingXtendForTestsOnly extends AbstractXtendIntegrationTest {
 
 	override getImplementationScope() {
-		if (gradleVersion >= new ComparableVersion('5')) 'testImplementation' else 'testCompile'
+		'testImplementation'
 	}
 
 	@Test

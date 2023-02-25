@@ -31,7 +31,6 @@ import org.eclipse.xtext.resource.impl.ChunkedResourceDescriptions
 import org.eclipse.xtext.resource.impl.ProjectDescription
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsData
 import org.eclipse.xtext.util.JavaVersion
-import org.eclipse.xtext.util.internal.AlternateJdkLoader
 import org.eclipse.xtext.workspace.ProjectConfigAdapter
 import org.eclipse.xtext.xbase.compiler.GeneratorConfig
 import org.eclipse.xtext.xbase.compiler.GeneratorConfigProvider
@@ -191,12 +190,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	private def getJvmTypesLoader(GradleBuildRequest gradleRequest) {
-		val parent = if(gradleRequest.bootstrapClasspath === null || gradleRequest.bootstrapClasspath.empty) {
-				ClassLoader.systemClassLoader
-			} else {
-				new AlternateJdkLoader(gradleRequest.bootstrapClasspath)
-			}
-		new URLClassLoader(gradleRequest.allClasspathEntries.map[toURI.toURL], parent)
+		new URLClassLoader(gradleRequest.allClasspathEntries.map[toURI.toURL])
 	}
 
 	private def cleanup(GradleBuildRequest gradleRequest, BuildRequest request) {

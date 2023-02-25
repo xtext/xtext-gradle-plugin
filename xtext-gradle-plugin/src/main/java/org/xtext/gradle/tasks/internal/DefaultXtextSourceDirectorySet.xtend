@@ -4,11 +4,13 @@ import groovy.lang.Closure
 import java.io.File
 import java.util.List
 import java.util.Set
+import javax.inject.Inject
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileTreeElement
+import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
@@ -16,21 +18,21 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
 
-import static extension org.xtext.gradle.GradleExtensions.*
-
-class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
+abstract class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	@Accessors val String name
 	@Accessors val XtextSourceSetOutputs output
 	@Accessors val filter = new PatternSet
-	Project project
+	FileOperations fileOperations
 	XtextExtension xtext
 	List<Object> source = newArrayList
+	FileTree files
 
-	new(String name, Project project, XtextExtension xtext) {
+	@Inject
+	new(String name, XtextExtension xtext, FileOperations fileOperations, ObjectFactory factory) {
 		this.name = name
-		this.project = project
 		this.xtext = xtext
-		output = project.instantiate(DefaultXtextSourceSetOutputs, project, xtext)
+		this.fileOperations = fileOperations
+		output = factory.newInstance(DefaultXtextSourceSetOutputs, xtext)
 	}
 
 	override XtextSourceDirectorySet srcDir(Object srcDir) {
@@ -50,16 +52,19 @@ class DefaultXtextSourceDirectorySet implements XtextSourceDirectorySet {
 	}
 
 	override FileTree getFiles() {
-		return project.files(srcDirs).asFileTree.matching(filter).matching[
-			xtext.languages.map[fileExtensions].flatten.map["**/*." + it]
-		]
+		if (files === null) {
+			files = fileOperations.configurableFiles(srcDirs).asFileTree.matching(filter).matching [
+				xtext.languages.map[fileExtensions.get].flatten.map["**/*." + it]
+			]
+		}
+		return files
 	}
 
 	override Set<File> getSrcDirs() {
-		val autoCleanedFolders = xtext.languages.filter[generator.outlets.exists[cleanAutomatically == true]].map [
+		val autoCleanedFolders = xtext.languages.filter[generator.outlets.exists[cleanAutomatically.get == true]].map [
 			output.getDir(generator.outlet)
 		].filterNull.toSet
-		return project.files(source).files.filter[!autoCleanedFolders.contains(it)].toSet
+		return fileOperations.configurableFiles(source).files.filter[!autoCleanedFolders.contains(it)].toSet
 	}
 
 	override PatternFilterable getFilter() {

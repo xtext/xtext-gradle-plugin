@@ -1,5 +1,6 @@
 package org.xtext.gradle.test
 
+import org.junit.Assume
 import org.junit.Test
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -7,7 +8,6 @@ import org.objectweb.asm.Opcodes
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 
 import static org.junit.Assert.*
-import org.junit.Assume
 
 class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 
@@ -74,7 +74,7 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 		val classFile = file("build/classes/java/main/HelloWorld.class")
 
 		classFile.shouldExist
-		new ClassReader(classFile.content).accept(new ClassVisitor(Opcodes.ASM5) {
+		new ClassReader(classFile.content).accept(new ClassVisitor(Opcodes.ASM9) {
 			override visitSource(String name, String info) {
 				sourceVisitor.apply(name, info)
 			}

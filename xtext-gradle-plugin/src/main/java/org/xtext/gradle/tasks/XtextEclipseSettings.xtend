@@ -17,13 +17,13 @@ class XtextEclipseSettings extends DefaultTask {
 	@Accessors @Internal Set<Language> languages
 
 	new() {
-		outputs.upToDateWhen [false]
+		outputs.upToDateWhen[false]
 	}
 
 	@OutputFiles
 	def getOutputFiles() {
-		languages.map[ language|
-			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName)
+		languages.map [ language |
+			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName.get)
 			prefs.location.toFile
 		]
 	}
@@ -31,7 +31,7 @@ class XtextEclipseSettings extends DefaultTask {
 	@TaskAction
 	def writeSettings() {
 		languages.forEach [ Language language |
-			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName)
+			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName.get)
 			prefs.load
 			prefs.makeProjectSpecific
 			prefs.addGeneratorPreferences(language)
@@ -48,13 +48,15 @@ class XtextEclipseSettings extends DefaultTask {
 
 	private def addGeneratorPreferences(XtextEclipsePreferences prefs, Language language) {
 		language.generator => [
-			prefs.putBoolean("generateSuppressWarnings", suppressWarningsAnnotation)
-			prefs.putBoolean("generateGeneratedAnnotation", generatedAnnotation.active)
-			prefs.putBoolean("includeDateInGenerated", generatedAnnotation.includeDate)
-			if (generatedAnnotation.comment !== null) {
-				prefs.put("generatedAnnotationComment", generatedAnnotation.comment)
+			prefs.putBoolean("generateSuppressWarnings", suppressWarningsAnnotation.get)
+			prefs.putBoolean("generateGeneratedAnnotation", generatedAnnotation.active.get)
+			prefs.putBoolean("includeDateInGenerated", generatedAnnotation.includeDate.get)
+			if (generatedAnnotation.comment.present) {
+				prefs.put("generatedAnnotationComment", generatedAnnotation.comment.get)
 			}
-			prefs.put("targetJavaVersion", "JAVA" + JavaVersion.toVersion(javaSourceLevel).majorVersion)
+			if (javaSourceLevel.present) {
+				prefs.put("targetJavaVersion", "JAVA" + JavaVersion.toVersion(javaSourceLevel.get).majorVersion)
+			}
 			prefs.putBoolean("useJavaCompilerCompliance", false)
 			outlets.forEach [ outlet |
 				addOutletPreferences(prefs, language, outlet)
@@ -73,11 +75,11 @@ class XtextEclipseSettings extends DefaultTask {
 		]
 		prefs.putBoolean(
 			outlet.getOutletKey("hideLocalSyntheticVariables"),
-			language.debugger.isHideSyntheticVariables
+			language.debugger.hideSyntheticVariables.get
 		)
 		prefs.putBoolean(
 			outlet.getOutletKey("installDslAsPrimarySource"),
-			language.debugger.sourceInstaller == SourceInstaller.PRIMARY
+			language.debugger.sourceInstaller.get == SourceInstaller.PRIMARY.name
 		)
 		prefs.putBoolean(
 			outlet.getOutletKey("userOutputPerSourceFolder"),
@@ -86,13 +88,13 @@ class XtextEclipseSettings extends DefaultTask {
 	}
 
 	private def addValidatorPreferences(XtextEclipsePreferences prefs, Language language) {
-		language.validator.severities.entrySet.forEach [
+		language.validator.severities.get.entrySet.forEach [
 			prefs.put(key, value.toString)
 		]
 	}
 
 	private def addAdditionalPreferences(XtextEclipsePreferences prefs, Language language) {
-		language.preferences.entrySet.forEach [
+		language.preferences.get.entrySet.forEach [
 			prefs.put(key, value.toString)
 		]
 	}

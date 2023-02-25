@@ -1,30 +1,32 @@
 package org.xtext.gradle.tasks.internal
 
 import java.util.Map
-import org.gradle.api.Project
+import javax.inject.Inject
+import org.gradle.api.internal.file.FileOperations
 import org.xtext.gradle.tasks.Outlet
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextSourceSetOutputs
 
 class DefaultXtextSourceSetOutputs implements XtextSourceSetOutputs {
-	val Project project
+	val FileOperations fileOperations
 	val Map<Outlet, Object> dirs = newLinkedHashMap
-	
-	new(Project project, XtextExtension xtext) {
-		this.project = project
-		xtext.languages.all[
-			generator.outlets.whenObjectRemoved[
+
+	@Inject
+	new(XtextExtension xtext, FileOperations fileOperations) {
+		this.fileOperations = fileOperations
+		xtext.languages.all [
+			generator.outlets.whenObjectRemoved [
 				dirs.remove(it)
 			]
 		]
 	}
 
 	override getDirs() {
-		project.files(dirs.values)
+		fileOperations.configurableFiles(dirs.values)
 	}
 
 	override getDir(Outlet outlet) {
-		project.file(dirs.get(outlet))
+		fileOperations.file(dirs.get(outlet))
 	}
 
 	override dir(Outlet outlet, Object path) {

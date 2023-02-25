@@ -34,7 +34,7 @@ class BuildingAPlainLanguageProject extends AbstractIntegrationTest {
 				}
 			}
 
-			generateXtext.classpath = configurations.compile
+			generateXtext.classpath.from(configurations.compile)
 		'''
 	}
 

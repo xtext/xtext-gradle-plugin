@@ -17,7 +17,7 @@ import org.junit.rules.TemporaryFolder
 import static org.junit.Assert.*
 
 class GradleBuildTester extends ExternalResource {
-	public final static ComparableVersion GRADLE_VERSION = new ComparableVersion(System.getProperty("gradle.version", "4.3"))
+	public final static ComparableVersion GRADLE_VERSION = new ComparableVersion(System.getProperty("gradle.version", "7.1"))
 	val temp = new TemporaryFolder
 	ProjectUnderTest rootProject
 	GradleRunner gradle
@@ -52,8 +52,9 @@ class GradleBuildTester extends ExternalResource {
 		#[
 			"-Dhttp.connectionTimeout=120000",
 			"-Dhttp.socketTimeout=120000",
-			"-s"
-		] + if(GRADLE_VERSION >= new ComparableVersion("5.6")) #["--warning-mode=fail"] else #[]
+			"-s",
+			"--warning-mode=fail"
+		]
 	}
 
 	def void setContent(File file, CharSequence content) {

@@ -1,8 +1,6 @@
 package org.xtext.gradle.test
 
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.gradle.api.tasks.compile.JavaCompile
-import org.junit.Assume
 import org.junit.Test
 
 class WhenSettingsChange extends AbstractXtendIntegrationTest {
@@ -34,7 +32,6 @@ class WhenSettingsChange extends AbstractXtendIntegrationTest {
 
 	@Test
 	def void shouldRecompileWhenLanguageSettingsChange() {
-		Assume.assumeTrue(gradleVersion >= new ComparableVersion("5"))
 		// when
 		buildFile.content = buildFile.contentAsString.
 			replace('''javaSourceLevel = "1.7"''', '''javaSourceLevel = "1.8"''')
