@@ -16,13 +16,13 @@ Apply the latest [org.xtext.xtend](http://plugins.gradle.org/plugin/org.xtext.xt
 
 ```groovy
 plugins {
-  id "org.xtext.xtend" version "3.0.2"
+  id "org.xtext.xtend" version "4.0.0"
 }
 
-repositories.jcenter()
+repositories.mavenCentral()
 
 dependencies {
-  compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.27.0'
+  compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.30.0'
 }
 ```
 
@@ -33,8 +33,8 @@ Features
 - Enhances Java classes with Xtend debug information
 - Integrates seamlessly with the [Xtext Builder](xtext-builder.html) plugin and other Xtext languages
 - Hooks into 'gradle eclipse', so the Xtend compiler is configured for your project when you import it into Eclipse
-- Supports Gradle 4.7 and above (tested up to 7.2)
-- Supports Xtend 2.9 and above (tested up to 26.0) 
+- Supports Gradle 7.1 and above (tested up to 8.0)
+- Supports Xtend 2.17 and above (tested up to 29.0) 
 
 Options
 --------
@@ -76,7 +76,7 @@ The output folder can be configured for each sourceSet. By default it will be `b
 
 ```groovy
 sourceSets {
-  main.xtendOutputDir = 'xtend-gen'
-  test.xtendOutputDir = 'test/xtend-gen'
+  main.xtend.outputDir = 'xtend-gen'
+  test.xtend.outputDir = 'test/xtend-gen'
 }
 ```
