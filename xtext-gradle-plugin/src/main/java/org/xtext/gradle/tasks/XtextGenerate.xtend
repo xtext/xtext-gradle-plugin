@@ -127,10 +127,20 @@ abstract class XtextGenerate extends DefaultTask {
 				request.dirtyFiles += file
 			}
 		]
-		inputs.getFileChanges(classpath).forEach [ change |
-			// Gradle notifies us about individual .class files, but we only want their containing directory
-			request.dirtyClasspathEntries += classpath.files.findFirst[change.file.path.startsWith(it.path)]
-		]
+		val classpathRoots = classpath.files
+		inputs.getFileChanges(classpath)
+			.forEach[change |
+				if (change.normalizedPath.isEmpty) {
+					request.dirtyClasspathEntries += change.file
+				} else {
+					val root = classpathRoots.findFirst[change.file.path.startsWith(it.path)]
+					if (root !== null) {
+						request.dirtyClasspathEntries += root
+					} else {
+						request.incremental = false
+					}
+				}
+			]
 	}
 
 	def installDebugInfo(File classesDir) {

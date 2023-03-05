@@ -56,6 +56,26 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 		snapshot.assertChangedClasses("UpStream", "DownStream")
 	}
+	
+	@Test
+	def generatorHandlesDeletionOfClasspathFolders() {
+		createFile('src/main/java/UpStream.xtend', '''
+			class UpStream {}
+		''')
+		createFile('src/test/java/DownStream.xtend', '''
+			class DownStream{
+			}
+		''')
+		build("build")
+		val snapshot = snapshot(projectDir)
+
+		//remove the main sources from the test classpath
+		buildFile << "sourceSets.test.compileClasspath = configurations.testCompileClasspath"
+		build("build")
+
+		snapshot.assertChangedClasses("DownStream")
+	}
+	
 
 	@Test
 	def affectedResourcesAreDetectedAcrossXtendAndJava() {
