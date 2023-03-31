@@ -17,8 +17,8 @@ Features
 - Allows multiple languages to cross-reference each other
 - Enhances Java classes with debug information when using Xbase languages
 - Hooks into 'gradle eclipse', so your languages are configured correctly when you import your projects
-- Supports Gradle 4.7 and above (tested up to 7.2)
-- Supports Xtext 2.9 and above (tested up to 2.27.0) 
+- Supports Gradle 7.1 and above (tested up to 8.0)
+- Supports Xtext 2.17 and above (tested up to 2.30.0) 
 
 Minimal Example
 ---------------
@@ -27,11 +27,11 @@ Below is the minimal configuration for a language that does not integrate with J
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '3.0.2'
+    id 'org.xtext.builder' version '4.0.0'
   }
 
   repositories {
-    jcenter()
+    mavenCentral()
   }
 
   dependencies {
@@ -60,12 +60,12 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '3.0.2'
+    id 'org.xtext.builder' version '4.0.0'
     id 'java'
   }
 
   repositories {
-    jcenter()
+    mavenCentral()
   }
 
   dependencies {
@@ -95,12 +95,12 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '3.0.2'
+    id 'org.xtext.builder' version '4.0.0'
     id 'java'
   }
 
   repositories {
-    jcenter()
+    mavenCentral()
   }
 
   dependencies {
@@ -110,13 +110,13 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
   xtext {
     //Xtext version, can be omitted if Xtext is found on the classpath already
-    version = '2.27.0'
+    version = '2.30.0'
     //
     languages {
       //a language configuration can be very simple, everything has good defaults
       myDsl {//the language's name
         //the Setup class to use when creating the language's compiler infrastructure
-        setup = org.example.mydsl.MyDslStandaloneSetup
+        setup = 'org.example.mydsl.MyDslStandaloneSetup'
       }
 
       //but you can also customize everything to your liking
