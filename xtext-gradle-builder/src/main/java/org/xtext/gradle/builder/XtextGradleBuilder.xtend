@@ -224,12 +224,18 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 			attachToEmfObject(resourceSet)
 			language2GeneratorConfig.putAll(
 				gradleRequest.generatorConfigsByLanguage.mapValues [ gradleConfig |
+					val javaVersion = JavaVersion.fromQualifier(gradleConfig.javaSourceLevel.toString)
+					if (javaVersion === null) {
+						val msg = "Xtext does not support Java " + gradleConfig.javaSourceLevel.toString + "."
+						gradleRequest.logger.error(msg)
+						throw new GradleException(msg)
+					}
 					new GeneratorConfig => [
 						generateSyntheticSuppressWarnings = gradleConfig.isGenerateSyntheticSuppressWarnings
 						generateGeneratedAnnotation = gradleConfig.isGenerateGeneratedAnnotation
-						includeDateInGeneratedAnnotation = gradleConfig.isIncludeDateInGeneratedAnnotation
+						includeDateInGeneratedAnnotation = 	gradleConfig.isIncludeDateInGeneratedAnnotation
 						generatedAnnotationComment = gradleConfig.generatedAnnotationComment
-						javaSourceVersion = JavaVersion.fromQualifier(gradleConfig.javaSourceLevel.toString)
+						javaSourceVersion = javaVersion ?: JavaVersion.JAVA8
 					]
 				]
 			)
