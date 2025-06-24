@@ -86,8 +86,23 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				return
 			}
 			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend") {
-				useVersion(version)
+				useVersion(version) // TODO
 			}
+		]
+		xtextTooling.resolutionStrategy.dependencySubstitution [
+			val version = xtextVersion.getVersion
+			if (version === null) {
+				return
+			}
+			
+			val ComparableVersion currentXtextVersion = new ComparableVersion(version);
+			val ComparableVersion targetVersion = new ComparableVersion("2.40.0")
+			if (currentXtextVersion >= targetVersion) {
+				val m1 = module('''org.eclipse.xtend:org.eclipse.xtend.core:«version»''');
+				val m2 = module('''org.eclipse.xtext:org.eclipse.xtend.core:«version»''');
+				substitute(m1).using(m2)
+			} 
+			
 		]
 	}
 
