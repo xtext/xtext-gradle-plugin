@@ -28,10 +28,10 @@ jobs:
       - name: Store HTML test report
         uses: actions/upload-artifact@v4
         with:
-          name: test-report-html
+          name: test-report-html-${{ runner.os }}
           path: "**/reports/tests/"
       - name: Store XML test report
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-xml
+          name: test-results-xml-${{ runner.os }}
           path: "**/test-results/"
