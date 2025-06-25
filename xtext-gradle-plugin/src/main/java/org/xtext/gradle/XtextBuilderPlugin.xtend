@@ -25,12 +25,11 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
-import org.gradle.api.logging.Logger;
 import org.slf4j.LoggerFactory;
 
 class XtextBuilderPlugin implements Plugin<Project> {
 
-	private static val LOGGER = LoggerFactory.getLogger("XtextBuilderPlugin");	
+	static val LOGGER = LoggerFactory.getLogger("XtextBuilderPlugin");	
 
 	Project project
 	XtextExtension xtext
@@ -104,7 +103,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 					val requestedName = requested.module
 					if (requestedGroup == "org.eclipse.xtend") {
 						val version = xtextVersion.getVersion
-						if (version == null) {
+						if (version === null) {
 							return
 						}
 						val ComparableVersion currentXtextVersion = new ComparableVersion(version);
@@ -117,8 +116,6 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 					}
 				}
-				
-
 			]
 		]
 	}
