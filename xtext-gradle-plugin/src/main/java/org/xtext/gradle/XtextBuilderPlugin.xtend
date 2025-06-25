@@ -96,26 +96,12 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			}
 		]
 		xtextTooling.resolutionStrategy.dependencySubstitution [
-			//val version = xtextVersion.getVersion
-			//if (version !== null) {
-				//val ComparableVersion currentXtextVersion = new ComparableVersion(version);
-				//val ComparableVersion targetVersion = new ComparableVersion("2.40.0")
-				//if (currentXtextVersion >= targetVersion) {x
-					//val m1 = module('''org.eclipse.xtend:org.eclipse.xtend.core:2.40.0-SNAPSHOT'''.toString());
-					//val m2 = module();
-					//substitute(m1).using(m2)
-				//} 
-			//}
-
 			all [
 				DependencySubstitution dependency |
 				val requested = dependency.requested
-				
 				if (requested instanceof ModuleComponentSelector) {
-					
 					val requestedGroup = requested.group
 					val requestedName = requested.module
-					val requestedVersion = requested.version
 					if (requestedGroup == "org.eclipse.xtend") {
 						val version = xtextVersion.getVersion
 						if (version == null) {
@@ -124,9 +110,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						val ComparableVersion currentXtextVersion = new ComparableVersion(version);
 						val ComparableVersion targetVersion = new ComparableVersion("2.39.0")
 						if (currentXtextVersion > targetVersion) {
-							val nt = '''org.eclipse.xtext:«requestedName»:«version»'''.toString();
-							dependency.useTarget(nt)
-							LOGGER.error("substitute" + nt)
+							val newTarget = '''org.eclipse.xtext:«requestedName»:«version»'''.toString();
+							dependency.useTarget(newTarget)
+							LOGGER.error("substitute " + newTarget)
 						}
 
 					}
