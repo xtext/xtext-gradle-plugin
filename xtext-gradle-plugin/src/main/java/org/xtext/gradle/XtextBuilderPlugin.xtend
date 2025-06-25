@@ -112,20 +112,21 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				val requested = dependency.requested
 				
 				if (requested instanceof ModuleComponentSelector) {
-					LOGGER.error(requested.toString())
+					
 					val requestedGroup = requested.group
 					val requestedName = requested.module
 					val requestedVersion = requested.version
-					if (requestedGroup === "org.eclipse.xtend")
-							throw new Error("mimimi" + requestedGroup.class + requestedName)
-					if (requestedGroup === "org.eclipse.xtend") {
-						
-						val ComparableVersion currentXtextVersion = new ComparableVersion(requestedVersion);
+					if (requestedGroup == "org.eclipse.xtend") {
+						val version = xtextVersion.getVersion
+						if (version == null) {
+							return
+						}
+						val ComparableVersion currentXtextVersion = new ComparableVersion(version);
 						val ComparableVersion targetVersion = new ComparableVersion("2.39.0")
-						if (currentXtextVersion >= targetVersion) {
-							val nt = '''org.eclipse.xtext:org.eclipse.xtend.core:«requestedVersion»'''.toString();
+						if (currentXtextVersion > targetVersion) {
+							val nt = '''org.eclipse.xtext:«requestedName»:«version»'''.toString();
 							dependency.useTarget(nt)
-							throw new Error("mimimi" + nt)
+							LOGGER.error("substitute" + nt)
 						}
 
 					}
