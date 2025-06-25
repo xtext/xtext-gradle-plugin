@@ -11,6 +11,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencySubstitution
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Delete
@@ -23,8 +25,12 @@ import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
+import org.gradle.api.logging.Logger;
+import org.slf4j.LoggerFactory;
 
 class XtextBuilderPlugin implements Plugin<Project> {
+
+	private static val LOGGER = LoggerFactory.getLogger("XtextBuilderPlugin");	
 
 	Project project
 	XtextExtension xtext
@@ -94,12 +100,39 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			//if (version !== null) {
 				//val ComparableVersion currentXtextVersion = new ComparableVersion(version);
 				//val ComparableVersion targetVersion = new ComparableVersion("2.40.0")
-				//if (currentXtextVersion >= targetVersion) {
-					val m1 = module('''org.eclipse.xtend:org.eclipse.xtend.core:>=2.40.0'''.toString());
-					val m2 = module('''org.eclipse.xtext:org.eclipse.xtend.core'''.toString());
+				//if (currentXtextVersion >= targetVersion) {x
+					//val m1 = module('''org.eclipse.xtend:org.eclipse.xtend.core:2.40.0-SNAPSHOT'''.toString());
+					//val m2 = module();
 					//substitute(m1).using(m2)
 				//} 
 			//}
+
+			all [
+				DependencySubstitution dependency |
+				val requested = dependency.requested
+				
+				if (requested instanceof ModuleComponentSelector) {
+					LOGGER.error(requested.toString())
+					val requestedGroup = requested.group
+					val requestedName = requested.module
+					val requestedVersion = requested.version
+					if (requestedGroup === "org.eclipse.xtend")
+							throw new Error("mimimi" + requestedGroup.class + requestedName)
+					if (requestedGroup === "org.eclipse.xtend") {
+						
+						val ComparableVersion currentXtextVersion = new ComparableVersion(requestedVersion);
+						val ComparableVersion targetVersion = new ComparableVersion("2.39.0")
+						if (currentXtextVersion >= targetVersion) {
+							val nt = '''org.eclipse.xtext:org.eclipse.xtend.core:«requestedVersion»'''.toString();
+							dependency.useTarget(nt)
+							throw new Error("mimimi" + nt)
+						}
+
+					}
+				}
+				
+
+			]
 		]
 	}
 
