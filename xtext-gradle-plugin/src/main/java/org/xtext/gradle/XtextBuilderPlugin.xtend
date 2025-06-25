@@ -99,21 +99,34 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				DependencySubstitution dependency |
 				val requested = dependency.requested
 				if (requested instanceof ModuleComponentSelector) {
+					try {
+
+					LOGGER.error("mimimi")
 					val requestedGroup = requested.group
 					val requestedName = requested.module
-					if (requestedGroup == "org.eclipse.xtend") {
+					if (requestedGroup == "org.eclipse.xtend" && requestedName == "org.eclipse.xtend.core") {
+						LOGGER.error("mimimi1a")
 						val version = xtextVersion.getVersion
-						if (version === null) {
-							return
-						}
+						LOGGER.error("mimimi1b")
+						if (version !== null && version != "" && version != ".") { // TODO why
+							LOGGER.error("mimimi1c")
 						val ComparableVersion currentXtextVersion = new ComparableVersion(version);
+						LOGGER.error("mimimi1d")
+
 						val ComparableVersion targetVersion = new ComparableVersion("2.39.0")
+						LOGGER.error("mimimi1e")
 						if (currentXtextVersion > targetVersion) {
 							val newTarget = '''org.eclipse.xtext:«requestedName»:«version»'''.toString();
 							dependency.useTarget(newTarget)
 							LOGGER.error("substitute " + newTarget)
 						}
+						}
+						
 
+					}
+					LOGGER.error("mimimi here")
+					} catch(Exception e) {
+						LOGGER.error("mimimi2", e)
 					}
 				}
 			]
