@@ -11,8 +11,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.DependencySubstitution
-import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Delete
@@ -88,64 +86,22 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		xtextTooling.resolutionStrategy.eachDependency [
 			val version = xtextVersion.getVersion
 			if (version === null) {
-				LOGGER.error("skip use version")
 				return
 			}
 			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend") {
-				LOGGER.error("use version")
-				useVersion(version) // TODO
+				useVersion(version)
+			}
+			if (requested.group == "org.eclipse.xtend") {
+				val requestedName = requested.name
+				val ComparableVersion currentXtextVersion = new ComparableVersion(version);
+				val ComparableVersion targetVersion = new ComparableVersion("2.39.0")
+				if (currentXtextVersion > targetVersion) {
+					val newTarget = '''org.eclipse.xtext:«requestedName»:«version»'''.toString();
+					useTarget(newTarget)
+					LOGGER.error("substitute " + newTarget)
+				}
 			}
 		]
-
-		xtextTooling.resolutionStrategy.dependencySubstitution [ds|
-			ds.all [DependencySubstitution dependency |
-				// TODO why is this enhough to let test crash ....
-
-			]
-		]
-
-		/*
-		xtextTooling.resolutionStrategy.dependencySubstitution [
-			all [
-				DependencySubstitution dependency |
-				
-				val requested = dependency.requested
-				if (requested instanceof ModuleComponentSelector) {
-					try {
-
-						LOGGER.error("mimimi")
-						val requestedGroup = requested.group
-						val requestedName = requested.module
-						if (requestedGroup == "org.eclipse.xtend" && requestedName == "org.eclipse.xtend.core") {
-							LOGGER.error("mimimi1a")
-							val version = xtextVersion.getVersion
-							LOGGER.error("mimimi1b")
-							if (version !== null && version != "" && version != ".") { // TODO why
-								LOGGER.error("mimimi1c")
-							
-								val ComparableVersion currentXtextVersion = new ComparableVersion(version);
-								LOGGER.error("mimimi1d")
-
-								val ComparableVersion targetVersion = new ComparableVersion("2.39.0")
-								LOGGER.error("mimimi1e")
-								if (currentXtextVersion > targetVersion) {
-									val newTarget = '''org.eclipse.xtext:«requestedName»:«version»'''.toString();
-									//dependency.useTarget(newTarget)
-									LOGGER.error("substitute " + newTarget)
-								}
-							}
-							
-
-						}
-						LOGGER.error("mimimi here")
-					} catch(Exception e) {
-						LOGGER.error("mimimi2", e)
-					}
-				}
-				
-			]
-			
-		]*/
 	}
 
 	private def configureDefaults() {
