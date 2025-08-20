@@ -19,13 +19,10 @@ jobs:
       - id: get_version
         name: Get Version
         uses: battila7/get-version-action@v2
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Release
-        uses: eskatos/gradle-command-action@v1
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-        with: 
-          arguments: publishPlugins "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
-          dependencies-cache-enabled: true
-
-
+        run: ./gradlew publishPlugins "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
