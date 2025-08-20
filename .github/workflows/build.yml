@@ -15,25 +15,25 @@ jobs:
           os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Build
-        uses: eskatos/gradle-command-action@v1
-        with:
-           arguments: build
-           dependencies-cache-enabled: true
+        run: ./gradlew build
       - name: Store HTML test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: test-report-html
+          name: ${{ runner.os }}-${{ matrix.java }}-test-report-html
           path: "**/reports/tests/"
       - name: Store XML test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: test-results-xml
+          name: ${{ runner.os }}-${{ matrix.java }}-test-results-xml
           path: "**/test-results/"
 
 
