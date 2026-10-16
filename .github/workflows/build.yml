@@ -11,31 +11,29 @@ jobs:
     name: Build
     strategy:
        matrix:
-          java: [11]
+          java: [21]
           os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: ${{ matrix.java }}
       - name: Build
-        uses: eskatos/gradle-command-action@v1
-        with:
-           arguments: build
-           dependencies-cache-enabled: true
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build
+        run: ./gradlew build
       - name: Store HTML test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: test-report-html
-          path: "**/reports/tests/"
+          name: test-report-html-${{ matrix.os }}
+          path: "**/reports/tests/**\n**/reports/integTest/**"
+          if-no-files-found: ignore
       - name: Store XML test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: test-results-xml
-          path: "**/test-results/"
-
-
-
-
+          name: test-results-xml-${{ matrix.os }}
+          path: "**/test-results/**\n**/integTest-results/**"
+          if-no-files-found: ignore
