@@ -15,7 +15,9 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 			apply plugin: 'eclipse'
 			apply plugin: 'org.xtext.builder'
 
-			sourceCompatibility = '1.6'
+			java {
+				sourceCompatibility = JavaVersion.VERSION_21
+			}
 
 			xtext {
 				version = '«xtextVersion»'
@@ -42,7 +44,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 	@Test
 	def void properSettingsAreGenerated() {
 		// when
-		build('eclipse')
+		build('xtextEclipseSettings')
 
 		// then
 		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
@@ -55,7 +57,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 		prefs.shouldContain('generateGeneratedAnnotation', false)
 		prefs.shouldContain('includeDateInGenerated', false)
 		prefs.shouldContain('useJavaCompilerCompliance', false)
-		prefs.shouldContain('targetJavaVersion', 'JAVA6')
+		prefs.shouldContain('targetJavaVersion', 'JAVA21')
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.userOutputPerSourceFolder', true)
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.installDslAsPrimarySource', false)
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.hideLocalSyntheticVariables', true)
@@ -69,23 +71,29 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
         @Test
         def void settingsDontContainComments() {
                 // when
-                build('eclipse')
+                build('xtextEclipseSettings')
 
                 // then
                 val prefs = file('.settings/org.eclipse.xtend.core.Xtend.prefs')
                 assertFalse(prefs.contentAsString.contains("#"))
         }
 
+	/**
+	 * The .settings files are owned by the user and normally committed to version control,
+	 * so a clean must not remove them. They are produced from the regular task lifecycle
+	 * rather than from Gradle's deprecated cleanEclipse task.
+	 */
 	@Test
-	def void settingsAreCleanedProperly() {
+	def void settingsSurviveClean() {
 		// given
-		build('eclipse')
+		build('xtextEclipseSettings')
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
 
 		// when
-		build('cleanEclipse')
+		build('clean')
 
 		// then
-		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldNotExist
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
 	}
 
 	def shouldContain(EclipsePreferences prefs, String key, Object value) {

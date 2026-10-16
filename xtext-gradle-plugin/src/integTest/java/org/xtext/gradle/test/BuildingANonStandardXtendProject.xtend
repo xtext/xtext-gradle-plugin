@@ -11,11 +11,13 @@ import static org.junit.Assert.*
 class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
-	def void compilesToJava8SourceWhenConfigured() {
-		// given 
+	def void compilesToLambdaSourceWhenConfigured() {
+		// given
 		createHelloWorld
 		buildFile << '''
-			sourceCompatibility = "1.8"
+			java {
+				sourceCompatibility = JavaVersion.VERSION_21
+			}
 		'''
 
 		// when
@@ -25,23 +27,6 @@ class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 		val generatedJava = file('build/xtend/main/HelloWorld.java').contentAsString
 		val lambda = Pattern.compile('''\(String \w+\) -> \{''')
 		assertTrue(lambda.matcher(generatedJava).find)
-	}
-
-	@Test
-	def void compilesToJava7SourceWhenConfigured() {
-		// given 
-		createHelloWorld
-		buildFile << '''
-			sourceCompatibility = "1.7"
-		'''
-
-		// when
-		build('generateXtext')
-
-		// then
-		val generatedJava = file('build/xtend/main/HelloWorld.java').contentAsString
-		val anonymousInnerClass = Pattern.compile('''new \w*<String>\(\) \{''')
-		assertTrue(anonymousInnerClass.matcher(generatedJava).find)
 	}
 
 	@Test

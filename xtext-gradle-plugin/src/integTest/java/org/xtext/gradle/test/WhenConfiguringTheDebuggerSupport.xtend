@@ -41,8 +41,8 @@ class WhenConfiguringTheDebuggerSupport extends AbstractIntegrationTest {
 			apply plugin: 'org.xtext.builder'
 
 			dependencies {
-				«implementationScope» 'org.eclipse.xtend:org.eclipse.xtend.lib:«xtextVersion»'
-				xtextLanguages 'org.eclipse.xtend:org.eclipse.xtend.core:«xtextVersion»'
+				«implementationScope» 'org.eclipse.xtext:org.eclipse.xtend.lib:«xtextVersion»'
+				xtextLanguages 'org.eclipse.xtext:org.eclipse.xtend.core:«xtextVersion»'
 			}
 
 			xtext {
