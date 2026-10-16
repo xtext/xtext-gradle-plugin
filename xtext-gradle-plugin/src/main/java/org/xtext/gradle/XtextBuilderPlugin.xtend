@@ -2,6 +2,7 @@ package org.xtext.gradle;
 
 import java.io.File
 import java.util.LinkedHashSet
+import java.util.Properties
 import java.util.Set
 import java.util.concurrent.Callable
 import org.apache.maven.artifact.versioning.ComparableVersion
@@ -13,6 +14,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -46,15 +48,18 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def createGeneratorTasks() {
 		xtext.sourceSets.all [ sourceSet |
-			val generatorTask = project.tasks.create(sourceSet.generatorTaskName, XtextGenerate) [
+			val generatorTask = project.tasks.register(sourceSet.generatorTaskName, XtextGenerate) [
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
+				// captured at configuration time: Task.getProject() is an error in Gradle 10
+				projectName.set(project.name)
+				projectDirectory.set(project.projectDir)
 				options.incremental.convention(true)
 				options.encoding.convention("UTF-8")
-			]
+			].get()
 			setupXtextClasspath(sourceSet, generatorTask)
-			project.tasks.create('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
+			project.tasks.register('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
 				delete([
 					xtext.languages.map[generator.outlets].flatten.filter[cleanAutomatically.get].map [
 						sourceSet.output.getDir(it)
@@ -85,7 +90,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			if (version === null) {
 				return
 			}
-			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend") {
+			if (requested.group == "org.eclipse.xtext") {
 				useVersion(version)
 			}
 		]
@@ -106,7 +111,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				outlet.cleanAutomatically.convention(true)
 				xtext.sourceSets.all [ sourceSet |
 					val output = sourceSet.output
-					output.dir(outlet, '''«project.buildDir»/«language.name»«outlet.folderFragment»/«sourceSet.name»''')
+					output.dir(outlet, new File(project.layout.buildDirectory.get().asFile, language.name + outlet.folderFragment + '/' + sourceSet.name))
 				]
 			]
 		]
@@ -150,11 +155,25 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def integrateWithEclipsePlugin() {
 		project.plugins.withType(EclipsePlugin) [
-			val settingsTask = project.tasks.create("xtextEclipseSettings", XtextEclipseSettings)
+			val settingsTask = project.tasks.register("xtextEclipseSettings", XtextEclipseSettings).get()
 			settingsTask.languages = xtext.languages
 			settingsTask.sourceSets = xtext.sourceSets
-			project.tasks.getAt(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(settingsTask)
-			project.tasks.getAt("cleanEclipse").dependsOn("cleanXtextEclipseSettings")
+			settingsTask.projectDirectory.set(project.projectDir)
+			// Gradle 9 deprecates the eclipse*/cleanEclipse* file generation tasks and removes
+			// them in Gradle 10. Eclipse Buildship imports the Gradle model itself, so only the
+			// Xtext-specific .settings files still have to be written - and they do not need the
+			// eclipse task to do it. Wire them into the regular lifecycle instead.
+			//
+			// Matched lazily rather than via named("classes"): this plugin only applies
+			// 'base' and 'jvm-ecosystem', so a plain-language project that applies the
+			// eclipse plugin has no 'classes' task and named() would fail configuration.
+			project.tasks.matching(new Spec<Task>() {
+				override boolean isSatisfiedBy(Task task) { task.name == "classes" }
+			}).configureEach(new Action<Task>() {
+				override void execute(Task it) {
+					it.dependsOn(settingsTask)
+				}
+			})
 
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
@@ -164,6 +183,12 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	}
 
 	private static class LazyXtextVersion {
+		/**
+		 * The floor this plugin release is built and tested against, baked into the jar
+		 * at build time from the minimumXtextVersion Gradle property.
+		 */
+		static val MINIMUM_VERSION = loadMinimumXtextVersion()
+
 		val XtextExtension xtext
 		val Configuration languages
 		val XtextGenerate task
@@ -175,6 +200,21 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			this.task = task
 		}
 
+		private static def loadMinimumXtextVersion() {
+			val resource = "xtext-gradle-plugin.properties"
+			val stream = typeof(LazyXtextVersion).classLoader.getResourceAsStream(resource)
+			if (stream === null) {
+				throw new GradleException('''Could not load "«resource»" from the classpath - the Xtext Gradle plugin appears to be packaged incorrectly.''')
+			}
+			try {
+				val properties = new Properties
+				properties.load(stream)
+				return properties.getProperty("minimumXtextVersion")
+			} finally {
+				stream.close
+			}
+		}
+
 		def String getVersion() {
 			if (version === null) {
 				version = xtext.getXtextVersion(task.classpath) ?: xtext.getXtextVersion(languages)
@@ -182,7 +222,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 					throw new GradleException('''Could not infer Xtext classpath for «task», because xtext.version was not set and no xtext libraries were found in «task.classpath» or «languages»''')
 				}
 			}
-			val minimumVersion = "2.17.1"
+			val minimumVersion = MINIMUM_VERSION
 			if (version !== null && new ComparableVersion(version) < new ComparableVersion(minimumVersion)) {
 				throw new GradleException('''Xtext «version» is no longer supported. The minimum version is «minimumVersion»''')
 

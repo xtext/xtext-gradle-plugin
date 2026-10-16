@@ -26,7 +26,7 @@ abstract class AbstractIntegrationTest {
 				«repositories»
 			}
 		'''
-		createFile('gradle.properties', 'org.gradle.jvmargs=-XX:MaxMetaspaceSize=512m')
+		createFile('gradle.properties', 'org.gradle.jvmargs=-Xmx1g -XX:MaxMetaspaceSize=1g')
 	}
 
 	protected def CharSequence getRepositories() '''
@@ -46,6 +46,18 @@ abstract class AbstractIntegrationTest {
 
 	def OutputSnapshot snapshot(File baseDir) {
 		new OutputSnapshot(baseDir)
+	}
+
+	/**
+	 * Some fixtures compile test sources that are not runnable tests. Since Gradle 9 a
+	 * `test` task with sources but no discovered tests fails the build, so opt out.
+	 */
+	protected def void allowNoDiscoveredTests() {
+		buildFile << '''
+			test {
+				failOnNoDiscoveredTests = false
+			}
+		'''
 	}
 
 	def ComparableVersion getXtextVersion() {

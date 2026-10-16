@@ -1,20 +1,27 @@
 package org.xtext.gradle.tasks;
 
 import com.google.common.base.CharMatcher
+import java.io.File
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
 
-class XtextEclipseSettings extends DefaultTask {
+@DisableCachingByDefault(because = "Merges into user-owned, version-controlled .settings files that are not reproducible build outputs.")
+abstract class XtextEclipseSettings extends DefaultTask {
 
 	@Accessors @Internal Set<XtextSourceDirectorySet> sourceSets
 	@Accessors @Internal Set<Language> languages
+
+	/** Set at configuration time: Task.getProject() is an error in Gradle 10. */
+	@Internal abstract def DirectoryProperty getProjectDirectory()
 
 	new() {
 		outputs.upToDateWhen[false]
@@ -23,15 +30,14 @@ class XtextEclipseSettings extends DefaultTask {
 	@OutputFiles
 	def getOutputFiles() {
 		languages.map [ language |
-			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName.get)
-			prefs.location.toFile
+			prefsFor(language).location.toFile
 		]
 	}
 
 	@TaskAction
 	def writeSettings() {
 		languages.forEach [ Language language |
-			val prefs = new XtextEclipsePreferences(project.projectDir, language.qualifiedName.get)
+			val prefs = prefsFor(language)
 			prefs.load
 			prefs.makeProjectSpecific
 			prefs.addGeneratorPreferences(language)
@@ -39,6 +45,25 @@ class XtextEclipseSettings extends DefaultTask {
 			addAdditionalPreferences(prefs, language)
 			prefs.save
 		]
+	}
+
+	private def prefsFor(Language language) {
+		new XtextEclipsePreferences(projectDirectory.get().asFile, language.qualifiedName.get)
+	}
+
+	/**
+	 * Path of the given file relative to the project directory.
+	 *
+	 * Deliberately lexical: Path.normalize() removes "." and ".." segments without
+	 * touching the filesystem, whereas File.canonicalFile resolves symbolic links.
+	 * Resolving them would rewrite a source folder that is a link to somewhere else
+	 * (src/main/xtend -> ../shared-sources) to its target, and Eclipse would then be
+	 * configured with a folder the build never declared.
+	 */
+	private def String relativeToProject(File file) {
+		val root = projectDirectory.get().asFile.toPath.toAbsolutePath.normalize()
+		val path = file.toPath.toAbsolutePath.normalize()
+		canonicalize(root.relativize(path).toString)
 	}
 
 	private def makeProjectSpecific(XtextEclipsePreferences prefs) {
@@ -68,8 +93,8 @@ class XtextEclipseSettings extends DefaultTask {
 		sourceSets.forEach [
 			srcDirs.forEach [ dir |
 				prefs.put(
-					outlet.getOutletKey("sourceFolder." + project.relativePath(dir).canonicalize + ".directory"),
-					project.relativePath(output.getDir(outlet)).canonicalize
+					outlet.getOutletKey("sourceFolder." + relativeToProject(dir) + ".directory"),
+					relativeToProject(output.getDir(outlet))
 				)
 			]
 		]

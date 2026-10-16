@@ -10,6 +10,7 @@ class WhenUsingXtendForTestsOnly extends AbstractXtendIntegrationTest {
 
 	@Test
 	def theGeneratorShouldRunOnValidInput() {
+		allowNoDiscoveredTests
 		file('src/main/java/HelloWorld.java').content = '''
 			public class HelloWorld {}
 		'''

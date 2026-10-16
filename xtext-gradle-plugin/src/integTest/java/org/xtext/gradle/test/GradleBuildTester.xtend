@@ -1,8 +1,8 @@
 package org.xtext.gradle.test
 
-import com.google.common.base.Charsets
 import com.google.common.io.Files
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.Set
 import org.apache.maven.artifact.versioning.ComparableVersion
@@ -60,7 +60,7 @@ class GradleBuildTester extends ExternalResource {
 	def void setContent(File file, CharSequence content) {
 		file.parentFile.mkdirs
 		file.createNewFile
-		Files.asCharSink(file, Charsets.UTF_8).write(content)
+		Files.asCharSink(file, StandardCharsets.UTF_8).write(content)
 	}
 
 	def void append(File file, CharSequence content) {
@@ -76,7 +76,7 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def String getContentAsString(File file) {
-		Files.asCharSource(file, Charsets.UTF_8).read
+		Files.asCharSource(file, StandardCharsets.UTF_8).read
 	}
 
 	def byte[] getContent(File file) {

@@ -19,7 +19,7 @@ class XtendLanguageBasePlugin implements Plugin<Project> {
 		val xtext = project.extensions.getByType(XtextExtension)
 		xtext.sourceSets.all [
 			project.dependencies.add(qualifyConfigurationName('xtextTooling'),
-				'org.eclipse.xtend:org.eclipse.xtend.core')
+				'org.eclipse.xtext:org.eclipse.xtend.core')
 		]
 		val xtend = xtext.languages.create("xtend") [
 			setup.set("org.eclipse.xtend.core.XtendStandaloneSetup")

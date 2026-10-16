@@ -133,7 +133,9 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	private def HashCode hash(File file) {
-		val hasher = Hashing.md5.newHasher
+		// Only used to detect changes between builds within a single session, never for
+		// security, so any stable hash function is fine. Guava deprecated Hashing.md5().
+		val hasher = Hashing.sha256.newHasher
 		hash(file, hasher)
 		hasher.hash
 	}
@@ -229,11 +231,24 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 						generateGeneratedAnnotation = gradleConfig.isGenerateGeneratedAnnotation
 						includeDateInGeneratedAnnotation = gradleConfig.isIncludeDateInGeneratedAnnotation
 						generatedAnnotationComment = gradleConfig.generatedAnnotationComment
-						javaSourceVersion = JavaVersion.fromQualifier(gradleConfig.javaSourceLevel.toString)
+						javaSourceVersion = toXtextJavaVersion(gradleConfig.javaSourceLevel)
 					]
 				]
 			)
 		]
+	}
+
+	/**
+	 * Gradle's JavaVersion.toString() yields the enum constant name (e.g. "VERSION_21"),
+	 * which Xtext's JavaVersion.fromQualifier does not understand. majorVersion gives "21".
+	 */
+	private def toXtextJavaVersion(org.gradle.api.JavaVersion version) {
+		val qualifier = version.majorVersion
+		val xtextVersion = JavaVersion.fromQualifier(qualifier)
+		if (xtextVersion === null) {
+			throw new GradleException('''Java source level "«qualifier»" is not supported by the Xtext version in use (highest supported: "«JavaVersion.values.reverse.head.qualifier»"). Configure xtext.languages.<language>.generator.javaSourceLevel, or use a newer Xtext version.''')
+		}
+		xtextVersion
 	}
 
 	private def attachOutputConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
@@ -264,7 +279,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		try {
 			val configClass = Class.forName("org.eclipse.xtext.java.resource.JavaConfig")
 			val javaConfig = configClass.getConstructor().newInstance
-			val javaVersion = JavaVersion.fromQualifier(gradleRequest.generatorConfigsByLanguage.values.head.javaSourceLevel.toString)
+			val javaVersion = toXtextJavaVersion(gradleRequest.generatorConfigsByLanguage.values.head.javaSourceLevel)
 			configClass.getMethod("attachToEmfObject", Notifier).invoke(javaConfig, resourceSet)
 			configClass.getMethod("setJavaSourceLevel", JavaVersion).invoke(javaConfig, javaVersion)
 			configClass.getMethod("setJavaTargetLevel", JavaVersion).invoke(javaConfig, javaVersion)
