@@ -47,7 +47,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def createGeneratorTasks() {
 		xtext.sourceSets.all [ sourceSet |
-			val generatorTask = project.tasks.create(sourceSet.generatorTaskName, XtextGenerate) [
+			val generatorTask = project.tasks.register(sourceSet.generatorTaskName, XtextGenerate) [
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
@@ -56,9 +56,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				projectDirectory.set(project.projectDir)
 				options.incremental.convention(true)
 				options.encoding.convention("UTF-8")
-			]
+			].get()
 			setupXtextClasspath(sourceSet, generatorTask)
-			project.tasks.create('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
+			project.tasks.register('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
 				delete([
 					xtext.languages.map[generator.outlets].flatten.filter[cleanAutomatically.get].map [
 						sourceSet.output.getDir(it)
@@ -110,7 +110,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				outlet.cleanAutomatically.convention(true)
 				xtext.sourceSets.all [ sourceSet |
 					val output = sourceSet.output
-					output.dir(outlet, '''«project.buildDir»/«language.name»«outlet.folderFragment»/«sourceSet.name»''')
+					output.dir(outlet, new File(project.layout.buildDirectory.get().asFile, language.name + outlet.folderFragment + '/' + sourceSet.name))
 				]
 			]
 		]
@@ -154,7 +154,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def integrateWithEclipsePlugin() {
 		project.plugins.withType(EclipsePlugin) [
-			val settingsTask = project.tasks.create("xtextEclipseSettings", XtextEclipseSettings)
+			val settingsTask = project.tasks.register("xtextEclipseSettings", XtextEclipseSettings).get()
 			settingsTask.languages = xtext.languages
 			settingsTask.sourceSets = xtext.sourceSets
 			settingsTask.projectDirectory.set(project.projectDir)
