@@ -50,6 +50,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				sources = sourceSet
 				sourceSetOutputs = sourceSet.output
 				languages = xtext.languages
+				// captured at configuration time: Task.getProject() is an error in Gradle 10
+				projectName.set(project.name)
+				projectDirectory.set(project.projectDir)
 				options.incremental.convention(true)
 				options.encoding.convention("UTF-8")
 			]
@@ -85,7 +88,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			if (version === null) {
 				return
 			}
-			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend") {
+			if (requested.group == "org.eclipse.xtext") {
 				useVersion(version)
 			}
 		]
@@ -153,8 +156,16 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			val settingsTask = project.tasks.create("xtextEclipseSettings", XtextEclipseSettings)
 			settingsTask.languages = xtext.languages
 			settingsTask.sourceSets = xtext.sourceSets
-			project.tasks.getAt(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(settingsTask)
-			project.tasks.getAt("cleanEclipse").dependsOn("cleanXtextEclipseSettings")
+			settingsTask.projectDirectory.set(project.projectDir)
+			// Gradle 9 deprecates the eclipse*/cleanEclipse* file generation tasks and removes
+			// them in Gradle 10. Eclipse Buildship imports the Gradle model itself, so only the
+			// Xtext-specific .settings files still have to be written - and they do not need the
+			// eclipse task to do it. Wire them into the regular lifecycle instead.
+			project.tasks.named("classes").configure(new Action<Task>() {
+				override void execute(Task it) {
+					it.dependsOn(settingsTask)
+				}
+			})
 
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")

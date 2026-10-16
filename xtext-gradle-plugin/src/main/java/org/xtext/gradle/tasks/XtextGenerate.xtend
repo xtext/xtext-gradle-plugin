@@ -5,19 +5,26 @@ import com.google.common.io.Resources
 import java.io.File
 import java.util.Collection
 import java.util.Set
+import javax.inject.Inject
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.ChangeType
+import org.gradle.work.DisableCachingByDefault
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import org.xtext.gradle.XtextBuilderPlugin
@@ -30,6 +37,7 @@ import org.xtext.gradle.protocol.IncrementalXtextBuilder
 import org.xtext.gradle.tasks.internal.IncrementalXtextBuilderProvider
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 
+@DisableCachingByDefault(because = "Generation state is kept in a process-wide builder and an incremental index; the task is not safely relocatable between machines.")
 abstract class XtextGenerate extends DefaultTask {
 
 	static val builderJar = {
@@ -46,12 +54,17 @@ abstract class XtextGenerate extends DefaultTask {
 
 	@Accessors @Internal XtextSourceSetOutputs sourceSetOutputs
 
+	@Internal abstract def Property<String> getProjectName()
+
+	@Internal abstract def DirectoryProperty getProjectDirectory()
+
 	IncrementalXtextBuilder builder
 
 	Collection<File> generatedFiles
 
 	@InputFiles
 	@Incremental
+	@PathSensitive(PathSensitivity.RELATIVE)
 	def getAllSources() {
 		sources.files
 	}
@@ -59,6 +72,7 @@ abstract class XtextGenerate extends DefaultTask {
 	@InputFiles
 	@SkipWhenEmpty
 	@IgnoreEmptyDirectories
+	@PathSensitive(PathSensitivity.RELATIVE)
 	def getMainSources() {
 		val extensions = languages.filter[!generator.outlets.empty].map[fileExtensions.get].flatten.map["**/*." + it]
 		sources.files.matching[include(extensions)]
@@ -84,8 +98,8 @@ abstract class XtextGenerate extends DefaultTask {
 
 	private def createBuildRequest() {
 		new GradleBuildRequest => [
-			projectName = project.name
-			projectDir = project.projectDir
+			projectName = this.projectName.get()
+			projectDir = this.projectDirectory.get().asFile
 			containerHandle = this.containerHandle
 			allFiles += allSources.files
 			allClasspathEntries += this.classpath.files
@@ -150,7 +164,7 @@ abstract class XtextGenerate extends DefaultTask {
 		initializeBuilder
 		if (generatedFiles.isNullOrEmpty) {
 			generatedFiles = getSourceSetOutputs.dirs.map [ dir |
-				project.fileTree(dir)
+				objectFactory.fileTree().from(dir)
 			].flatten.toList
 		}
 		val request = new GradleInstallDebugInfoRequest => [
@@ -177,8 +191,10 @@ abstract class XtextGenerate extends DefaultTask {
 	}
 
 	private def getContainerHandle() {
-		project.projectDir + ':' + sources.name
+		projectDirectory.get().asFile + ':' + sources.name
 	}
+
+	@Inject abstract def ObjectFactory getObjectFactory()
 
 	@Classpath
 	@Incremental
