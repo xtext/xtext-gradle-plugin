@@ -133,7 +133,9 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	private def HashCode hash(File file) {
-		val hasher = Hashing.md5.newHasher
+		// Only used to detect changes between builds within a single session, never for
+		// security, so any stable hash function is fine. Guava deprecated Hashing.md5().
+		val hasher = Hashing.sha256.newHasher
 		hash(file, hasher)
 		hasher.hash
 	}
