@@ -16,9 +16,10 @@ Features
 - Incrementally generates code based on changed files
 - Allows multiple languages to cross-reference each other
 - Enhances Java classes with debug information when using Xbase languages
-- Hooks into 'gradle eclipse', so your languages are configured correctly when you import your projects
-- Supports Gradle 7.1 and above (tested up to 8.0)
-- Supports Xtext 2.17 and above (tested up to 2.30.0) 
+- Configures the Eclipse project model (builder, nature, synchronization tasks), so your languages are set up correctly when you import your projects, and generates the Xtext `.settings` files during the normal task lifecycle
+- Supports Gradle 9.8.1 and above
+- Supports Xtext 2.41 and above (tested up to 2.44.0)
+- Requires Java 21 
 
 Minimal Example
 ---------------
@@ -27,7 +28,7 @@ Below is the minimal configuration for a language that does not integrate with J
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '4.0.0'
+    id 'org.xtext.builder' version '5.0.0'
   }
 
   repositories {
@@ -60,7 +61,7 @@ If you apply the Java plugin, an Xtext Generator task is created for every Java 
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '4.0.0'
+    id 'org.xtext.builder' version '5.0.0'
     id 'java'
   }
 
@@ -95,7 +96,7 @@ Below is a more elaborate example with two hypothetical languages that makes use
 
 ```groovy
   plugins {
-    id 'org.xtext.builder' version '4.0.0'
+    id 'org.xtext.builder' version '5.0.0'
     id 'java'
   }
 

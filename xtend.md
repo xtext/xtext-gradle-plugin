@@ -32,8 +32,10 @@ Features
 - Incrementally compiles Xtend sources to Java
 - Enhances Java classes with Xtend debug information
 - Integrates seamlessly with the [Xtext Builder](xtext-builder.html) plugin and other Xtext languages
-- Hooks into 'gradle eclipse', so the Xtend compiler is configured for your project when you import it into Eclipse
-- Supports Gradle 7.1 and above (tested up to 8.0)
+- Configures the Eclipse project model, so the Xtend compiler is set up when you import your project into Eclipse
+- Supports Gradle 9.8.1 and above
+- Supports Xtext/Xtend 2.41 and above (tested up to 2.44.0)
+- Requires Java 21
 - Supports Xtend 2.17 and above (tested up to 29.0) 
 
 Options
