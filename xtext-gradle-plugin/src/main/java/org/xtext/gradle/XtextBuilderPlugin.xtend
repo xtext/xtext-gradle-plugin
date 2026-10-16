@@ -14,6 +14,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -162,7 +163,13 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			// them in Gradle 10. Eclipse Buildship imports the Gradle model itself, so only the
 			// Xtext-specific .settings files still have to be written - and they do not need the
 			// eclipse task to do it. Wire them into the regular lifecycle instead.
-			project.tasks.named("classes").configure(new Action<Task>() {
+			//
+			// Matched lazily rather than via named("classes"): this plugin only applies
+			// 'base' and 'jvm-ecosystem', so a plain-language project that applies the
+			// eclipse plugin has no 'classes' task and named() would fail configuration.
+			project.tasks.matching(new Spec<Task>() {
+				override boolean isSatisfiedBy(Task task) { task.name == "classes" }
+			}).configureEach(new Action<Task>() {
 				override void execute(Task it) {
 					it.dependsOn(settingsTask)
 				}

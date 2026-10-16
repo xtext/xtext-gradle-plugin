@@ -51,10 +51,18 @@ abstract class XtextEclipseSettings extends DefaultTask {
 		new XtextEclipsePreferences(projectDirectory.get().asFile, language.qualifiedName.get)
 	}
 
-	/** Path of the given file relative to the project directory. */
+	/**
+	 * Path of the given file relative to the project directory.
+	 *
+	 * Deliberately lexical: Path.normalize() removes "." and ".." segments without
+	 * touching the filesystem, whereas File.canonicalFile resolves symbolic links.
+	 * Resolving them would rewrite a source folder that is a link to somewhere else
+	 * (src/main/xtend -> ../shared-sources) to its target, and Eclipse would then be
+	 * configured with a folder the build never declared.
+	 */
 	private def String relativeToProject(File file) {
-		val root = projectDirectory.get().asFile.canonicalFile.toPath
-		val path = file.canonicalFile.toPath
+		val root = projectDirectory.get().asFile.toPath.toAbsolutePath.normalize()
+		val path = file.toPath.toAbsolutePath.normalize()
 		canonicalize(root.relativize(path).toString)
 	}
 

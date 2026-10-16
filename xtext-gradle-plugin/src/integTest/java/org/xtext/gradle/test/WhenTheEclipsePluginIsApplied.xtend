@@ -1,5 +1,7 @@
 package org.xtext.gradle.test
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import org.eclipse.core.internal.preferences.EclipsePreferences
 import org.junit.Test
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
@@ -94,6 +96,67 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 
 		// then
 		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
+	 * The settings task is hooked into the 'classes' task, which only exists once the
+	 * java plugin has been applied. This plugin applies just 'base' and 'jvm-ecosystem',
+	 * so a plain-language project that applies the eclipse plugin must still configure.
+	 */
+	@Test
+	def void configurationSucceedsWithoutTheJavaPlugin() {
+		// given a project that never applies the java plugin
+		buildFile = '''
+			plugins {
+				id 'org.xtext.builder' apply false
+			}
+			allprojects {
+				repositories {
+					mavenCentral()
+				}
+			}
+			apply plugin: 'eclipse'
+			apply plugin: 'org.xtext.builder'
+
+			xtext {
+				version = '«xtextVersion»'
+				languages {
+					xtend {
+						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
+					}
+				}
+			}
+		'''
+
+		// when configuring the build, which used to fail looking up 'classes'
+		build('xtextEclipseSettings')
+
+		// then
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
+	 * Eclipse is configured with the source folders the build declares. If one of them is
+	 * a symbolic link, the preference key must still name the declared folder rather than
+	 * the link target, otherwise Eclipse shows a folder the build never mentioned.
+	 */
+	@Test
+	def void symlinkedSourceFoldersKeepTheirConfiguredName() {
+		// given src/main/java is a link to a directory outside the conventional layout
+		val link = file('src/main/java')
+		link.delete()
+		file('shared-src').mkdirs
+		Files.createSymbolicLink(link.toPath, Paths.get('../../shared-src'))
+
+		// when
+		build('xtextEclipseSettings')
+
+		// then the key names the configured folder, not the resolved target
+		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
+		prefs.load
+		prefs.shouldContain('outlet.DEFAULT_OUTPUT.sourceFolder.src/main/java.directory', 'build/xtend/main')
+		assertNull(
+			prefs.get('outlet.DEFAULT_OUTPUT.sourceFolder.shared-src.directory', null))
 	}
 
 	def shouldContain(EclipsePreferences prefs, String key, Object value) {
