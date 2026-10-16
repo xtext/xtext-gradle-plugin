@@ -16,5 +16,6 @@ out/
 .gradle/
 build/
 testkit-dir/
+repox/
 # Local configuration file (sdk path, etc)
 local.properties

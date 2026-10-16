@@ -1,6 +1,6 @@
-description 'A plugin for invoking Xtext base Code generators'
+description = 'A plugin for invoking Xtext base Code generators'
 
-apply plugin: 'nebula.facet'
+apply plugin: 'com.netflix.nebula.facet'
 apply plugin: 'org.xtext.xtend'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
@@ -17,28 +17,25 @@ facets {
 }
 
 gradlePlugin {
+	website = 'https://www.eclipse.org/Xtext/'
+	vcsUrl = 'https://github.com/xtext/xtext-gradle-plugin'
 	plugins {
 		xtext {
 			id = "org.xtext.builder"
 			displayName = "Xtext Gradle Plugin"
 			description = "A Gradle plugin for generating code with Xtext"
+			tags.set(['Xtext', 'Xtend', 'DSL'])
 			implementationClass = "org.xtext.gradle.XtextBuilderPlugin"
 		}
 		xtend {
 			id = "org.xtext.xtend"
 			displayName = "Xtend Gradle Plugin"
 			description = "A Gradle plugin for the Xtend language"
+			tags.set(['Xtext', 'Xtend', 'DSL'])
 			implementationClass = "org.xtext.gradle.XtendLanguagePlugin"
 		}
 	}
 	testSourceSets sourceSets.integTest
-}
-
-pluginBundle {
-	website = 'https://www.eclipse.org/Xtext/'
-	vcsUrl = 'https://github.com/xtext/xtext-gradle-plugin'
-	description = 'Gradle plugins for generating code with Xtext/Xtend'
-	tags = ['Xtext', 'Xtend', 'DSL']
 }
 
 configurations {
@@ -58,16 +55,19 @@ configurations {
 
 dependencies {
 	builder project(':xtext-gradle-builder')
-	implementation "org.eclipse.xtend:org.eclipse.xtend.lib:$minimumXtextVersion"
-	implementation 'com.google.guava:guava:27.1-jre'
+	implementation "org.eclipse.xtext:org.eclipse.xtend.lib:$minimumXtextVersion"
+	implementation 'com.google.guava:guava:33.7.2-jre'
 	implementation 'org.eclipse.platform:org.eclipse.equinox.preferences:3.6.1'
 	implementation 'org.eclipse.platform:org.eclipse.equinox.common:3.8.0'
 	implementation 'org.osgi:org.osgi.framework:1.8.0'
-	implementation('org.apache.maven:maven-artifact:3.8.2') {
+	implementation('org.apache.maven:maven-artifact:3.9.16') {
 		transitive = false
 	}
 	protocol project(':xtext-gradle-protocol')
-	testImplementation 'org.ow2.asm:asm:9.4'
+	// Since Gradle 9, java-gradle-plugin only puts gradleApi() on compileOnly,
+	// so the ProjectBuilder-based unit tests need it on the test runtime classpath.
+	testImplementation gradleApi()
+	testImplementation 'org.ow2.asm:asm:9.11'
 }
 
 javadoc.dependsOn generateXtext
@@ -89,8 +89,6 @@ tasks.withType(Test) {
 }
 
 minimumIntegrationTest {
-	reports.html.destination = file("$testReportDir/$name")
-	reports.junitXml.destination = file("$testResultsDir/$name")
 	systemProperty 'gradle.version', minimumGradleVersion
 	systemProperty 'xtext.version', minimumXtextVersion
 }
@@ -101,7 +99,7 @@ task latestIntegrationTest(type: Test) {
 	systemProperty 'gradle.version', latestGradleVersion
 	systemProperty 'xtext.version', latestXtextVersion
 	javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     })
 }
 
