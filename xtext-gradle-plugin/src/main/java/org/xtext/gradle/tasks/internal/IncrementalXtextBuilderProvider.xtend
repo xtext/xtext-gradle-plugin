@@ -1,5 +1,7 @@
 package org.xtext.gradle.tasks.internal
 
+import com.google.common.io.Files
+import com.google.common.io.Resources
 import java.io.Closeable
 import java.io.File
 import java.net.URLClassLoader
@@ -12,6 +14,26 @@ class IncrementalXtextBuilderProvider {
 	static IncrementalXtextBuilder builder
 	static long builderChecksum
 	static Object lock = new Object
+
+	/**
+	 * The bundled generator, extracted to a temp file so it can be put on an isolated
+	 * classloader. Shared by XtextGenerate and XtextInstallDebugInfo.
+	 */
+	static File extractedBuilderJar
+
+	static def File getBuilderJar() {
+		synchronized(lock) {
+			if (extractedBuilderJar === null) {
+				val jar = File.createTempFile("xtext-gradle-builder", "jar")
+				jar.deleteOnExit
+				Resources.asByteSource(
+					typeof(IncrementalXtextBuilderProvider).classLoader.getResource("xtext-gradle-builder.jar")).copyTo(
+					Files.asByteSink(jar))
+				extractedBuilderJar = jar
+			}
+			return extractedBuilderJar
+		}
+	}
 
 	static def IncrementalXtextBuilder getBuilder(Set<String> languageSetups, String encoding,
 		Set<File> xtextClasspath) {

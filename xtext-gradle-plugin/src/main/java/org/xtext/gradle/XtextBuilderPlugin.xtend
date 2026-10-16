@@ -22,6 +22,7 @@ import org.xtext.gradle.tasks.Outlet
 import org.xtext.gradle.tasks.XtextEclipseSettings
 import org.xtext.gradle.tasks.XtextExtension
 import org.xtext.gradle.tasks.XtextGenerate
+import org.xtext.gradle.tasks.XtextInstallDebugInfo
 import org.xtext.gradle.tasks.XtextSourceDirectorySet
 import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 
@@ -140,13 +141,28 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						project.files(javaProducingOutlets.map[xtextSourceSet.output.getDir(it)]).builtBy(generatorTask)
 					] as Callable<Iterable<File>>)
 					javaCompile.dependsOn(generatorTask)
-					javaCompile.doLast(new Action<Task>() {
-						override void execute(Task it) {
-							generatorTask.installDebugInfo(javaCompile.destinationDirectory.get.asFile)
-						}
+					// Debug info must be installed into classes that already exist, and the
+					// configuration cache forbids one task's action from reaching into another
+					// task. A dedicated task, ordered after compilation, satisfies both.
+					val debugInfoTaskName = 'xtext' + xtextSourceSet.generatorTaskName.toFirstUpper + 'DebugInfo'
+					project.tasks.register(debugInfoTaskName, XtextInstallDebugInfo) [
+						languages.set(project.provider[xtext.languages.toSet])
+						generatedSourceDirs.from(project.provider[xtextSourceSet.output.dirs])
+						hasXtextSources.set(project.provider[generatorTask.mainSources.files.size() > 0])
+						encoding.set(project.provider[generatorTask.options.encoding.get()])
+						xtextClasspath.from(generatorTask.xtextClasspath)
+						classesDir.set(javaCompile.destinationDirectory)
+						mustRunAfter(generatorTask)
+					]
+					javaCompile.finalizedBy(debugInfoTaskName)
+					// A finalizer runs after the finalized task, but not necessarily before
+					// its consumers. Without this, jar could package classes before the debug
+					// info is installed, and the trace data would be missing from the artifact.
+					project.tasks.named('jar').configure(new Action<Task>() {
+						override void execute(Task jar) { jar.mustRunAfter(debugInfoTaskName) }
 					})
 					generatorTask.options.encoding.set(project.provider[javaCompile.options.encoding ?: "UTF-8"])
-					generatorTask.classpath.from(project.provider[javaSourceSet.compileClasspath])
+					generatorTask.classpath.from(javaSourceSet.compileClasspath)
 				]
 			]
 		]

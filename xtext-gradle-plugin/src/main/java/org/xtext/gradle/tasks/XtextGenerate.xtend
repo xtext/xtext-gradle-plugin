@@ -40,12 +40,8 @@ import org.xtext.gradle.protocol.GradleInstallDebugInfoRequest.SourceInstaller
 @DisableCachingByDefault(because = "Generation state is kept in a process-wide builder and an incremental index; the task is not safely relocatable between machines.")
 abstract class XtextGenerate extends DefaultTask {
 
-	static val builderJar = {
-		val jar = File.createTempFile("xtext-gradle-builder", "jar")
-		jar.deleteOnExit
-		Resources.asByteSource(typeof(XtextBuilderPlugin).classLoader.getResource("xtext-gradle-builder.jar")).copyTo(
-			Files.asByteSink(jar))
-		jar
+	static def getBuilderJar() {
+		IncrementalXtextBuilderProvider.getBuilderJar
 	}
 
 	@Accessors @Internal XtextSourceDirectorySet sources
