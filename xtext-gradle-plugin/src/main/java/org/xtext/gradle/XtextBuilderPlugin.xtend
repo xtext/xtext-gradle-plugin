@@ -2,6 +2,7 @@ package org.xtext.gradle;
 
 import java.io.File
 import java.util.LinkedHashSet
+import java.util.Properties
 import java.util.Set
 import java.util.concurrent.Callable
 import org.apache.maven.artifact.versioning.ComparableVersion
@@ -175,6 +176,12 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	}
 
 	private static class LazyXtextVersion {
+		/**
+		 * The floor this plugin release is built and tested against, baked into the jar
+		 * at build time from the minimumXtextVersion Gradle property.
+		 */
+		static val MINIMUM_VERSION = loadMinimumXtextVersion()
+
 		val XtextExtension xtext
 		val Configuration languages
 		val XtextGenerate task
@@ -186,6 +193,21 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			this.task = task
 		}
 
+		private static def loadMinimumXtextVersion() {
+			val resource = "xtext-gradle-plugin.properties"
+			val stream = typeof(LazyXtextVersion).classLoader.getResourceAsStream(resource)
+			if (stream === null) {
+				throw new GradleException('''Could not load "«resource»" from the classpath - the Xtext Gradle plugin appears to be packaged incorrectly.''')
+			}
+			try {
+				val properties = new Properties
+				properties.load(stream)
+				return properties.getProperty("minimumXtextVersion")
+			} finally {
+				stream.close
+			}
+		}
+
 		def String getVersion() {
 			if (version === null) {
 				version = xtext.getXtextVersion(task.classpath) ?: xtext.getXtextVersion(languages)
@@ -193,7 +215,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 					throw new GradleException('''Could not infer Xtext classpath for «task», because xtext.version was not set and no xtext libraries were found in «task.classpath» or «languages»''')
 				}
 			}
-			val minimumVersion = "2.17.1"
+			val minimumVersion = MINIMUM_VERSION
 			if (version !== null && new ComparableVersion(version) < new ComparableVersion(minimumVersion)) {
 				throw new GradleException('''Xtext «version» is no longer supported. The minimum version is «minimumVersion»''')
 
