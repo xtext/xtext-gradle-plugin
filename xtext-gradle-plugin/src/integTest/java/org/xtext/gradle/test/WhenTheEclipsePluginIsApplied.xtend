@@ -101,6 +101,52 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 	}
 
 	/**
+	 * cleanEclipse is deprecated in Gradle 9 (and gone in 10), but it still exists:
+	 * running it must not take the Xtext settings with it either.
+	 */
+	@Test
+	def void settingsSurviveCleanEclipse() {
+		// given
+		build('xtextEclipseSettings')
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+
+		// when running the deprecated cleanEclipse: its own deprecation notice trips
+		// --warning-mode=fail, so the build "fails" after the tasks ran
+		buildAndFail('cleanEclipse')
+
+		// then
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
+	 * The settings derive entirely from the build config, so a second consecutive
+	 * run must be up to date instead of rewriting the user-owned files.
+	 */
+	@Test
+	def void settingsAreUpToDateOnSecondRun() {
+		build('xtextEclipseSettings')
+		build('xtextEclipseSettings').task(':xtextEclipseSettings').shouldBeUpToDate
+	}
+
+	@Test
+	def void settingsRegenerateWhenConfigChanges() {
+		// given
+		build('xtextEclipseSettings')
+
+		// when a preference changes
+		buildFile.content = buildFile.contentAsString.replace(
+			"'org.eclipse.xtend.some.pref' : true",
+			"'org.eclipse.xtend.some.pref' : false")
+		val result = build('xtextEclipseSettings')
+
+		// then the task reruns and the file reflects the change
+		result.task(':xtextEclipseSettings').shouldNotBeUpToDate
+		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
+		prefs.load
+		prefs.shouldContain('org.eclipse.xtend.some.pref', 'false')
+	}
+
+	/**
 	 * The settings task is hooked into the 'classes' task, which only exists once the
 	 * java plugin has been applied. This plugin applies just 'base' and 'jvm-ecosystem',
 	 * so a plain-language project that applies the eclipse plugin must still configure.
