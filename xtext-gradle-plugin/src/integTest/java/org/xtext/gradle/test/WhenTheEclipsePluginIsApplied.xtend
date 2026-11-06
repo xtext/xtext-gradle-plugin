@@ -3,6 +3,7 @@ package org.xtext.gradle.test
 import java.nio.file.Files
 import java.nio.file.Paths
 import org.eclipse.core.internal.preferences.EclipsePreferences
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Test
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
 
@@ -45,10 +46,11 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 
 	@Test
 	def void properSettingsAreGenerated() {
-		// when
-		build('xtextEclipseSettings')
+		// when the regular lifecycle runs, the classes hook triggers the settings task
+		val result = build('classes')
 
 		// then
+		result.task(':xtextEclipseSettings').shouldBe(TaskOutcome.SUCCESS)
 		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
 		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
 		prefs.load
