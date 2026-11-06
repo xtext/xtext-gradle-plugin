@@ -14,7 +14,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -175,13 +174,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			// Matched lazily rather than via named("classes"): this plugin only applies
 			// 'base' and 'jvm-ecosystem', so a plain-language project that applies the
 			// eclipse plugin has no 'classes' task and named() would fail configuration.
-			project.tasks.matching(new Spec<Task>() {
-				override boolean isSatisfiedBy(Task task) { task.name == "classes" }
-			}).configureEach(new Action<Task>() {
-				override void execute(Task it) {
-					it.dependsOn(settingsTask)
-				}
-			})
+			project.tasks.matching [ Task task | task.name == "classes" ].configureEach [
+				dependsOn(settingsTask)
+			]
 
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
