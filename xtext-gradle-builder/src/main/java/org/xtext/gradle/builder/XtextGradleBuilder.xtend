@@ -241,10 +241,11 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	/**
 	 * Gradle's JavaVersion.toString() yields the enum constant name (e.g. "VERSION_21"),
 	 * which Xtext's JavaVersion.fromQualifier does not understand. majorVersion gives "21".
+	 * Xtext still qualifies Java 8 and below as "1.x", so retry with that prefix.
 	 */
 	private def toXtextJavaVersion(org.gradle.api.JavaVersion version) {
 		val qualifier = version.majorVersion
-		val xtextVersion = JavaVersion.fromQualifier(qualifier)
+		val xtextVersion = JavaVersion.fromQualifier(qualifier) ?: JavaVersion.fromQualifier("1." + qualifier)
 		if (xtextVersion === null) {
 			throw new GradleException('''Java source level "«qualifier»" is not supported by the Xtext version in use (highest supported: "«JavaVersion.values.reverse.head.qualifier»"). Configure xtext.languages.<language>.generator.javaSourceLevel, or use a newer Xtext version.''')
 		}

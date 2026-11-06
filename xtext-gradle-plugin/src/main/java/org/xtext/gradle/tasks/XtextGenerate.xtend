@@ -62,6 +62,10 @@ abstract class XtextGenerate extends DefaultTask {
 
 	Collection<File> generatedFiles
 
+	// ABSOLUTE, not RELATIVE: with RELATIVE a file moved between source roots with
+	// identical content normalizes to the same path, so the move goes unnoticed and
+	// the builder's absolute-URI index goes stale. (The task is not cache-relocatable,
+	// so ABSOLUTE costs nothing.)
 	@InputFiles
 	@Incremental
 	@PathSensitive(PathSensitivity.ABSOLUTE)

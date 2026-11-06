@@ -15,6 +15,8 @@ Requirements
 | Xtext / Xtend | **2.41.0** or later |
 
 Gradle 7 and 8 are no longer supported; use the 4.x plugin releases with those.
+Code generated for older Java still works: `javaSourceLevel` values of 8 and below
+are mapped to Xtext's `1.x` qualifiers, since JDK 21 can still target them.
 
 Note that all Xtend artifacts (`org.eclipse.xtend:*`) are published under the
 `org.eclipse.xtext` group. The old coordinates relocate, and this plugin still

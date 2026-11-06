@@ -61,6 +61,10 @@ abstract class XtextEclipseSettings extends DefaultTask {
 	 * Resolving them would rewrite a source folder that is a link to somewhere else
 	 * (src/main/xtend -> ../shared-sources) to its target, and Eclipse would then be
 	 * configured with a folder the build never declared.
+	 *
+	 * Source dirs outside the project root yield portable "../.." keys here, where the
+	 * old project.relativePath produced absolute ones. That is intentional; only paths
+	 * on another filesystem root keep their absolute form (see below).
 	 */
 	private def String relativeToProject(File file) {
 		val root = projectDirectory.get().asFile.toPath.toAbsolutePath.normalize()

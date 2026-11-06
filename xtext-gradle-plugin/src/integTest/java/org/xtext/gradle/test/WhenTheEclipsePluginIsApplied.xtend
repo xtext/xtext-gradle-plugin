@@ -103,6 +103,8 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 	/**
 	 * cleanEclipse is deprecated in Gradle 9 (and gone in 10), but it still exists:
 	 * running it must not take the Xtext settings with it either.
+	 *
+	 * TODO(Gradle 10): cleanEclipse no longer exists there; delete this test.
 	 */
 	@Test
 	def void settingsSurviveCleanEclipse() {
