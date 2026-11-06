@@ -16,6 +16,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
@@ -48,18 +49,18 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def createGeneratorTasks() {
 		xtext.sourceSets.all [ sourceSet |
-			val generatorTask = project.tasks.register(sourceSet.generatorTaskName, XtextGenerate) [
-				sources = sourceSet
-				sourceSetOutputs = sourceSet.output
-				languages = xtext.languages
-				// captured at configuration time: Task.getProject() is an error in Gradle 10
-				projectName.set(project.name)
-				projectDirectory.set(project.projectDir)
-				options.incremental.convention(true)
-				options.encoding.convention("UTF-8")
-			].get()
-			setupXtextClasspath(sourceSet, generatorTask)
-			project.tasks.register('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
+		val generatorTask = project.tasks.register(sourceSet.generatorTaskName, XtextGenerate) [
+			sources = sourceSet
+			sourceSetOutputs = sourceSet.output
+			languages = xtext.languages
+			// captured at configuration time: Task.getProject() is an error in Gradle 10
+			projectName.set(project.name)
+			projectDirectory.set(project.projectDir)
+			options.incremental.convention(true)
+			options.encoding.convention("UTF-8")
+		]
+		setupXtextClasspath(sourceSet, generatorTask)
+		project.tasks.register('clean' + sourceSet.generatorTaskName.toFirstUpper, Delete) [
 				delete([
 					xtext.languages.map[generator.outlets].flatten.filter[cleanAutomatically.get].map [
 						sourceSet.output.getDir(it)
@@ -69,9 +70,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 		]
 	}
 
-	private def setupXtextClasspath(XtextSourceDirectorySet sourceSet, XtextGenerate generatorTask) {
+	private def setupXtextClasspath(XtextSourceDirectorySet sourceSet, TaskProvider<XtextGenerate> generatorTask) {
 		val xtextTooling = project.configurations.create(sourceSet.qualifyConfigurationName("xtextTooling"))
-		generatorTask.xtextClasspath.from(xtextTooling)
+		generatorTask.configure[
+			xtextClasspath.from(xtextTooling)
+		]
 		xtextTooling.extendsFrom(xtextLanguages)
 		#[
 			'org.eclipse.xtext:org.eclipse.xtext',
@@ -90,7 +93,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			if (version === null) {
 				return
 			}
-			if (requested.group == "org.eclipse.xtext") {
+			if (requested.group == "org.eclipse.xtext" || requested.group == "org.eclipse.xtend") {
 				useVersion(version)
 			}
 		]
@@ -155,10 +158,11 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 	private def integrateWithEclipsePlugin() {
 		project.plugins.withType(EclipsePlugin) [
-			val settingsTask = project.tasks.register("xtextEclipseSettings", XtextEclipseSettings).get()
-			settingsTask.languages = xtext.languages
-			settingsTask.sourceSets = xtext.sourceSets
-			settingsTask.projectDirectory.set(project.projectDir)
+		val settingsTask = project.tasks.register("xtextEclipseSettings", XtextEclipseSettings) [
+			languages = xtext.languages
+			sourceSets = xtext.sourceSets
+			projectDirectory.set(project.projectDir)
+		]
 			// Gradle 9 deprecates the eclipse*/cleanEclipse* file generation tasks and removes
 			// them in Gradle 10. Eclipse Buildship imports the Gradle model itself, so only the
 			// Xtext-specific .settings files still have to be written - and they do not need the
@@ -185,49 +189,60 @@ class XtextBuilderPlugin implements Plugin<Project> {
 	private static class LazyXtextVersion {
 		/**
 		 * The floor this plugin release is built and tested against, baked into the jar
-		 * at build time from the minimumXtextVersion Gradle property.
+		 * at build time from the minimumXtextVersion Gradle property. Loaded lazily on
+		 * first use so a packaging problem surfaces as a readable build failure instead
+		 * of an ExceptionInInitializerError.
 		 */
-		static val MINIMUM_VERSION = loadMinimumXtextVersion()
+		static var String minimumVersion
 
 		val XtextExtension xtext
 		val Configuration languages
-		val XtextGenerate task
+		val TaskProvider<XtextGenerate> task
 		var String version
 
-		new(XtextExtension xtext, Configuration languages, XtextGenerate task) {
+		new(XtextExtension xtext, Configuration languages, TaskProvider<XtextGenerate> task) {
 			this.xtext = xtext
 			this.languages = languages
 			this.task = task
 		}
 
-		private static def loadMinimumXtextVersion() {
-			val resource = "xtext-gradle-plugin.properties"
-			val stream = typeof(LazyXtextVersion).classLoader.getResourceAsStream(resource)
-			if (stream === null) {
-				throw new GradleException('''Could not load "«resource»" from the classpath - the Xtext Gradle plugin appears to be packaged incorrectly.''')
+		private static def String minimumXtextVersion() {
+			if (minimumVersion === null) {
+				val resource = "xtext-gradle-plugin.properties"
+				val stream = typeof(LazyXtextVersion).classLoader.getResourceAsStream(resource)
+				if (stream === null) {
+					throw new GradleException('''Could not load "«resource»" from the classpath - the Xtext Gradle plugin appears to be packaged incorrectly.''')
+				}
+				try {
+					val properties = new Properties
+					properties.load(stream)
+					minimumVersion = properties.getProperty("minimumXtextVersion")
+				} finally {
+					stream.close
+				}
+				if (minimumVersion === null) {
+					throw new GradleException('''"«resource»" does not contain minimumXtextVersion - the Xtext Gradle plugin appears to be packaged incorrectly.''')
+				}
 			}
-			try {
-				val properties = new Properties
-				properties.load(stream)
-				return properties.getProperty("minimumXtextVersion")
-			} finally {
-				stream.close
-			}
+			return minimumVersion
 		}
 
 		def String getVersion() {
 			if (version === null) {
-				version = xtext.getXtextVersion(task.classpath) ?: xtext.getXtextVersion(languages)
-				if (version === null && !task.mainSources.empty) {
-					throw new GradleException('''Could not infer Xtext classpath for «task», because xtext.version was not set and no xtext libraries were found in «task.classpath» or «languages»''')
+				// Resolved here, at dependency-resolution time: realizing the task earlier
+				// would defeat the lazy register() above.
+				val realized = task.get
+				version = xtext.getXtextVersion(realized.classpath) ?: xtext.getXtextVersion(languages)
+				if (version === null && !realized.mainSources.empty) {
+					throw new GradleException('''Could not infer Xtext classpath for «realized», because xtext.version was not set and no xtext libraries were found in «realized.classpath» or «languages»''')
 				}
 			}
-			val minimumVersion = MINIMUM_VERSION
-			if (version !== null && new ComparableVersion(version) < new ComparableVersion(minimumVersion)) {
-				throw new GradleException('''Xtext «version» is no longer supported. The minimum version is «minimumVersion»''')
+		val minimumVersion = minimumXtextVersion()
+		if (version !== null && new ComparableVersion(version) < new ComparableVersion(minimumVersion)) {
+			throw new GradleException('''Xtext «version» is no longer supported. The minimum version is «minimumVersion»''')
 
-			}
-			version
 		}
+		version
+	}
 	}
 }

@@ -63,7 +63,13 @@ abstract class XtextEclipseSettings extends DefaultTask {
 	private def String relativeToProject(File file) {
 		val root = projectDirectory.get().asFile.toPath.toAbsolutePath.normalize()
 		val path = file.toPath.toAbsolutePath.normalize()
-		canonicalize(root.relativize(path).toString)
+		try {
+			canonicalize(root.relativize(path).toString)
+		} catch (IllegalArgumentException e) {
+			// Different filesystem roots (e.g. buildDir on another Windows drive):
+			// no relative path exists, keep the normalized absolute one.
+			canonicalize(path.toString)
+		}
 	}
 
 	private def makeProjectSpecific(XtextEclipsePreferences prefs) {
