@@ -24,7 +24,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Verify
-        run: ./gradlew build
+        run: ./gradlew build "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
       - name: Release
         run: ./gradlew publishPlugins "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
         env:

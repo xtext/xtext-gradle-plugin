@@ -128,9 +128,9 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				generator.javaSourceLevel.convention(project.provider[java.sourceCompatibility.majorVersion])
 			]
 			java.sourceSets.all [ javaSourceSet |
-				val javaCompile = project.tasks.getByName(javaSourceSet.compileJavaTaskName) as JavaCompile
+				val javaCompile = project.tasks.named(javaSourceSet.compileJavaTaskName, JavaCompile)
 				xtext.sourceSets.maybeCreate(javaSourceSet.name) => [ xtextSourceSet |
-					val generatorTask = project.tasks.getByName(xtextSourceSet.generatorTaskName) as XtextGenerate
+					val generatorTask = project.tasks.named(xtextSourceSet.generatorTaskName, XtextGenerate)
 					xtextSourceSet.srcDirs([javaSourceSet.java.srcDirs] as Callable<Set<File>>)
 					xtextSourceSet.srcDirs([javaSourceSet.resources.srcDirs] as Callable<Set<File>>)
 					javaSourceSet.allSource.srcDirs([
@@ -143,17 +143,21 @@ class XtextBuilderPlugin implements Plugin<Project> {
 						val javaProducingOutlets = xtext.languages.map[generator.outlets].flatten.filter[producesJava.get]
 						project.files(javaProducingOutlets.map[xtextSourceSet.output.getDir(it)]).builtBy(generatorTask)
 					] as Callable<Iterable<File>>)
-					javaCompile.dependsOn(generatorTask)
-					javaCompile.doLast(new Action<Task>() {
-						override void execute(Task it) {
-							generatorTask.installDebugInfo(javaCompile.destinationDirectory.get.asFile)
-						}
-					})
-					generatorTask.options.encoding.set(project.provider[javaCompile.options.encoding ?: "UTF-8"])
-					generatorTask.classpath.from(project.provider[javaSourceSet.compileClasspath])
+					javaCompile.configure [ javaCompileTask |
+						javaCompileTask.dependsOn(generatorTask)
+						javaCompileTask.doLast(new Action<Task>() {
+							override void execute(Task it) {
+								generatorTask.get.installDebugInfo(javaCompileTask.destinationDirectory.get.asFile)
+							}
+						})
+					]
+					generatorTask.configure [
+						options.encoding.set(project.provider[javaCompile.get.options.encoding ?: "UTF-8"])
+						classpath.from(project.provider[javaSourceSet.compileClasspath])
+					]
 				]
 			]
-		]
+	]
 	}
 
 	private def integrateWithEclipsePlugin() {

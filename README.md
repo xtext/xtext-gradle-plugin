@@ -10,21 +10,22 @@ Requirements
 
 | | Supported |
 |---|---|
-| Gradle | **9.8.1** or later (requires a JVM 17+ Gradle daemon) |
+| Gradle | **9.8.1** or later (requires a JVM 21+ Gradle daemon) |
 | Java | **21** |
 | Xtext / Xtend | **2.41.0** or later |
 
 Gradle 7 and 8 are no longer supported; use the 4.x plugin releases with those.
 
 Note that all Xtend artifacts (`org.eclipse.xtend:*`) are published under the
-`org.eclipse.xtext` group. The old coordinates relocate, but they are no longer
-referenced or version-aligned by this plugin.
+`org.eclipse.xtext` group. The old coordinates relocate, and this plugin still
+version-aligns both groups to `xtext.version`; new builds should prefer the
+`org.eclipse.xtext` coordinates.
 
 Building
 --------
 
 Run `./gradlew pTML -PreleaseVersion=<version>`, e.g. with `<version>` set to
-`5.0.0-SNAPSHOT`. This publishes to `repox/` for local consumption.
+`5.0.0-SNAPSHOT`. This publishes to your local Maven repository for local consumption.
 
 `./gradlew build` runs the unit tests plus both integration matrices
 (Gradle 9.8.1 with the minimum and the latest Xtext release).

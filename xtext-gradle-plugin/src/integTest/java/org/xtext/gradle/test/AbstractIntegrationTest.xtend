@@ -13,7 +13,7 @@ abstract class AbstractIntegrationTest {
 	@Rule public extension GradleBuildTester tester = new GradleBuildTester
 	protected extension ProjectUnderTest rootProject
 
-	final static ComparableVersion XTEXT_VERSION = new ComparableVersion(System.getProperty("xtext.version", "2.17.1"))
+	final static ComparableVersion XTEXT_VERSION = new ComparableVersion(System.getProperty("xtext.version", "2.41.0"))
 
 	@Before
 	def void setup() {
