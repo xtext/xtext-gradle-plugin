@@ -64,7 +64,7 @@ abstract class XtextGenerate extends DefaultTask {
 
 	@InputFiles
 	@Incremental
-	@PathSensitive(PathSensitivity.RELATIVE)
+	@PathSensitive(PathSensitivity.ABSOLUTE)
 	def getAllSources() {
 		sources.files
 	}
@@ -72,7 +72,7 @@ abstract class XtextGenerate extends DefaultTask {
 	@InputFiles
 	@SkipWhenEmpty
 	@IgnoreEmptyDirectories
-	@PathSensitive(PathSensitivity.RELATIVE)
+	@PathSensitive(PathSensitivity.ABSOLUTE)
 	def getMainSources() {
 		val extensions = languages.filter[!generator.outlets.empty].map[fileExtensions.get].flatten.map["**/*." + it]
 		sources.files.matching[include(extensions)]
