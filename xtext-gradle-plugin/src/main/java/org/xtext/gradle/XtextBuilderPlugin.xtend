@@ -114,7 +114,7 @@ class XtextBuilderPlugin implements Plugin<Project> {
 				outlet.cleanAutomatically.convention(true)
 				xtext.sourceSets.all [ sourceSet |
 					val output = sourceSet.output
-					output.dir(outlet, new File(project.layout.buildDirectory.get().asFile, language.name + outlet.folderFragment + '/' + sourceSet.name))
+					output.dir(outlet, project.layout.buildDirectory.dir(language.name + outlet.folderFragment + '/' + sourceSet.name))
 				]
 			]
 		]
