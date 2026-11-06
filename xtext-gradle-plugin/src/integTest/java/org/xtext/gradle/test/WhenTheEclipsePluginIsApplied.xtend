@@ -112,9 +112,12 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 
 		// when running the deprecated cleanEclipse: its own deprecation notice trips
 		// --warning-mode=fail, so the build "fails" after the tasks ran
-		buildAndFail('cleanEclipse')
+		val result = buildAndFail('cleanEclipse')
 
-		// then
+		// then the only failure is the deprecation gate: cleanEclipse ran
+		// (a task-not-found from stale wiring would leave no such task behind)
+		assertNotNull(result.task(':cleanEclipse'))
+		assertTrue(result.output.contains('deprecated'))
 		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
 	}
 
