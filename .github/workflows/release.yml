@@ -19,15 +19,21 @@ jobs:
       - id: get_version
         name: Get Version
         # Tags carry no 'v' prefix (e.g. 4.0.0), so the release tag is the version.
-        run: echo "version=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+        # Passed via env (not ${{ }} in run:) so a hostile tag cannot inject shell.
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: echo "version=$TAG_NAME" >> "$GITHUB_OUTPUT"
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Verify
-        run: ./gradlew build "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
-      - name: Release
-        run: ./gradlew publishPlugins "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
         env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.version }}
+        run: ./gradlew build "-PreleaseVersion=$RELEASE_VERSION"
+      - name: Release
+        env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.version }}
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+        run: ./gradlew publishPlugins "-PreleaseVersion=$RELEASE_VERSION"
