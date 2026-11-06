@@ -1,0 +1,33 @@
+name: Tmp release plumbing check
+
+# TEMPORARY - exercises the release version plumbing without publishing.
+# Deleted after verification; do not merge.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Fake release tag
+        default: 9.9.9-m9
+        required: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - id: get_version
+        name: Get Version
+        run: echo "version=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+      - name: Show version
+        run: echo "version=[${{ steps.get_version.outputs.version }}]"
+      - name: Verify wiring
+        run: ./gradlew build "-PreleaseVersion=${{ steps.get_version.outputs.version }}"
