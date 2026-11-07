@@ -124,6 +124,22 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 	}
 
 	/**
+	 * The `eclipse` lifecycle task must also produce the Xtext settings, as it always
+	 * has (synchronizationTasks only serves Buildship synchronization).
+	 * TODO(Gradle 10): the eclipse task is removed there; delete this test.
+	 */
+	@Test
+	def void settingsAreGeneratedByEclipseTask() {
+		// when running the deprecated eclipse task: its own deprecation notice trips
+		// --warning-mode=fail, so the build "fails" after the tasks ran
+		val result = buildAndFail('eclipse')
+
+		// then the settings task ran as part of the eclipse lifecycle
+		assertNotNull(result.task(':xtextEclipseSettings'))
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
 	 * The settings derive entirely from the build config, so a second consecutive
 	 * run must be up to date instead of rewriting the user-owned files.
 	 */

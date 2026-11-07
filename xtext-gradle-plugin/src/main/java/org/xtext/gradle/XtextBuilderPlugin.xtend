@@ -166,17 +166,21 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			sourceSets = xtext.sourceSets
 			projectDirectory.set(project.projectDir)
 		]
-			// Gradle 9 deprecates the eclipse*/cleanEclipse* file generation tasks and removes
-			// them in Gradle 10. Eclipse Buildship imports the Gradle model itself, so only the
-			// Xtext-specific .settings files still have to be written - and they do not need the
-			// eclipse task to do it. Wire them into the regular lifecycle instead.
-			//
-			// Matched lazily rather than via named("classes"): this plugin only applies
-			// 'base' and 'jvm-ecosystem', so a plain-language project that applies the
-			// eclipse plugin has no 'classes' task and named() would fail configuration.
-			project.tasks.matching [ Task task | task.name == "classes" ].configureEach [
-				dependsOn(settingsTask)
-			]
+		// Gradle 9 deprecates the eclipse*/cleanEclipse* file generation tasks and removes
+		// them in Gradle 10. Eclipse Buildship imports the Gradle model itself, so it only
+		// needs the synchronization hook below - but the `eclipse` lifecycle task must keep
+		// producing the Xtext settings as it always has. synchronizationTasks does NOT wire
+		// into the eclipse task graph (EclipsePlugin never reads it), so keep the edge.
+		project.tasks.named(EclipsePlugin.ECLIPSE_TASK_NAME) [
+			dependsOn(settingsTask)
+		]
+
+		// Matched lazily rather than via named("classes"): this plugin only applies
+		// 'base' and 'jvm-ecosystem', so a plain-language project that applies the
+		// eclipse plugin has no 'classes' task and named() would fail configuration.
+		project.tasks.matching [ Task task | task.name == "classes" ].configureEach [
+			dependsOn(settingsTask)
+		]
 
 			val eclipse = project.extensions.getByType(EclipseModel)
 			eclipse.project.buildCommand("org.eclipse.xtext.ui.shared.xtextBuilder")
