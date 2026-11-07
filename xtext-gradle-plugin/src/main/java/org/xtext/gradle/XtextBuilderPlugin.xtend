@@ -175,6 +175,18 @@ class XtextBuilderPlugin implements Plugin<Project> {
 			dependsOn(settingsTask)
 		]
 
+		// TODO(review): do we want this classes -> xtextEclipseSettings edge at all?
+		//  It makes every ordinary build (./gradlew build, IntelliJ running classes) rewrite
+		//  the version-controlled .settings/*.prefs files, and fail when they cannot be computed.
+		//  Buildship is already covered by synchronizationTasks below, and command-line users
+		//  by the eclipse lifecycle task above. Options:
+		//  (a) drop the edge (preferred) - users run xtextEclipseSettings explicitly once
+		//      Gradle 10 removes the eclipse task;
+		//  (b) keep it behind an opt-in flag on the extension, off by default;
+		//  (c) keep it as is.
+		//  If it stays, tasks.matching(Spec<Task>) must go: evaluating the spec realizes every
+		//  registered task in the project. tasks.named { it == JavaPlugin.CLASSES_TASK_NAME }
+		//  (Gradle 8.6+) filters by name, stays lazy and also tolerates a missing classes task.
 		// Matched lazily rather than via named("classes"): this plugin only applies
 		// 'base' and 'jvm-ecosystem', so a plain-language project that applies the
 		// eclipse plugin has no 'classes' task and named() would fail configuration.
@@ -232,6 +244,14 @@ class XtextBuilderPlugin implements Plugin<Project> {
 
 		def String getVersion() {
 			if (version === null) {
+				// TODO(review): this realizes the generate task from inside the eachDependency rule.
+				//  When xtextTooling is resolved without the task being in the graph (e.g.
+				//  `gradle dependencies --configuration xtextTooling`), the task and its configure
+				//  actions get created at execution time. We only need the task's classpath and
+				//  main sources: register one shared file collection next to the task
+				//  (objects.fileCollection().from(provider[javaSourceSet.compileClasspath])) that
+				//  both the task's classpath and this class read, and take the main sources from
+				//  the xtext source set - then this class no longer needs the TaskProvider at all.
 				// Resolved here, at dependency-resolution time: realizing the task earlier
 				// would defeat the lazy register() above.
 				val realized = task.get
