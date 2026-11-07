@@ -1,8 +1,8 @@
 package org.xtext.gradle.test
 
-import com.google.common.base.Charsets
 import com.google.common.io.Files
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.Set
 import org.apache.maven.artifact.versioning.ComparableVersion
@@ -17,7 +17,7 @@ import org.junit.rules.TemporaryFolder
 import static org.junit.Assert.*
 
 class GradleBuildTester extends ExternalResource {
-	public final static ComparableVersion GRADLE_VERSION = new ComparableVersion(System.getProperty("gradle.version", "7.1"))
+	public final static ComparableVersion GRADLE_VERSION = new ComparableVersion(System.getProperty("gradle.version", "9.8.1"))
 	val temp = new TemporaryFolder
 	ProjectUnderTest rootProject
 	GradleRunner gradle
@@ -60,7 +60,7 @@ class GradleBuildTester extends ExternalResource {
 	def void setContent(File file, CharSequence content) {
 		file.parentFile.mkdirs
 		file.createNewFile
-		Files.asCharSink(file, Charsets.UTF_8).write(content)
+		Files.asCharSink(file, StandardCharsets.UTF_8).write(content)
 	}
 
 	def void append(File file, CharSequence content) {
@@ -76,7 +76,7 @@ class GradleBuildTester extends ExternalResource {
 	}
 
 	def String getContentAsString(File file) {
-		Files.asCharSource(file, Charsets.UTF_8).read
+		Files.asCharSource(file, StandardCharsets.UTF_8).read
 	}
 
 	def byte[] getContent(File file) {

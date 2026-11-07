@@ -59,6 +59,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 	
 	@Test
 	def generatorHandlesDeletionOfClasspathFolders() {
+		allowNoDiscoveredTests
 		createFile('src/main/java/UpStream.xtend', '''
 			class UpStream {}
 		''')
@@ -246,6 +247,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def void theIndexerCanHandleNonExistentClasspathEntries() {
+		allowNoDiscoveredTests
 		file('src/test/java/com/example/HelloWorld.xtend').content = '''
 			package com.example
 			class HelloWorld {}
@@ -256,6 +258,7 @@ class BuildingASimpleXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
 	def void theIndexerCanHandleDirectoryClasspathEntries() {
+		allowNoDiscoveredTests
 		file('src/main/java/com/example/Foo.xtend').content = '''
 			package com.example
 			class Foo {}

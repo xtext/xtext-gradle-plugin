@@ -17,7 +17,7 @@ abstract class AbstractXtendIntegrationTest extends AbstractIntegrationTest {
 		apply plugin: 'org.xtext.xtend'
 
 		dependencies {
-			«implementationScope» 'org.eclipse.xtend:org.eclipse.xtend.lib:«xtextVersion»'
+			«implementationScope» 'org.eclipse.xtext:org.eclipse.xtend.lib:«xtextVersion»'
 		}
 	'''
 

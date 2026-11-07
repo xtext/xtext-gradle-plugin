@@ -11,11 +11,13 @@ import static org.junit.Assert.*
 class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 
 	@Test
-	def void compilesToJava8SourceWhenConfigured() {
-		// given 
+	def void compilesToLambdaSourceWhenConfigured() {
+		// given
 		createHelloWorld
 		buildFile << '''
-			sourceCompatibility = "1.8"
+			java {
+				sourceCompatibility = JavaVersion.VERSION_21
+			}
 		'''
 
 		// when
@@ -28,20 +30,23 @@ class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 	}
 
 	@Test
-	def void compilesToJava7SourceWhenConfigured() {
-		// given 
+	def void fallsBackToNearestSupportedJavaVersion() {
+		// given: Xtext has no constant for Java 18, the nearest lower one is 17
 		createHelloWorld
 		buildFile << '''
-			sourceCompatibility = "1.7"
+			java {
+				sourceCompatibility = JavaVersion.VERSION_18
+			}
 		'''
 
 		// when
-		build('generateXtext')
+		val result = build('generateXtext')
 
 		// then
+		assertTrue(result.output.contains('''Java source level "18" is not supported by the Xtext version in use, generating code for Java "17" instead.'''))
 		val generatedJava = file('build/xtend/main/HelloWorld.java').contentAsString
-		val anonymousInnerClass = Pattern.compile('''new \w*<String>\(\) \{''')
-		assertTrue(anonymousInnerClass.matcher(generatedJava).find)
+		val lambda = Pattern.compile('''\(String \w+\) -> \{''')
+		assertTrue(lambda.matcher(generatedJava).find)
 	}
 
 	@Test

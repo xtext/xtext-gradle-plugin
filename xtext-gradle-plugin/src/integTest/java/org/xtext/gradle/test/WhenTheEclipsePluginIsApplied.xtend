@@ -1,6 +1,9 @@
 package org.xtext.gradle.test
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import org.eclipse.core.internal.preferences.EclipsePreferences
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Test
 import org.xtext.gradle.tasks.internal.XtextEclipsePreferences
 
@@ -15,7 +18,9 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 			apply plugin: 'eclipse'
 			apply plugin: 'org.xtext.builder'
 
-			sourceCompatibility = '1.6'
+			java {
+				sourceCompatibility = JavaVersion.VERSION_21
+			}
 
 			xtext {
 				version = '«xtextVersion»'
@@ -41,10 +46,11 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 
 	@Test
 	def void properSettingsAreGenerated() {
-		// when
-		build('eclipse')
+		// when the regular lifecycle runs, the classes hook triggers the settings task
+		val result = build('classes')
 
 		// then
+		result.task(':xtextEclipseSettings').shouldBe(TaskOutcome.SUCCESS)
 		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
 		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
 		prefs.load
@@ -55,7 +61,7 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
 		prefs.shouldContain('generateGeneratedAnnotation', false)
 		prefs.shouldContain('includeDateInGenerated', false)
 		prefs.shouldContain('useJavaCompilerCompliance', false)
-		prefs.shouldContain('targetJavaVersion', 'JAVA6')
+		prefs.shouldContain('targetJavaVersion', 'JAVA21')
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.userOutputPerSourceFolder', true)
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.installDslAsPrimarySource', false)
 		prefs.shouldContain('outlet.DEFAULT_OUTPUT.hideLocalSyntheticVariables', true)
@@ -69,23 +75,157 @@ class WhenTheEclipsePluginIsApplied extends AbstractIntegrationTest {
         @Test
         def void settingsDontContainComments() {
                 // when
-                build('eclipse')
+                build('xtextEclipseSettings')
 
                 // then
                 val prefs = file('.settings/org.eclipse.xtend.core.Xtend.prefs')
                 assertFalse(prefs.contentAsString.contains("#"))
         }
 
+	/**
+	 * The .settings files are owned by the user and normally committed to version control,
+	 * so a clean must not remove them. They are produced from the regular task lifecycle
+	 * rather than from Gradle's deprecated cleanEclipse task.
+	 */
 	@Test
-	def void settingsAreCleanedProperly() {
+	def void settingsSurviveClean() {
 		// given
-		build('eclipse')
+		build('xtextEclipseSettings')
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
 
 		// when
-		build('cleanEclipse')
+		build('clean')
 
 		// then
-		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldNotExist
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
+	 * cleanEclipse is deprecated in Gradle 9 (and gone in 10), but it still exists:
+	 * running it must not take the Xtext settings with it either.
+	 *
+	 * TODO(Gradle 10): cleanEclipse no longer exists there; delete this test.
+	 */
+	@Test
+	def void settingsSurviveCleanEclipse() {
+		// given
+		build('xtextEclipseSettings')
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+
+		// when running the deprecated cleanEclipse: its own deprecation notice trips
+		// --warning-mode=fail, so the build "fails" after the tasks ran
+		val result = buildAndFail('cleanEclipse')
+
+		// then the only failure is the deprecation gate: cleanEclipse ran
+		// (a task-not-found from stale wiring would leave no such task behind)
+		assertNotNull(result.task(':cleanEclipse'))
+		assertTrue(result.output.contains('deprecated'))
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
+	 * The `eclipse` lifecycle task must also produce the Xtext settings, as it always
+	 * has (synchronizationTasks only serves Buildship synchronization).
+	 * TODO(Gradle 10): the eclipse task is removed there; delete this test.
+	 */
+	@Test
+	def void settingsAreGeneratedByEclipseTask() {
+		// when running the deprecated eclipse task: its own deprecation notice trips
+		// --warning-mode=fail, so the build "fails" after the tasks ran
+		val result = buildAndFail('eclipse')
+
+		// then the settings task ran as part of the eclipse lifecycle
+		assertNotNull(result.task(':xtextEclipseSettings'))
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
+	 * The settings derive entirely from the build config, so a second consecutive
+	 * run must be up to date instead of rewriting the user-owned files.
+	 */
+	@Test
+	def void settingsAreUpToDateOnSecondRun() {
+		build('xtextEclipseSettings')
+		build('xtextEclipseSettings').task(':xtextEclipseSettings').shouldBeUpToDate
+	}
+
+	@Test
+	def void settingsRegenerateWhenConfigChanges() {
+		// given
+		build('xtextEclipseSettings')
+
+		// when a preference changes
+		buildFile.content = buildFile.contentAsString.replace(
+			"'org.eclipse.xtend.some.pref' : true",
+			"'org.eclipse.xtend.some.pref' : false")
+		val result = build('xtextEclipseSettings')
+
+		// then the task reruns and the file reflects the change
+		result.task(':xtextEclipseSettings').shouldNotBeUpToDate
+		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
+		prefs.load
+		prefs.shouldContain('org.eclipse.xtend.some.pref', 'false')
+	}
+
+	/**
+	 * The settings task is hooked into the 'classes' task, which only exists once the
+	 * java plugin has been applied. This plugin applies just 'base' and 'jvm-ecosystem',
+	 * so a plain-language project that applies the eclipse plugin must still configure.
+	 */
+	@Test
+	def void configurationSucceedsWithoutTheJavaPlugin() {
+		// given a project that never applies the java plugin
+		buildFile = '''
+			plugins {
+				id 'org.xtext.builder' apply false
+			}
+			allprojects {
+				repositories {
+					mavenCentral()
+				}
+			}
+			apply plugin: 'eclipse'
+			apply plugin: 'org.xtext.builder'
+
+			xtext {
+				version = '«xtextVersion»'
+				languages {
+					xtend {
+						setup = 'org.eclipse.xtend.core.XtendStandaloneSetup'
+					}
+				}
+			}
+		'''
+
+		// when configuring the build, which used to fail looking up 'classes'
+		build('xtextEclipseSettings')
+
+		// then
+		file('.settings/org.eclipse.xtend.core.Xtend.prefs').shouldExist
+	}
+
+	/**
+	 * Eclipse is configured with the source folders the build declares. If one of them is
+	 * a symbolic link, the preference key must still name the declared folder rather than
+	 * the link target, otherwise Eclipse shows a folder the build never mentioned.
+	 */
+	@Test
+	def void symlinkedSourceFoldersKeepTheirConfiguredName() {
+		// given src/main/java is a link to a directory outside the conventional layout
+		val link = file('src/main/java')
+		link.delete()
+		file('shared-src').mkdirs
+		Files.createSymbolicLink(link.toPath, Paths.get('../../shared-src'))
+
+		// when
+		build('xtextEclipseSettings')
+
+		// then the key names the configured folder, not the resolved target
+		val prefs = new XtextEclipsePreferences(projectDir, 'org.eclipse.xtend.core.Xtend')
+		prefs.load
+		prefs.shouldContain('outlet.DEFAULT_OUTPUT.sourceFolder.src/main/java.directory', 'build/xtend/main')
+		assertNull(
+			prefs.get('outlet.DEFAULT_OUTPUT.sourceFolder.shared-src.directory', null))
 	}
 
 	def shouldContain(EclipsePreferences prefs, String key, Object value) {
