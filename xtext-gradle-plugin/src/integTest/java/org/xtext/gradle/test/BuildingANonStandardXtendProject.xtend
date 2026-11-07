@@ -30,6 +30,26 @@ class BuildingANonStandardXtendProject extends AbstractXtendIntegrationTest {
 	}
 
 	@Test
+	def void fallsBackToNearestSupportedJavaVersion() {
+		// given: Xtext has no constant for Java 18, the nearest lower one is 17
+		createHelloWorld
+		buildFile << '''
+			java {
+				sourceCompatibility = JavaVersion.VERSION_18
+			}
+		'''
+
+		// when
+		val result = build('generateXtext')
+
+		// then
+		assertTrue(result.output.contains('''Java source level "18" is not supported by the Xtext version in use, generating code for Java "17" instead.'''))
+		val generatedJava = file('build/xtend/main/HelloWorld.java').contentAsString
+		val lambda = Pattern.compile('''\(String \w+\) -> \{''')
+		assertTrue(lambda.matcher(generatedJava).find)
+	}
+
+	@Test
 	def void failsOnConstantBooleanExpressionWhenConfigured() {
 		// given
 		createFile('src/main/java/HelloWorld.xtend', '''

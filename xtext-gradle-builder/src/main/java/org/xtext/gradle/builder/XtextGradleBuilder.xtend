@@ -35,6 +35,7 @@ import org.eclipse.xtext.workspace.ProjectConfigAdapter
 import org.eclipse.xtext.xbase.compiler.GeneratorConfig
 import org.eclipse.xtext.xbase.compiler.GeneratorConfigProvider
 import org.gradle.api.GradleException
+import org.slf4j.Logger
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstaller
 import org.xtext.gradle.builder.InstallDebugInfoRequest.SourceInstallerConfig
 import org.xtext.gradle.protocol.GradleBuildRequest
@@ -231,7 +232,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 						generateGeneratedAnnotation = gradleConfig.isGenerateGeneratedAnnotation
 						includeDateInGeneratedAnnotation = gradleConfig.isIncludeDateInGeneratedAnnotation
 						generatedAnnotationComment = gradleConfig.generatedAnnotationComment
-						javaSourceVersion = toXtextJavaVersion(gradleConfig.javaSourceLevel)
+						javaSourceVersion = toXtextJavaVersion(gradleConfig.javaSourceLevel, gradleRequest.logger)
 					]
 				]
 			)
@@ -239,17 +240,37 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 	}
 
 	/**
-	 * Gradle's JavaVersion.toString() yields the enum constant name (e.g. "VERSION_21"),
-	 * which Xtext's JavaVersion.fromQualifier does not understand. majorVersion gives "21".
-	 * Xtext still qualifies Java 8 and below as "1.x", so retry with that prefix.
+	 * Maps Gradle's JavaVersion to the closest constant of the Xtext version in use.
+	 *
+	 * Xtext only has constants for some Java levels (2.41: 5-11, 17, 21, where JAVA5-7 are
+	 * deprecated aliases of Java 8), so an exact match is not always possible - e.g. a
+	 * sourceCompatibility of 18, or the JavaVersion.current fallback on a JDK 25 daemon.
+	 * We pick the highest level Xtext supports that does not exceed the requested one,
+	 * and the lowest supported level when the request is below all of them.
+	 *
+	 * TODO(review): which behaviour do we want for levels without an exact Xtext constant?
+	 *  (a) clamp down to the nearest supported level and warn (implemented here) - builds keep
+	 *      working, generated code never uses features newer than requested;
+	 *  (b) fail with a GradleException (previous state of this branch) - explicit, but breaks
+	 *      builds that never configured javaSourceLevel, e.g. on a newer JDK;
+	 *  (c) silently pass null like master did - Xtext 2.44 NPEs on that, so not really an option.
 	 */
-	private def toXtextJavaVersion(org.gradle.api.JavaVersion version) {
-		val qualifier = version.majorVersion
-		val xtextVersion = JavaVersion.fromQualifier(qualifier) ?: JavaVersion.fromQualifier("1." + qualifier)
-		if (xtextVersion === null) {
-			throw new GradleException('''Java source level "«qualifier»" is not supported by the Xtext version in use (highest supported: "«JavaVersion.values.reverse.head.qualifier»"). Configure xtext.languages.<language>.generator.javaSourceLevel, or use a newer Xtext version.''')
+	private def toXtextJavaVersion(org.gradle.api.JavaVersion version, Logger logger) {
+		val requested = Integer.parseInt(version.majorVersion)
+		val exact = JavaVersion.fromQualifier(version.majorVersion)
+		if (exact !== null) {
+			return exact
 		}
-		xtextVersion
+		// fromQualifier returns the first match, so prefer that over the deprecated aliases
+		val supported = JavaVersion.values.map[JavaVersion.fromQualifier(qualifier)].toSet.sortBy[majorVersion]
+		val clamped = supported.filter[majorVersion <= requested].last ?: supported.head
+		logger.warn('''Java source level "«version.majorVersion»" is not supported by the Xtext version in use, generating code for Java "«clamped.qualifier»" instead. Configure xtext.languages.<language>.generator.javaSourceLevel, or use a newer Xtext version.''')
+		clamped
+	}
+
+	private static def int majorVersion(JavaVersion version) {
+		val qualifier = version.qualifier
+		Integer.parseInt(if (qualifier.startsWith("1.")) qualifier.substring(2) else qualifier)
 	}
 
 	private def attachOutputConfig(XtextResourceSet resourceSet, GradleBuildRequest gradleRequest) {
@@ -280,7 +301,7 @@ class XtextGradleBuilder implements IncrementalXtextBuilder {
 		try {
 			val configClass = Class.forName("org.eclipse.xtext.java.resource.JavaConfig")
 			val javaConfig = configClass.getConstructor().newInstance
-			val javaVersion = toXtextJavaVersion(gradleRequest.generatorConfigsByLanguage.values.head.javaSourceLevel)
+			val javaVersion = toXtextJavaVersion(gradleRequest.generatorConfigsByLanguage.values.head.javaSourceLevel, gradleRequest.logger)
 			configClass.getMethod("attachToEmfObject", Notifier).invoke(javaConfig, resourceSet)
 			configClass.getMethod("setJavaSourceLevel", JavaVersion).invoke(javaConfig, javaVersion)
 			configClass.getMethod("setJavaTargetLevel", JavaVersion).invoke(javaConfig, javaVersion)
